@@ -3,13 +3,13 @@ package com.account_catalogue.domain.enums;
 import lombok.Getter;
 
 @Getter
-public enum financialStatusEnum {
-    StatementFinancialPosition("Estado de Situación Financiero"),
-    IncomeStatement("Estado de Resultados");
+public enum FinancialStatusEnum {
+    STATEMENTFINANCIALPOSITION("Estado de Situación Financiero"),
+    INCOMESTATEMENT("Estado de Resultados");
 
     private final String state;
 
-    financialStatusEnum(String state){
+    FinancialStatusEnum(String state){
         this.state=state;
     }
 

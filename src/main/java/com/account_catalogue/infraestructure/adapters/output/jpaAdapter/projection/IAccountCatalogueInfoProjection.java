@@ -6,6 +6,7 @@ import lombok.Getter;
 
 
 public interface IAccountCatalogueInfoProjection {
+    int getId();
     String getCode();
     String getDescription();
 }

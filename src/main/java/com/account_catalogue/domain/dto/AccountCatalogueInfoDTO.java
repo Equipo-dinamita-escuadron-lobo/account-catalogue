@@ -9,6 +9,7 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 public class AccountCatalogueInfoDTO {
+    int id;
     String code;
     String description;
 }

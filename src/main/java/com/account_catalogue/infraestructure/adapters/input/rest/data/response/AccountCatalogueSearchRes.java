@@ -8,6 +8,7 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 public class AccountCatalogueSearchRes {
+   int id;
     String code;
     String description;
 }

@@ -26,7 +26,7 @@ import lombok.NoArgsConstructor;
 public class AccountCatalogueEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private int id;
 
     @Column(unique = true)
     private String code;

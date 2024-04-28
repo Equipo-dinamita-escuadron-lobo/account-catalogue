@@ -3,6 +3,7 @@ package com.account_catalogue.infraestructure.adapters.output.jpaAdapter;
 import com.account_catalogue.application.output.IAccountCatalogueCreateOutputPort;
 import com.account_catalogue.domain.models.AccountCatalogue;
 import com.account_catalogue.infraestructure.adapters.output.jpaAdapter.entity.AccountCatalogueEntity;
+import com.account_catalogue.infraestructure.adapters.output.jpaAdapter.mapper.IAccountCatalogueCreateMapper;
 import com.account_catalogue.infraestructure.adapters.output.jpaAdapter.mapper.impl.AccountCatalogueCreateMapper;
 import com.account_catalogue.infraestructure.adapters.output.jpaAdapter.repository.IAccountCatalogueRepository;
 import lombok.Data;
@@ -14,7 +15,7 @@ public class AccountCatalogueCreateJpaAdapter implements IAccountCatalogueCreate
 
     private final IAccountCatalogueRepository accountCatalogueRepository;
 
-    private final AccountCatalogueCreateMapper accountCatalogueCreateMapper;
+    private final IAccountCatalogueCreateMapper accountCatalogueCreateMapper;
     @Override
     public AccountCatalogue createAccountCatalogue(AccountCatalogue accountCatalogue) {
         AccountCatalogueEntity accountCatalogueEntity = accountCatalogueCreateMapper.toEntity(accountCatalogue);

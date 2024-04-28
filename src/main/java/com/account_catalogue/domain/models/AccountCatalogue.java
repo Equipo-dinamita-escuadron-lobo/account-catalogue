@@ -18,7 +18,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class AccountCatalogue {
-    private long id;
+    private int id;
     private String code;
     private  String description;
     private NatureEnum nature;

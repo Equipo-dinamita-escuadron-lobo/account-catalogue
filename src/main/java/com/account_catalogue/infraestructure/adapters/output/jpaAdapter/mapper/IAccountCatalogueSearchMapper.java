@@ -1,8 +1,6 @@
 package com.account_catalogue.infraestructure.adapters.output.jpaAdapter.mapper;
 
 import com.account_catalogue.domain.dto.AccountCatalogueInfoDTO;
-import com.account_catalogue.domain.models.AccountCatalogue;
-import com.account_catalogue.infraestructure.adapters.output.jpaAdapter.entity.AccountCatalogueEntity;
 import com.account_catalogue.infraestructure.adapters.output.jpaAdapter.projection.IAccountCatalogueInfoProjection;
 import org.mapstruct.Mapper;
 
@@ -18,6 +16,7 @@ public interface IAccountCatalogueSearchMapper
        return listAccountCatalogueInfo.stream()
                .map(accountCatalogue -> {
                    AccountCatalogueInfoDTO accountInfoDto=AccountCatalogueInfoDTO.builder()
+                           .id(accountCatalogue.getId())
                            .code(accountCatalogue.getCode())
                            .description(accountCatalogue.getDescription())
                            .build();

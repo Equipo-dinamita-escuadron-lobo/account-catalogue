@@ -1,0 +1,45 @@
+version: "3.9"
+
+services:
+  db_account_catalogue:
+    image: mariadb:11.2.3
+    restart: always
+    environment:
+      MARIADB_USER: springuser
+      MARIADB_PASSWORD: ThePassword
+      MARIADB_DATABASE: db_account_catalogue
+      MARIADB_ROOT_PASSWORD: ThePassword
+    #volumes:
+    #  - ./data:/var/lib/mysql
+    ports:
+      - "3307:3306"
+    container_name: db_account_catalogue
+    labels:
+      - "traefik.enable=false"
+
+    networks:
+      - softcont-network
+
+  account_catalogue_management:
+    build: .
+    ports:
+      - "8081:8080"
+    environment:
+      - DB_USERNAME=springuser
+      - DB_PASSWORD=ThePassword
+      - DB_URL=jdbc:mariadb://db_account_catalogue:3306/db_account_catalogue
+      - SECURITY_USER=root
+      - SECURITY_PASSWORD=
+    depends_on:
+      - db_account_catalogue
+    container_name: account_catalogue_management
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.account_catalogue_management.rule=PathPrefix(`/api/accountCatalogue`)"
+      - "traefik.http.services.account_catalogue_management.loadbalancer.server.port=8080"
+    networks:
+      - softcont-network
+
+networks:
+  softcont-network:
+    external: true

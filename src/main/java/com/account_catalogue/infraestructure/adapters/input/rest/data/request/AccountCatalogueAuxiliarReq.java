@@ -30,5 +30,5 @@ public class AccountCatalogueAuxiliarReq {
 
     //@NotBlank(message = "La clasificacion es requerido")
     private ClassificationEnum classification;
-    private AccountCatalogueAuxiliar2Req auxiliar2;
+
 }

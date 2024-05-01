@@ -80,11 +80,12 @@ public class AccountCatalogueController {
 
                             account=accountCreateRestMapper.toDomainAuxiliar1(accountCatalogueCreateReq.getGrupo().getCuenta().getSubcuenta().getAuxiliar());
                             account=accountCatalogueCreateInputPort.createAccountCatalogue(account);
+                           /*
                             //Auxiliar2
                                 if(accountCatalogueCreateReq.getGrupo().getCuenta().getSubcuenta().getAuxiliar().getAuxiliar2().getCode()!=null){
                                     account=accountCreateRestMapper.toDomainAUxiliar2(accountCatalogueCreateReq.getGrupo().getCuenta().getSubcuenta().getAuxiliar().getAuxiliar2());
                                     account=accountCatalogueCreateInputPort.createAccountCatalogue(account);
-                                }
+                                }*/
                         }
 
                     }

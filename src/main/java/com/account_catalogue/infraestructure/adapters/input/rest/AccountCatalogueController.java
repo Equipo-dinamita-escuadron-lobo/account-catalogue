@@ -35,6 +35,7 @@ import java.util.Map;
 @RequestMapping("/api/accountCatalogue")
 @RestController
 @AllArgsConstructor
+@CrossOrigin(origins = "*")
 public class AccountCatalogueController {
     private final IAccountCatalogueCreateInputPort accountCatalogueCreateInputPort;
    private  final IAccountCreateRestMapper accountCreateRestMapper;

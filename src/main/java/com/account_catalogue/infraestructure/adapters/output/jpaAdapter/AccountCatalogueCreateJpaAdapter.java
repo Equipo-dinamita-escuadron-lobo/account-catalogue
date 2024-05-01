@@ -4,7 +4,6 @@ import com.account_catalogue.application.output.IAccountCatalogueCreateOutputPor
 import com.account_catalogue.domain.models.AccountCatalogue;
 import com.account_catalogue.infraestructure.adapters.output.jpaAdapter.entity.AccountCatalogueEntity;
 import com.account_catalogue.infraestructure.adapters.output.jpaAdapter.mapper.IAccountCatalogueCreateMapper;
-import com.account_catalogue.infraestructure.adapters.output.jpaAdapter.mapper.impl.AccountCatalogueCreateMapper;
 import com.account_catalogue.infraestructure.adapters.output.jpaAdapter.repository.IAccountCatalogueRepository;
 import lombok.Data;
 import org.springframework.stereotype.Component;
@@ -22,7 +21,11 @@ public class AccountCatalogueCreateJpaAdapter implements IAccountCatalogueCreate
         if(accountCatalogueEntity==null){
             return null;
         }
-        accountCatalogueEntity=accountCatalogueRepository.save(accountCatalogueEntity);
+        if(accountCatalogueRepository.findByCode(accountCatalogueEntity.getCode())==null){
+            accountCatalogueEntity=accountCatalogueRepository.save(accountCatalogueEntity);
+        }else{
+            accountCatalogueEntity=accountCatalogueRepository.findByCode(accountCatalogueEntity.getCode());
+        }
         return accountCatalogueCreateMapper.toModel(accountCatalogueEntity);
     }
 }

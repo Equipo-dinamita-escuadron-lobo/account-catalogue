@@ -22,6 +22,9 @@ public class AccountCatalogueSearchJpaAdapter implements IAccountCatalogueSearch
     @Override
     public List<AccountCatalogueInfoDTO> getAllAccountCatalogue(String code) {
         List<IAccountCatalogueInfoProjection> accountCatalogue=accountCatalogueRepository.getAllAccountCatalogue(code);
+
+
+
         return accountCatalogueSearchMapper.toModelListAccountCatalogue(accountCatalogue);
     }
 

@@ -23,4 +23,5 @@ public class AccountCatalogueCreateRes {
     private NatureEnum nature;
     private FinancialStatusEnum financialStatus;
     private ClassificationEnum classification;
+
 }

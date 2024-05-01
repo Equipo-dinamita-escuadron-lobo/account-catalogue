@@ -5,12 +5,15 @@ import com.account_catalogue.domain.enums.FinancialStatusEnum;
 import com.account_catalogue.domain.enums.NatureEnum;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.util.List;
 
 @Getter
 @Setter
@@ -38,4 +41,6 @@ public class AccountCatalogueCreateReq {
     
     //@NotBlank(message = "La clasificacion es requerido")
     private ClassificationEnum classification;
+    @JsonProperty(required = false)
+    private AccountCatalogueGrupoReq grupo;
 }

@@ -13,6 +13,7 @@ import com.account_catalogue.infraestructure.adapters.input.rest.exception.Accou
 import com.account_catalogue.infraestructure.adapters.input.rest.mapper.IAccountSearchRestMapper;
 import com.account_catalogue.infraestructure.adapters.input.rest.mapper.IAccountUpdateRestMapper;
 import com.account_catalogue.infraestructure.adapters.input.rest.mapper.IItemAccountSearchRestMapper;
+import com.account_catalogue.infraestructure.adapters.input.rest.util.AdjustEnumAccount;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
@@ -35,6 +36,7 @@ import java.util.Map;
 @RequestMapping("/api/accountCatalogue")
 @RestController
 @AllArgsConstructor
+@CrossOrigin(origins = "*")
 public class AccountCatalogueController {
     private final IAccountCatalogueCreateInputPort accountCatalogueCreateInputPort;
    private  final IAccountCreateRestMapper accountCreateRestMapper;
@@ -44,7 +46,9 @@ public class AccountCatalogueController {
     private final IAccountUpdateRestMapper accountUpdateRestMapper;
     private final IAccountCatalogueDeleteInputPort accountCatalogueDeleteInputPort;
     private final IAccountCatalogueUpdateInputPort accountCatalogueUpdateInputPort;
-    private final ObjectMapper objectMapper;
+
+
+
    /* @PostMapping("/")
    public ResponseEntity<AccountCatalogueCreateRes> createAccountCatalogue(@Valid @RequestBody AccountCatalogueCreateReq accountCatalogueCreateReq){
      
@@ -59,6 +63,7 @@ public class AccountCatalogueController {
 
 
             account=accountCreateRestMapper.toDomainClase( accountCatalogueCreateReq);
+
             account=accountCatalogueCreateInputPort.createAccountCatalogue(account);
             //Grupo
             if(accountCatalogueCreateReq.getGrupo().getCode()!=null){
@@ -107,13 +112,13 @@ public class AccountCatalogueController {
         updateAccountCatalogue=accountCatalogueUpdateInputPort.updateAccountCatalogue(id,updateAccountCatalogue);
         return ResponseEntity.ok(accountUpdateRestMapper.toUpdateResponse(updateAccountCatalogue));
    }
-   @GetMapping("/{code}")
+   @GetMapping("/accounts/{code}")
     public ResponseEntity<List<AccountCatalogueSearchRes>> getAllAccountCatalogue(@PathVariable("code")String code){
         List<AccountCatalogueInfoDTO> accounts=accountCatalogueSearchInputPort.getAllAccountCatalogue(code);
         return ResponseEntity.ok(accountSearchRestMapper.toListAccountResponse(accounts));
    }
 
-    @GetMapping("/code/{code}")
+    @GetMapping("/accountByCode/{code}")
     public ResponseEntity<ItemAccountCatalogueSearchRes> getAccountCatalogue(@PathVariable("code")String code){
         AccountCatalogue accountCatalogue=accountCatalogueSearchInputPort.getAccountCatalogueByCode(code);
         return ResponseEntity.ok(itemAccountSearchRestMapper.toItemAccountCatalogueSearch(accountCatalogue));

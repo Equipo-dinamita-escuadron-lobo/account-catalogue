@@ -27,7 +27,7 @@ public class TreeAccount<T> {
                 root = new NodeAccount<>(codeValue, levelNames[currentLevel], element);
                 currentLevelNodes.add(root);
             } else {
-                // Manejar el caso en el que el código no tiene la longitud esperada para el nivel 0
+
             }
         } else if (currentLevel == 1 && codeLength == levelLengths[currentLevel]) {
             NodeAccount<T> parent = currentLevelNodes.get(0);
@@ -70,7 +70,7 @@ public class TreeAccount<T> {
                 currentLevelNodes.clear();
             }
         } else {
-            // Manejar el caso en el que el código no tiene la longitud esperada para el nivel actual
+
         }
     }
 

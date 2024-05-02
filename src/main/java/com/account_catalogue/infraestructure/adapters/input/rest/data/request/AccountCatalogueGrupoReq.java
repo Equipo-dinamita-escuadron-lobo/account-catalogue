@@ -24,13 +24,13 @@ public class AccountCatalogueGrupoReq {
     private String description;
 
     // @NotBlank(message = "La naturaleza es requerida")
-    private NatureEnum nature;
+    private String nature;
 
     //@NotBlank(message = "La estado financiero es requerido")
-    private FinancialStatusEnum financialStatus;
+    private String financialStatus;
 
     //@NotBlank(message = "La clasificacion es requerido")
-    private ClassificationEnum classification;
+    private String classification;
     private AccountCatalogueCuentaReq cuenta;
 
 }

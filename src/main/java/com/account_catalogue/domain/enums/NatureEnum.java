@@ -4,8 +4,9 @@ import lombok.Getter;
 
 @Getter
 public enum NatureEnum {
-    DEBIT("Debito"),
-    CREDIT("Credito");
+    DEBIT("Debíto"),
+    CREDIT("Credíto"),
+    EMPTY("Por defecto");
 
     private final String state;
     NatureEnum(String state){

@@ -56,57 +56,15 @@ public class AccountCatalogueController {
    }*/
     @PostMapping("/")
     public ResponseEntity<AccountCatalogueCreateRes> createAccountCatalogue(@RequestBody AccountCatalogueCreateReq accountCatalogueCreateReq){
-       AccountCatalogue clase=null;
-       AccountCatalogue grupo= new AccountCatalogue();
-       AccountCatalogue cuenta= new AccountCatalogue();
-       AccountCatalogue subcuenta= new AccountCatalogue();
-       AccountCatalogue auxiliar1= new AccountCatalogue();
-
         try{
-
-
-            clase=accountCreateRestMapper.toDomainClase( accountCatalogueCreateReq);
-            clase=accountCatalogueCreateInputPort.createAccountCatalogue(clase);
-
-            //Grupo
-            if(accountCatalogueCreateReq.getGrupo().getCode()!=null){
-
-                grupo=accountCreateRestMapper.toDomainGrupo(accountCatalogueCreateReq.getGrupo());
-                grupo.setParent(clase);
-                grupo=accountCatalogueCreateInputPort.createAccountCatalogue(grupo);
-               //Cuenta
-                if(accountCatalogueCreateReq.getGrupo().getCuenta().getCode()!=null){
-
-                    cuenta =accountCreateRestMapper.toDomainCuenta(accountCatalogueCreateReq.getGrupo().getCuenta());
-                    cuenta =accountCatalogueCreateInputPort.createAccountCatalogue(cuenta );
-                    //SubCuenta
-                    if(accountCatalogueCreateReq.getGrupo().getCuenta().getSubcuenta().getCode()!=null){
-
-                        subcuenta=accountCreateRestMapper.toDomainSubCuenta(accountCatalogueCreateReq.getGrupo().getCuenta().getSubcuenta());
-                        subcuenta=accountCatalogueCreateInputPort.createAccountCatalogue(subcuenta);
-                            //Auxiliar1
-                        if(accountCatalogueCreateReq.getGrupo().getCuenta().getSubcuenta().getAuxiliar().getCode()!=null){
-
-                            auxiliar1=accountCreateRestMapper.toDomainAuxiliar1(accountCatalogueCreateReq.getGrupo().getCuenta().getSubcuenta().getAuxiliar());
-                            auxiliar1=accountCatalogueCreateInputPort.createAccountCatalogue(auxiliar1);
-                           /*
-                            //Auxiliar2
-                                if(accountCatalogueCreateReq.getGrupo().getCuenta().getSubcuenta().getAuxiliar().getAuxiliar2().getCode()!=null){
-                                    account=accountCreateRestMapper.toDomainAUxiliar2(accountCatalogueCreateReq.getGrupo().getCuenta().getSubcuenta().getAuxiliar().getAuxiliar2());
-                                    account=accountCatalogueCreateInputPort.createAccountCatalogue(account);
-                                }*/
-                        }
-
-                    }
-                }
-            }
+            AccountCatalogue padre = accountCatalogueSearchInputPort.getAccountCatalogueByCode(accountCatalogueCreateReq.getParent());
+            AccountCatalogue account=accountCreateRestMapper.toDomain(accountCatalogueCreateReq,padre);
+            account=accountCatalogueCreateInputPort.createAccountCatalogue(account);
+            return   ResponseEntity.ok(accountCreateRestMapper.toCreateResponse(account));
         }catch(Exception e){
             e.printStackTrace();
-
-        }
-
-
-        return   ResponseEntity.ok(accountCreateRestMapper.toCreateResponse(clase));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }   
     }
 
 

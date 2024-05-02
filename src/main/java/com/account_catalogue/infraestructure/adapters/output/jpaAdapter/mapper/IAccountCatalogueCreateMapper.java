@@ -17,8 +17,27 @@ public interface IAccountCatalogueCreateMapper {
                .nature(accountCatalogue.getNature())
                .financialStatus(accountCatalogue.getFinancialStatus())
                .classification(accountCatalogue.getClassification())
+               .parent(toEntity2(accountCatalogue.getParent()))
                .build();
    }
+
+   default AccountCatalogueEntity toEntity2(AccountCatalogue accountCatalogue){
+    if(accountCatalogue==null){
+        return null;
+    }
+    return AccountCatalogueEntity.builder()
+             .id(accountCatalogue.getId())
+            .code(accountCatalogue.getCode())
+            .description(accountCatalogue.getDescription())
+            .nature(accountCatalogue.getNature())
+            .financialStatus(accountCatalogue.getFinancialStatus())
+            .classification(accountCatalogue.getClassification())
+            .build();
+}
+
+
+
+
    default AccountCatalogue toModel(AccountCatalogueEntity accountCatalogueEntity){
        if(accountCatalogueEntity==null){
            return null;

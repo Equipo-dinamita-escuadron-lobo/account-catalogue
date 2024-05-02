@@ -54,4 +54,10 @@ public class AccountCatalogueSearchJpaAdapter implements IAccountCatalogueSearch
         AccountCatalogueEntity accountCatalogue=accountCatalogueRepository.findByCode(code);
         return itemAccountCatalogueSearchMapper.toDomain(accountCatalogue);
     }
+
+    @Override
+    public AccountCatalogue getAccountCatalogueTree(String code) {
+        AccountCatalogueEntity accountCatalogue=accountCatalogueRepository.findByCode(code);
+        return itemAccountCatalogueSearchMapper.toDomainTree(accountCatalogue);
+    }
 }

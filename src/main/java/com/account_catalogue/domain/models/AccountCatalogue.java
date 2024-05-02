@@ -1,5 +1,7 @@
 package com.account_catalogue.domain.models;
 
+import java.util.List;
+
 import com.account_catalogue.domain.enums.ClassificationEnum;
 import com.account_catalogue.domain.enums.FinancialStatusEnum;
 import com.account_catalogue.domain.enums.NatureEnum;
@@ -18,11 +20,13 @@ import lombok.Setter;
 @Getter
 @Setter
 public class AccountCatalogue {
-    private int id;
+    private Long id;
     private String code;
     private  String description;
     private NatureEnum nature;
     private FinancialStatusEnum financialStatus;
     private ClassificationEnum classification;
 
+    private AccountCatalogue  parent;
+    private List<AccountCatalogue> children;
 }

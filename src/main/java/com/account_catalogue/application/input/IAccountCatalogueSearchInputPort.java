@@ -9,4 +9,6 @@ public interface IAccountCatalogueSearchInputPort {
     List<AccountCatalogueInfoDTO> getAllAccountCatalogue(String code);
     AccountCatalogue getAccountCatalogueByCode(String code);
 
+    AccountCatalogue getAccountCatalogueTree(String code);
+
 }

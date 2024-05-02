@@ -16,4 +16,7 @@ public interface IAccountCatalogueRepository extends JpaRepository<AccountCatalo
     void deleteByCode(String code);
     @Query("SELECT a.id AS id, a.code AS code , a.description AS description FROM AccountCatalogueEntity a WHERE a.code LIKE :code%")
     List<IAccountCatalogueInfoProjection> getAllAccountCatalogue(@Param("code") String code);
+
+    //getAccountCatalogueTree
+    
 }

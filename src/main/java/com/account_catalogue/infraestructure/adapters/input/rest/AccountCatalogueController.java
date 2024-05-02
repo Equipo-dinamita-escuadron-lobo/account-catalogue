@@ -23,6 +23,7 @@ import com.account_catalogue.application.input.IAccountCatalogueCreateInputPort;
 import com.account_catalogue.domain.models.AccountCatalogue;
 import com.account_catalogue.infraestructure.adapters.input.rest.data.request.AccountCatalogueCreateReq;
 import com.account_catalogue.infraestructure.adapters.input.rest.data.response.AccountCatalogueCreateRes;
+import com.account_catalogue.infraestructure.adapters.input.rest.data.response.AccountCatalogueListRes;
 import com.account_catalogue.infraestructure.adapters.input.rest.mapper.IAccountCreateRestMapper;
 
 import jakarta.validation.Valid;
@@ -128,5 +129,11 @@ public class AccountCatalogueController {
             errorRespnse.put("Error Message",ex.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorRespnse);
         }
+    }
+
+    @GetMapping("/tree/{code}")
+    public ResponseEntity<AccountCatalogueListRes> getAccountCatalogueTree(@PathVariable("code")String code){
+        AccountCatalogue accountCatalogue=accountCatalogueSearchInputPort.getAccountCatalogueTree(code);
+        return ResponseEntity.ok(accountSearchRestMapper.toAccountCatalogueListRes(accountCatalogue));
     }
 }

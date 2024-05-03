@@ -1,5 +1,6 @@
 package com.account_catalogue.infraestructure.adapters.input.rest;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -103,4 +104,17 @@ public class AccountCatalogueController {
         AccountCatalogue accountCatalogue=accountCatalogueSearchInputPort.getAccountCatalogueTree(code);
         return ResponseEntity.ok(accountSearchRestMapper.toAccountCatalogueListRes(accountCatalogue));
     }
+
+    @GetMapping("/trees")
+    public ResponseEntity<List<AccountCatalogueListRes>> getAccountCatalogueTrees(){
+        List<AccountCatalogueListRes> accountCatalogueListRes= new ArrayList<>();
+        for(int i=1;i<=9;i++){
+            AccountCatalogue accountCatalogue=accountCatalogueSearchInputPort.getAccountCatalogueTree(String.valueOf(i));
+            accountCatalogueListRes.add(accountSearchRestMapper.toAccountCatalogueListRes(accountCatalogue));
+        }
+        return ResponseEntity.ok(accountCatalogueListRes);
+        
+    }
+
+
 }

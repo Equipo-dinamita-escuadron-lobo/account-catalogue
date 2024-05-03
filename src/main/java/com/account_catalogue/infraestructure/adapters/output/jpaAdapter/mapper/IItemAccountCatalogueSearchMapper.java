@@ -34,6 +34,9 @@ public interface IItemAccountCatalogueSearchMapper {
         AccountCatalogue accountCatalogue = AccountCatalogue.builder()
                 .code(accountCatalogueEntity.getCode())
                 .description(accountCatalogueEntity.getDescription())
+                .nature(accountCatalogueEntity.getNature())
+                .financialStatus(accountCatalogueEntity.getFinancialStatus())
+                .classification(accountCatalogueEntity.getClassification())
                 .build();
 
         List<AccountCatalogue> children = new ArrayList<>();

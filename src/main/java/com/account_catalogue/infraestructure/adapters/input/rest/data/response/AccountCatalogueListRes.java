@@ -17,5 +17,9 @@ import lombok.Setter;
 public class AccountCatalogueListRes {
     String code;
     String description;
+    String nature;
+    String financialStatus;
+    String classification;
+    
     List<AccountCatalogueListRes> children;
 }

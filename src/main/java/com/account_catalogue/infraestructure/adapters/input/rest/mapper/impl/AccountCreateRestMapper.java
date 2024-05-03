@@ -3,6 +3,7 @@ package com.account_catalogue.infraestructure.adapters.input.rest.mapper.impl;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.account_catalogue.infraestructure.adapters.input.rest.util.AdjustEnumAccount;
 import org.springframework.stereotype.Component;
 
 import com.account_catalogue.domain.models.AccountCatalogue;
@@ -13,8 +14,7 @@ import com.account_catalogue.infraestructure.adapters.input.rest.mapper.IAccount
 
 @Component
 public class AccountCreateRestMapper implements IAccountCreateRestMapper {
-
-
+    private AdjustEnumAccount adjustEnum=new AdjustEnumAccount();
     @Override
     public AccountCatalogueCreateRes toCreateResponse(AccountCatalogue accountCatalogueRes) {
         if(accountCatalogueRes==null){
@@ -22,6 +22,7 @@ public class AccountCreateRestMapper implements IAccountCreateRestMapper {
         }
 
         AccountCatalogueCreateRes accountCatalogue=AccountCatalogueCreateRes.builder()
+                .id(accountCatalogueRes.getId())
                 .code(accountCatalogueRes.getCode())
                 .description(accountCatalogueRes.getDescription())
                 .financialStatus(accountCatalogueRes.getFinancialStatus())
@@ -41,9 +42,9 @@ public class AccountCreateRestMapper implements IAccountCreateRestMapper {
         AccountCatalogue accountCatalogue=AccountCatalogue.builder()
                 .code(accountCatalogueCreateReq.getCode())
                 .description(accountCatalogueCreateReq.getDescription())
-                .financialStatus(accountCatalogueCreateReq.getFinancialStatus())
-                .nature(accountCatalogueCreateReq.getNature())
-                .classification(accountCatalogueCreateReq.getClassification())
+                .financialStatus(adjustEnum.adjustFinancialStatusEnum(accountCatalogueCreateReq.getFinancialStatus()))
+                .nature(adjustEnum.adjustNatureEnum(accountCatalogueCreateReq.getNature()))
+                .classification(adjustEnum.adjustClassificationEnum(accountCatalogueCreateReq.getClassification()))
                 .parent(padre)
                 .build();
 

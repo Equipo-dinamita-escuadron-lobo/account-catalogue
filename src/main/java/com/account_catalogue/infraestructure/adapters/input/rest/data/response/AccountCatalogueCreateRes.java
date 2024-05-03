@@ -26,7 +26,4 @@ public class AccountCatalogueCreateRes {
     private FinancialStatusEnum financialStatus;
     private ClassificationEnum classification;
 
-    private String parent;
-
-    private List<AccountCatalogueCreateRes> children;
 }

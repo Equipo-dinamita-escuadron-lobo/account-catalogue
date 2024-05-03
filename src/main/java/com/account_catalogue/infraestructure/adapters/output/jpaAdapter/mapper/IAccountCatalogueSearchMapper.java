@@ -1,7 +1,6 @@
 package com.account_catalogue.infraestructure.adapters.output.jpaAdapter.mapper;
 
 import com.account_catalogue.domain.dto.AccountCatalogueInfoDTO;
-import com.account_catalogue.domain.dto.ClassDTO;
 import com.account_catalogue.domain.dto.InformationDTO;
 import com.account_catalogue.infraestructure.adapters.output.jpaAdapter.projection.IAccountCatalogueInfoProjection;
 import org.mapstruct.Mapper;

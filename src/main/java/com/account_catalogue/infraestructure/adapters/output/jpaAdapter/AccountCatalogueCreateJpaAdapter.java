@@ -17,7 +17,8 @@ public class AccountCatalogueCreateJpaAdapter implements IAccountCatalogueCreate
     private final IAccountCatalogueCreateMapper accountCatalogueCreateMapper;
     @Override
     public AccountCatalogue createAccountCatalogue(AccountCatalogue accountCatalogue) {
-        AccountCatalogueEntity accountCatalogueEntity = accountCatalogueCreateMapper.toEntity(accountCatalogue);
+
+        AccountCatalogueEntity accountCatalogueEntity = accountCatalogueCreateMapper.toEntity(accountCatalogue, null);
         if(accountCatalogueEntity==null){
             return null;
         }

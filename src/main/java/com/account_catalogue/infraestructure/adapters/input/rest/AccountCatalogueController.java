@@ -13,8 +13,6 @@ import com.account_catalogue.infraestructure.adapters.input.rest.exception.Accou
 import com.account_catalogue.infraestructure.adapters.input.rest.mapper.IAccountSearchRestMapper;
 import com.account_catalogue.infraestructure.adapters.input.rest.mapper.IAccountUpdateRestMapper;
 import com.account_catalogue.infraestructure.adapters.input.rest.mapper.IItemAccountSearchRestMapper;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -46,67 +44,18 @@ public class AccountCatalogueController {
     private final IAccountUpdateRestMapper accountUpdateRestMapper;
     private final IAccountCatalogueDeleteInputPort accountCatalogueDeleteInputPort;
     private final IAccountCatalogueUpdateInputPort accountCatalogueUpdateInputPort;
-    private final ObjectMapper objectMapper;
-   /* @PostMapping("/")
-   public ResponseEntity<AccountCatalogueCreateRes> createAccountCatalogue(@Valid @RequestBody AccountCatalogueCreateReq accountCatalogueCreateReq){
-     
-        AccountCatalogue account=accountCreateRestMapper.toDomain(accountCatalogueCreateReq);
-        account=accountCatalogueCreateInputPort.createAccountCatalogue(account);
-        return   ResponseEntity.ok(accountCreateRestMapper.toCreateResponse(account));
-   }*/
+
     @PostMapping("/")
     public ResponseEntity<AccountCatalogueCreateRes> createAccountCatalogue(@RequestBody AccountCatalogueCreateReq accountCatalogueCreateReq){
-       AccountCatalogue clase=null;
-       AccountCatalogue grupo= new AccountCatalogue();
-       AccountCatalogue cuenta= new AccountCatalogue();
-       AccountCatalogue subcuenta= new AccountCatalogue();
-       AccountCatalogue auxiliar1= new AccountCatalogue();
-
         try{
-
-
-            clase=accountCreateRestMapper.toDomainClase( accountCatalogueCreateReq);
-            clase=accountCatalogueCreateInputPort.createAccountCatalogue(clase);
-
-            //Grupo
-            if(accountCatalogueCreateReq.getGrupo().getCode()!=null){
-
-                grupo=accountCreateRestMapper.toDomainGrupo(accountCatalogueCreateReq.getGrupo());
-                grupo.setParent(clase);
-                grupo=accountCatalogueCreateInputPort.createAccountCatalogue(grupo);
-               //Cuenta
-                if(accountCatalogueCreateReq.getGrupo().getCuenta().getCode()!=null){
-
-                    cuenta =accountCreateRestMapper.toDomainCuenta(accountCatalogueCreateReq.getGrupo().getCuenta());
-                    cuenta =accountCatalogueCreateInputPort.createAccountCatalogue(cuenta );
-                    //SubCuenta
-                    if(accountCatalogueCreateReq.getGrupo().getCuenta().getSubcuenta().getCode()!=null){
-
-                        subcuenta=accountCreateRestMapper.toDomainSubCuenta(accountCatalogueCreateReq.getGrupo().getCuenta().getSubcuenta());
-                        subcuenta=accountCatalogueCreateInputPort.createAccountCatalogue(subcuenta);
-                            //Auxiliar1
-                        if(accountCatalogueCreateReq.getGrupo().getCuenta().getSubcuenta().getAuxiliar().getCode()!=null){
-
-                            auxiliar1=accountCreateRestMapper.toDomainAuxiliar1(accountCatalogueCreateReq.getGrupo().getCuenta().getSubcuenta().getAuxiliar());
-                            auxiliar1=accountCatalogueCreateInputPort.createAccountCatalogue(auxiliar1);
-                           /*
-                            //Auxiliar2
-                                if(accountCatalogueCreateReq.getGrupo().getCuenta().getSubcuenta().getAuxiliar().getAuxiliar2().getCode()!=null){
-                                    account=accountCreateRestMapper.toDomainAUxiliar2(accountCatalogueCreateReq.getGrupo().getCuenta().getSubcuenta().getAuxiliar().getAuxiliar2());
-                                    account=accountCatalogueCreateInputPort.createAccountCatalogue(account);
-                                }*/
-                        }
-
-                    }
-                }
-            }
+            AccountCatalogue padre = accountCatalogueSearchInputPort.getAccountCatalogueByCode(accountCatalogueCreateReq.getParent());
+            AccountCatalogue account=accountCreateRestMapper.toDomain(accountCatalogueCreateReq,padre);
+            account=accountCatalogueCreateInputPort.createAccountCatalogue(account);
+            return   ResponseEntity.ok(accountCreateRestMapper.toCreateResponse(account));
         }catch(Exception e){
             e.printStackTrace();
-
-        }
-
-
-        return   ResponseEntity.ok(accountCreateRestMapper.toCreateResponse(clase));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }   
     }
 
 

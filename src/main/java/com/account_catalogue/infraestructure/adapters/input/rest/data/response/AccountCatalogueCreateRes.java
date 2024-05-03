@@ -1,5 +1,7 @@
 package com.account_catalogue.infraestructure.adapters.input.rest.data.response;
 
+import java.util.List;
+
 import com.account_catalogue.domain.enums.ClassificationEnum;
 import com.account_catalogue.domain.enums.FinancialStatusEnum;
 import com.account_catalogue.domain.enums.NatureEnum;

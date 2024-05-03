@@ -1,37 +1,42 @@
 package com.account_catalogue.infraestructure.adapters.input.rest;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.account_catalogue.application.input.IAccountCatalogueCreateInputPort;
 import com.account_catalogue.application.input.IAccountCatalogueDeleteInputPort;
 import com.account_catalogue.application.input.IAccountCatalogueSearchInputPort;
 import com.account_catalogue.application.input.IAccountCatalogueUpdateInputPort;
 import com.account_catalogue.domain.dto.AccountCatalogueInfoDTO;
-
+import com.account_catalogue.domain.models.AccountCatalogue;
+import com.account_catalogue.infraestructure.adapters.input.rest.data.request.AccountCatalogueCreateReq;
 import com.account_catalogue.infraestructure.adapters.input.rest.data.request.AccountCatalogueUpdateReq;
+import com.account_catalogue.infraestructure.adapters.input.rest.data.response.AccountCatalogueCreateRes;
+import com.account_catalogue.infraestructure.adapters.input.rest.data.response.AccountCatalogueListRes;
 import com.account_catalogue.infraestructure.adapters.input.rest.data.response.AccountCatalogueSearchRes;
 import com.account_catalogue.infraestructure.adapters.input.rest.data.response.AccountCatalogueUpdateRes;
 import com.account_catalogue.infraestructure.adapters.input.rest.data.response.ItemAccountCatalogueSearchRes;
 import com.account_catalogue.infraestructure.adapters.input.rest.exception.AccountCatalogueNotFoundException;
+import com.account_catalogue.infraestructure.adapters.input.rest.mapper.IAccountCreateRestMapper;
 import com.account_catalogue.infraestructure.adapters.input.rest.mapper.IAccountSearchRestMapper;
 import com.account_catalogue.infraestructure.adapters.input.rest.mapper.IAccountUpdateRestMapper;
 import com.account_catalogue.infraestructure.adapters.input.rest.mapper.IItemAccountSearchRestMapper;
-import com.account_catalogue.infraestructure.adapters.input.rest.util.AdjustEnumAccount;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import com.account_catalogue.application.input.IAccountCatalogueCreateInputPort;
-import com.account_catalogue.domain.models.AccountCatalogue;
-import com.account_catalogue.infraestructure.adapters.input.rest.data.request.AccountCatalogueCreateReq;
-import com.account_catalogue.infraestructure.adapters.input.rest.data.response.AccountCatalogueCreateRes;
-import com.account_catalogue.infraestructure.adapters.input.rest.mapper.IAccountCreateRestMapper;
 
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 @RequestMapping("/api/accountCatalogue")
 @RestController
@@ -49,60 +54,18 @@ public class AccountCatalogueController {
 
 
 
-   /* @PostMapping("/")
-   public ResponseEntity<AccountCatalogueCreateRes> createAccountCatalogue(@Valid @RequestBody AccountCatalogueCreateReq accountCatalogueCreateReq){
-     
-        AccountCatalogue account=accountCreateRestMapper.toDomain(accountCatalogueCreateReq);
-        account=accountCatalogueCreateInputPort.createAccountCatalogue(account);
-        return   ResponseEntity.ok(accountCreateRestMapper.toCreateResponse(account));
-   }*/
+   
     @PostMapping("/")
     public ResponseEntity<AccountCatalogueCreateRes> createAccountCatalogue(@RequestBody AccountCatalogueCreateReq accountCatalogueCreateReq){
-       AccountCatalogue account=null;
         try{
-
-
-            account=accountCreateRestMapper.toDomainClase( accountCatalogueCreateReq);
-
+            AccountCatalogue padre = accountCatalogueSearchInputPort.getAccountCatalogueByCode(accountCatalogueCreateReq.getParent());
+            AccountCatalogue account=accountCreateRestMapper.toDomain(accountCatalogueCreateReq,padre);
             account=accountCatalogueCreateInputPort.createAccountCatalogue(account);
-            //Grupo
-            if(accountCatalogueCreateReq.getGrupo().getCode()!=null){
-
-                account=accountCreateRestMapper.toDomainGrupo(accountCatalogueCreateReq.getGrupo());
-                account=accountCatalogueCreateInputPort.createAccountCatalogue(account);
-               //Cuenta
-                if(accountCatalogueCreateReq.getGrupo().getCuenta().getCode()!=null){
-
-                    account =accountCreateRestMapper.toDomainCuenta(accountCatalogueCreateReq.getGrupo().getCuenta());
-                    account =accountCatalogueCreateInputPort.createAccountCatalogue(account );
-                    //SubCuenta
-                    if(accountCatalogueCreateReq.getGrupo().getCuenta().getSubcuenta().getCode()!=null){
-
-                        account=accountCreateRestMapper.toDomainSubCuenta(accountCatalogueCreateReq.getGrupo().getCuenta().getSubcuenta());
-                        account=accountCatalogueCreateInputPort.createAccountCatalogue(account);
-                            //Auxiliar1
-                        if(accountCatalogueCreateReq.getGrupo().getCuenta().getSubcuenta().getAuxiliar().getCode()!=null){
-
-                            account=accountCreateRestMapper.toDomainAuxiliar1(accountCatalogueCreateReq.getGrupo().getCuenta().getSubcuenta().getAuxiliar());
-                            account=accountCatalogueCreateInputPort.createAccountCatalogue(account);
-                           /*
-                            //Auxiliar2
-                                if(accountCatalogueCreateReq.getGrupo().getCuenta().getSubcuenta().getAuxiliar().getAuxiliar2().getCode()!=null){
-                                    account=accountCreateRestMapper.toDomainAUxiliar2(accountCatalogueCreateReq.getGrupo().getCuenta().getSubcuenta().getAuxiliar().getAuxiliar2());
-                                    account=accountCatalogueCreateInputPort.createAccountCatalogue(account);
-                                }*/
-                        }
-
-                    }
-                }
-            }
+            return   ResponseEntity.ok(accountCreateRestMapper.toCreateResponse(account));
         }catch(Exception e){
             e.printStackTrace();
-
-        }
-
-
-        return   ResponseEntity.ok(accountCreateRestMapper.toCreateResponse( account));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }   
     }
 
 
@@ -133,5 +96,11 @@ public class AccountCatalogueController {
             errorRespnse.put("Error Message",ex.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorRespnse);
         }
+    }
+
+    @GetMapping("/tree/{code}")
+    public ResponseEntity<AccountCatalogueListRes> getAccountCatalogueTree(@PathVariable("code")String code){
+        AccountCatalogue accountCatalogue=accountCatalogueSearchInputPort.getAccountCatalogueTree(code);
+        return ResponseEntity.ok(accountSearchRestMapper.toAccountCatalogueListRes(accountCatalogue));
     }
 }

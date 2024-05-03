@@ -1,5 +1,8 @@
 package com.account_catalogue.infraestructure.adapters.input.rest.data.request;
 
+
+import java.util.List;
+
 import com.account_catalogue.domain.enums.ClassificationEnum;
 import com.account_catalogue.domain.enums.FinancialStatusEnum;
 import com.account_catalogue.domain.enums.NatureEnum;
@@ -39,6 +42,8 @@ public class AccountCatalogueCreateReq {
     
     //@NotBlank(message = "La clasificacion es requerido")
     private String classification;
-    @JsonProperty(required = false)
-    private AccountCatalogueGrupoReq grupo;
+    
+    private String parent;
+
+    private List<AccountCatalogueCreateReq> children;
 }

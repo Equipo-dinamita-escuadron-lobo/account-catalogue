@@ -47,10 +47,13 @@ public class AccountCreateRestMapper implements IAccountCreateRestMapper {
                 .classification(adjustEnum.adjustClassificationEnum(accountCatalogueCreateReq.getClassification()))
                 .parent(padre)
                 .build();
+                
+        if(accountCatalogueCreateReq.getChildren()==null){
+            return accountCatalogue;
+        }
 
-        padre = accountCatalogue;     
+        padre = accountCatalogue; 
 
-       
         List<AccountCatalogue> children = new ArrayList<>();
         for (AccountCatalogueCreateReq child : accountCatalogueCreateReq.getChildren()) {
             AccountCatalogue childAccountCatalogue = toDomain(child, padre);

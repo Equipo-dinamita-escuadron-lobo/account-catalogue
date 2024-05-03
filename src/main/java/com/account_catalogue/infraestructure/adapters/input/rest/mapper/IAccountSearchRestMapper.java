@@ -7,11 +7,28 @@ import com.account_catalogue.infraestructure.adapters.input.rest.data.response.A
 import org.mapstruct.Mapper;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Mapper
 public interface IAccountSearchRestMapper {
     List<AccountCatalogueSearchRes> toListAccountResponse(List<AccountCatalogueInfoDTO> accountCatalogue);
 
     
-    AccountCatalogueListRes toAccountCatalogueListRes(AccountCatalogue accountCatalogue);
+    default  AccountCatalogueListRes toAccountCatalogueListRes(AccountCatalogue accountCatalogue){
+
+        if(accountCatalogue==null){
+            return null;
+        }
+        List<AccountCatalogueListRes> children = accountCatalogue.getChildren().stream()
+                .map(this::toAccountCatalogueListRes)
+                .collect(Collectors.toList());
+        return AccountCatalogueListRes.builder()
+                .code(accountCatalogue.getCode())
+                .description(accountCatalogue.getDescription())
+                .nature(accountCatalogue.getNature().getState())
+                .financialStatus(accountCatalogue.getFinancialStatus().getState())
+                .classification(accountCatalogue.getClassification().getState())
+                .children(children)
+                .build();
+    }
 }

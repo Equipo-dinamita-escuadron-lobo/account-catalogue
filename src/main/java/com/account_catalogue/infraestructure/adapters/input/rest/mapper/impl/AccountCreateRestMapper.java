@@ -16,15 +16,20 @@ public class AccountCreateRestMapper implements IAccountCreateRestMapper {
 
 
     @Override
-    public AccountCatalogueCreateRes toCreateResponse(AccountCatalogue accountCatalogue) {
-        return AccountCatalogueCreateRes.builder()
-                .id(accountCatalogue.getId())
-                .code(accountCatalogue.getCode())
-                .description(accountCatalogue.getDescription())
-                .financialStatus(accountCatalogue.getFinancialStatus())
-                .nature(accountCatalogue.getNature())
-                .classification(accountCatalogue.getClassification())
+    public AccountCatalogueCreateRes toCreateResponse(AccountCatalogue accountCatalogueRes) {
+        if(accountCatalogueRes==null){
+            return null;
+        }
+
+        AccountCatalogueCreateRes accountCatalogue=AccountCatalogueCreateRes.builder()
+                .code(accountCatalogueRes.getCode())
+                .description(accountCatalogueRes.getDescription())
+                .financialStatus(accountCatalogueRes.getFinancialStatus())
+                .nature(accountCatalogueRes.getNature())
+                .classification(accountCatalogueRes.getClassification())
                 .build();
+       
+        return accountCatalogue;   
     }
 
     @Override

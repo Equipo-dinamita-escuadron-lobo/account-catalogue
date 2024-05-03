@@ -1,5 +1,7 @@
 package com.account_catalogue.infraestructure.adapters.input.rest.data.response;
 
+import java.util.List;
+
 import com.account_catalogue.domain.enums.ClassificationEnum;
 import com.account_catalogue.domain.enums.FinancialStatusEnum;
 import com.account_catalogue.domain.enums.NatureEnum;
@@ -24,4 +26,7 @@ public class AccountCatalogueCreateRes {
     private FinancialStatusEnum financialStatus;
     private ClassificationEnum classification;
 
+    private String parent;
+
+    private List<AccountCatalogueCreateRes> children;
 }

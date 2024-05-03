@@ -16,6 +16,7 @@ public interface IItemAccountCatalogueSearchMapper {
            return null;
        }
        return AccountCatalogue.builder()
+               .id(accountCatalogueEntity.getId())
                .code(accountCatalogueEntity.getCode())
                .description(accountCatalogueEntity.getDescription())
                .nature(accountCatalogueEntity.getNature())

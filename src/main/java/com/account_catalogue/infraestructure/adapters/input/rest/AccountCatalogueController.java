@@ -13,8 +13,6 @@ import com.account_catalogue.infraestructure.adapters.input.rest.exception.Accou
 import com.account_catalogue.infraestructure.adapters.input.rest.mapper.IAccountSearchRestMapper;
 import com.account_catalogue.infraestructure.adapters.input.rest.mapper.IAccountUpdateRestMapper;
 import com.account_catalogue.infraestructure.adapters.input.rest.mapper.IItemAccountSearchRestMapper;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -46,14 +44,7 @@ public class AccountCatalogueController {
     private final IAccountUpdateRestMapper accountUpdateRestMapper;
     private final IAccountCatalogueDeleteInputPort accountCatalogueDeleteInputPort;
     private final IAccountCatalogueUpdateInputPort accountCatalogueUpdateInputPort;
-    private final ObjectMapper objectMapper;
-   /* @PostMapping("/")
-   public ResponseEntity<AccountCatalogueCreateRes> createAccountCatalogue(@Valid @RequestBody AccountCatalogueCreateReq accountCatalogueCreateReq){
-     
-        AccountCatalogue account=accountCreateRestMapper.toDomain(accountCatalogueCreateReq);
-        account=accountCatalogueCreateInputPort.createAccountCatalogue(account);
-        return   ResponseEntity.ok(accountCreateRestMapper.toCreateResponse(account));
-   }*/
+
     @PostMapping("/")
     public ResponseEntity<AccountCatalogueCreateRes> createAccountCatalogue(@RequestBody AccountCatalogueCreateReq accountCatalogueCreateReq){
         try{

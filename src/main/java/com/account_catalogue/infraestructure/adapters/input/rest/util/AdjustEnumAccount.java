@@ -3,10 +3,8 @@ package com.account_catalogue.infraestructure.adapters.input.rest.util;
 import com.account_catalogue.domain.enums.ClassificationEnum;
 import com.account_catalogue.domain.enums.FinancialStatusEnum;
 import com.account_catalogue.domain.enums.NatureEnum;
-import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.http.ResponseEntity;
+
 
 @NoArgsConstructor
 public class AdjustEnumAccount {

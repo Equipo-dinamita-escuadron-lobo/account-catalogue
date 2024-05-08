@@ -8,7 +8,6 @@ import com.account_catalogue.infraestructure.adapters.output.jpaAdapter.reposito
 import lombok.Data;
 import org.springframework.stereotype.Component;
 
-import javax.swing.text.html.Option;
 import java.util.Optional;
 
 @Component

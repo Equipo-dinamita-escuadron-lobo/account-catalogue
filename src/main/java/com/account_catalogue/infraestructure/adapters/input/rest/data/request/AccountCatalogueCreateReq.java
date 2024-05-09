@@ -2,13 +2,7 @@ package com.account_catalogue.infraestructure.adapters.input.rest.data.request;
 
 
 import java.util.List;
-
-import com.account_catalogue.domain.enums.ClassificationEnum;
-import com.account_catalogue.domain.enums.FinancialStatusEnum;
-import com.account_catalogue.domain.enums.NatureEnum;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

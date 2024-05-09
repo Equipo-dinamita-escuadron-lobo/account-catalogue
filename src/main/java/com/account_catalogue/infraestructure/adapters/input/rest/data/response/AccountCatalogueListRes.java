@@ -15,6 +15,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @Builder
 public class AccountCatalogueListRes {
+    Long id;
     String code;
     String description;
     String nature;

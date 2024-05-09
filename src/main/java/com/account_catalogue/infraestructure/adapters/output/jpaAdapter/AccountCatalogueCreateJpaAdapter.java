@@ -15,6 +15,7 @@ public class AccountCatalogueCreateJpaAdapter implements IAccountCatalogueCreate
     private final IAccountCatalogueRepository accountCatalogueRepository;
 
     private final IAccountCatalogueCreateMapper accountCatalogueCreateMapper;
+    
     @Override
     public AccountCatalogue createAccountCatalogue(AccountCatalogue accountCatalogue) {
 

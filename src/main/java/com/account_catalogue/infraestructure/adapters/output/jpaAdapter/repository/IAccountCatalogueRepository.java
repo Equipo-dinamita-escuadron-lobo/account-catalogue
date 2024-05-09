@@ -7,5 +7,7 @@ public interface IAccountCatalogueRepository extends JpaRepository<AccountCatalo
 
     AccountCatalogueEntity findByCode(String code);
 
+    AccountCatalogueEntity findById(long id);
+
     void deleteByCode(String code);
 }

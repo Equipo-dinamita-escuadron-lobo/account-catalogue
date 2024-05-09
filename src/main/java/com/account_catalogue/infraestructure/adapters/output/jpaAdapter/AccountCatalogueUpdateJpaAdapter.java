@@ -5,31 +5,36 @@ import com.account_catalogue.domain.models.AccountCatalogue;
 import com.account_catalogue.infraestructure.adapters.output.jpaAdapter.entity.AccountCatalogueEntity;
 import com.account_catalogue.infraestructure.adapters.output.jpaAdapter.mapper.IAccountCatalogueUpdateMapper;
 import com.account_catalogue.infraestructure.adapters.output.jpaAdapter.repository.IAccountCatalogueRepository;
-import lombok.Data;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Optional;
-
 @Component
-@Data
 public class AccountCatalogueUpdateJpaAdapter implements IAccountCatalogueUpdateOutputPort {
-    private  final IAccountCatalogueRepository accountCatalogueRepository;
-    private  final IAccountCatalogueUpdateMapper accountCatalogueUpdateMapper;
+
+    @Autowired
+    private IAccountCatalogueRepository accountCatalogueRepository;
+
+    @Autowired
+    private IAccountCatalogueUpdateMapper accountCatalogueUpdateMapper;
+    
     @Override
     public AccountCatalogue updateAccountCatalogue(long id, AccountCatalogue accountCatalogue) {
+        AccountCatalogueEntity accountCatalogueEntity = accountCatalogueRepository.findById(id);
 
-        Optional<AccountCatalogueEntity> optionalAccount = accountCatalogueRepository.findById(id);
-        if (optionalAccount.isPresent()) {
-            AccountCatalogueEntity accountCatalogueEntity=optionalAccount.get();
-            accountCatalogueEntity.setCode(accountCatalogue.getCode());
-            accountCatalogueEntity.setDescription(accountCatalogue.getDescription());
-            accountCatalogueEntity.setNature(accountCatalogue.getNature());
-            accountCatalogueEntity.setFinancialStatus(accountCatalogue.getFinancialStatus());
-            accountCatalogueEntity.setClassification(accountCatalogue.getClassification());
-
-            AccountCatalogueEntity updateaccountCatalogueEntity = accountCatalogueRepository.save(accountCatalogueEntity);
-            return accountCatalogueUpdateMapper.toAccountCatalogue( updateaccountCatalogueEntity);
+        if(accountCatalogueEntity==null){
+            return null;
         }
-      return null;
+
+        accountCatalogueEntity.setCode(accountCatalogue.getCode());
+        accountCatalogueEntity.setDescription(accountCatalogue.getDescription());
+        accountCatalogueEntity.setClassification(accountCatalogue.getClassification());
+        accountCatalogueEntity.setFinancialStatus(accountCatalogue.getFinancialStatus());
+        accountCatalogueEntity.setNature(accountCatalogue.getNature());
+           
+        accountCatalogueEntity = accountCatalogueRepository.save(accountCatalogueEntity);
+        return accountCatalogueUpdateMapper.toAccountCatalogue(accountCatalogueEntity);
+        
+ 
     }
 }

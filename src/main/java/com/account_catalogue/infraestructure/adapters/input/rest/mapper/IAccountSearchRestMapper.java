@@ -19,6 +19,7 @@ public interface IAccountSearchRestMapper {
                 .map(this::toAccountCatalogueListRes)
                 .collect(Collectors.toList());
         return AccountCatalogueListRes.builder()
+                .id(accountCatalogue.getId())
                 .code(accountCatalogue.getCode())
                 .description(accountCatalogue.getDescription())
                 .nature(accountCatalogue.getNature().getState())

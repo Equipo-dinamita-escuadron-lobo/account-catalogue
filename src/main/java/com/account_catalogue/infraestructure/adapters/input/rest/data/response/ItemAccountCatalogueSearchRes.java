@@ -11,6 +11,7 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 public class ItemAccountCatalogueSearchRes {
+    Long id;
     String code;
     private  String description;
     private NatureEnum nature;

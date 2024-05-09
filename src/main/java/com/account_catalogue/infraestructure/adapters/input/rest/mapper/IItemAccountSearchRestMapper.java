@@ -12,6 +12,7 @@ public interface IItemAccountSearchRestMapper {
            return null;
        }
        return ItemAccountCatalogueSearchRes.builder()
+                .id(accountCatalogue.getId())
                .code(accountCatalogue.getCode())
                .description(accountCatalogue.getDescription())
                .nature(accountCatalogue.getNature())

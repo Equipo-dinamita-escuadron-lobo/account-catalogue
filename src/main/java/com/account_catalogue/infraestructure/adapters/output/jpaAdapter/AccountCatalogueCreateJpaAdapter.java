@@ -15,10 +15,17 @@ public class AccountCatalogueCreateJpaAdapter implements IAccountCatalogueCreate
     private final IAccountCatalogueRepository accountCatalogueRepository;
 
     private final IAccountCatalogueCreateMapper accountCatalogueCreateMapper;
+    
     @Override
     public AccountCatalogue createAccountCatalogue(AccountCatalogue accountCatalogue) {
 
-        AccountCatalogueEntity accountCatalogueEntity = accountCatalogueCreateMapper.toEntity(accountCatalogue, null);
+        AccountCatalogueEntity parent = null;
+        if (accountCatalogue.getParent() != null) {
+             parent = accountCatalogueRepository.findByCode(accountCatalogue.getParent().getCode());        
+        }
+        
+
+        AccountCatalogueEntity accountCatalogueEntity = accountCatalogueCreateMapper.toEntity(accountCatalogue, parent);
         if(accountCatalogueEntity==null){
             return null;
         }

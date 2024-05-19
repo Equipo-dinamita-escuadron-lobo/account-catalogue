@@ -14,7 +14,9 @@ import com.account_catalogue.infraestructure.adapters.input.rest.mapper.IAccount
 
 @Component
 public class AccountCreateRestMapper implements IAccountCreateRestMapper {
+
     private AdjustEnumAccount adjustEnum=new AdjustEnumAccount();
+    
     @Override
     public AccountCatalogueCreateRes toCreateResponse(AccountCatalogue accountCatalogueRes) {
         if(accountCatalogueRes==null){
@@ -47,10 +49,13 @@ public class AccountCreateRestMapper implements IAccountCreateRestMapper {
                 .classification(adjustEnum.adjustClassificationEnum(accountCatalogueCreateReq.getClassification()))
                 .parent(padre)
                 .build();
+                
+        if(accountCatalogueCreateReq.getChildren()==null){
+            return accountCatalogue;
+        }
 
-        padre = accountCatalogue;     
+        padre = accountCatalogue; 
 
-       
         List<AccountCatalogue> children = new ArrayList<>();
         for (AccountCatalogueCreateReq child : accountCatalogueCreateReq.getChildren()) {
             AccountCatalogue childAccountCatalogue = toDomain(child, padre);

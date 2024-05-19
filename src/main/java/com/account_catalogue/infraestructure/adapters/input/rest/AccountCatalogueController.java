@@ -21,13 +21,11 @@ import com.account_catalogue.application.input.IAccountCatalogueCreateInputPort;
 import com.account_catalogue.application.input.IAccountCatalogueDeleteInputPort;
 import com.account_catalogue.application.input.IAccountCatalogueSearchInputPort;
 import com.account_catalogue.application.input.IAccountCatalogueUpdateInputPort;
-import com.account_catalogue.domain.dto.AccountCatalogueInfoDTO;
 import com.account_catalogue.domain.models.AccountCatalogue;
 import com.account_catalogue.infraestructure.adapters.input.rest.data.request.AccountCatalogueCreateReq;
 import com.account_catalogue.infraestructure.adapters.input.rest.data.request.AccountCatalogueUpdateReq;
 import com.account_catalogue.infraestructure.adapters.input.rest.data.response.AccountCatalogueCreateRes;
 import com.account_catalogue.infraestructure.adapters.input.rest.data.response.AccountCatalogueListRes;
-import com.account_catalogue.infraestructure.adapters.input.rest.data.response.AccountCatalogueSearchRes;
 import com.account_catalogue.infraestructure.adapters.input.rest.data.response.AccountCatalogueUpdateRes;
 import com.account_catalogue.infraestructure.adapters.input.rest.data.response.ItemAccountCatalogueSearchRes;
 import com.account_catalogue.infraestructure.adapters.input.rest.exception.AccountCatalogueNotFoundException;
@@ -45,17 +43,15 @@ import lombok.AllArgsConstructor;
 @CrossOrigin(origins = "*")
 public class AccountCatalogueController {
     private final IAccountCatalogueCreateInputPort accountCatalogueCreateInputPort;
-   private  final IAccountCreateRestMapper accountCreateRestMapper;
-   private final IAccountSearchRestMapper accountSearchRestMapper;
-   private  final IAccountCatalogueSearchInputPort accountCatalogueSearchInputPort;
+    private final IAccountCreateRestMapper accountCreateRestMapper;
+    private final IAccountSearchRestMapper accountSearchRestMapper;
+    private final IAccountCatalogueSearchInputPort accountCatalogueSearchInputPort;
     private final IItemAccountSearchRestMapper itemAccountSearchRestMapper;
     private final IAccountUpdateRestMapper accountUpdateRestMapper;
     private final IAccountCatalogueDeleteInputPort accountCatalogueDeleteInputPort;
     private final IAccountCatalogueUpdateInputPort accountCatalogueUpdateInputPort;
 
 
-
-   
     @PostMapping("/")
     public ResponseEntity<AccountCatalogueCreateRes> createAccountCatalogue(@RequestBody AccountCatalogueCreateReq accountCatalogueCreateReq){
         try{
@@ -76,17 +72,13 @@ public class AccountCatalogueController {
         updateAccountCatalogue=accountCatalogueUpdateInputPort.updateAccountCatalogue(id,updateAccountCatalogue);
         return ResponseEntity.ok(accountUpdateRestMapper.toUpdateResponse(updateAccountCatalogue));
    }
-   @GetMapping("/accounts/{code}")
-    public ResponseEntity<List<AccountCatalogueSearchRes>> getAllAccountCatalogue(@PathVariable("code")String code){
-        List<AccountCatalogueInfoDTO> accounts=accountCatalogueSearchInputPort.getAllAccountCatalogue(code);
-        return ResponseEntity.ok(accountSearchRestMapper.toListAccountResponse(accounts));
-   }
 
     @GetMapping("/accountByCode/{code}")
     public ResponseEntity<ItemAccountCatalogueSearchRes> getAccountCatalogue(@PathVariable("code")String code){
         AccountCatalogue accountCatalogue=accountCatalogueSearchInputPort.getAccountCatalogueByCode(code);
         return ResponseEntity.ok(itemAccountSearchRestMapper.toItemAccountCatalogueSearch(accountCatalogue));
     }
+   
     @DeleteMapping("/{code}")
     public ResponseEntity<?> deleteByCode(@PathVariable("code")String code){
         try{

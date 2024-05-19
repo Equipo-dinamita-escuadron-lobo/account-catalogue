@@ -32,6 +32,7 @@ public interface IItemAccountCatalogueSearchMapper {
         }
 
         AccountCatalogue accountCatalogue = AccountCatalogue.builder()
+                .id(accountCatalogueEntity.getId())
                 .code(accountCatalogueEntity.getCode())
                 .description(accountCatalogueEntity.getDescription())
                 .nature(accountCatalogueEntity.getNature())

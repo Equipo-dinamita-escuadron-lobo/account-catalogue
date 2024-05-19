@@ -27,6 +27,10 @@ public class AccountCatalogueCreateMapper implements IAccountCatalogueCreateMapp
                 .classification(accountCatalogue.getClassification())
                 .parent(parent)
                 .build();
+
+        if(accountCatalogue.getChildren() == null){
+            return accountCatalogueEntity;
+        }
         
         parent = accountCatalogueEntity;       
 
@@ -56,6 +60,10 @@ public class AccountCatalogueCreateMapper implements IAccountCatalogueCreateMapp
                 .financialStatus(accountCatalogueEntity.getFinancialStatus())
                 .classification(accountCatalogueEntity.getClassification())
                 .build();
+
+        if(accountCatalogueEntity.getChildren() == null){
+            return accountCatalogue;
+        }
 
         List<AccountCatalogue> children = new ArrayList<>();
         for(AccountCatalogueEntity child: accountCatalogueEntity.getChildren()){

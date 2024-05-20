@@ -1,21 +1,13 @@
 package com.account_catalogue.infraestructure.adapters.output.jpaAdapter.entity;
 
 import java.util.List;
+import java.util.Set;
 
 import com.account_catalogue.domain.enums.ClassificationEnum;
 import com.account_catalogue.domain.enums.FinancialStatusEnum;
 import com.account_catalogue.domain.enums.NatureEnum;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -49,5 +41,13 @@ public class AccountCatalogueEntity {
 
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
     private List<AccountCatalogueEntity> children;
+
+    @ManyToMany
+    @JoinTable(
+            name="Account_Tax",
+            joinColumns = @JoinColumn(name="account_code"),
+            inverseJoinColumns = @JoinColumn(name="tax_code")
+    )
+    private Set<TaxEntity> taxes;
 
 }

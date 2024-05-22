@@ -1,7 +1,5 @@
 package com.account_catalogue.infraestructure.adapters.input.rest.data.response;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
 @Getter

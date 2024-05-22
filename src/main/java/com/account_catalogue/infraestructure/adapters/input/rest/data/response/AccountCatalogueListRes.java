@@ -21,6 +21,7 @@ public class AccountCatalogueListRes {
     String nature;
     String financialStatus;
     String classification;
+    String parent;
     
     List<AccountCatalogueListRes> children;
 }

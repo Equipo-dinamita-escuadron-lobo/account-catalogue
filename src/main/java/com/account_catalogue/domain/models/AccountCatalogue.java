@@ -29,5 +29,5 @@ public class AccountCatalogue {
     private ClassificationEnum classification;
     private AccountCatalogue  parent;
     private List<AccountCatalogue> children;
-    private Set<Tax> taxes;
+    private List<Tax> taxes;
 }

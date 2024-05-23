@@ -69,7 +69,7 @@ public class AdjustEnumAccount {
             case "Credíto":
                 enumState = NatureEnum.CREDIT;
                 break;
-            case "Debíto":
+            case "Débito":
                 enumState = NatureEnum.DEBIT;
                 break;
             default:

@@ -38,9 +38,9 @@ public class AccountUpdateRestMapper implements IAccountUpdateRestMapper {
                 .id(accountCatalogue.getId())
                 .code(accountCatalogue.getCode())
                 .description(accountCatalogue.getDescription())
-                .financialStatus(accountCatalogue.getFinancialStatus())
-                .nature(accountCatalogue.getNature())
-                .classification(accountCatalogue.getClassification())
+                .financialStatus(accountCatalogue.getFinancialStatus().getState())
+                .nature(accountCatalogue.getNature().getState())
+                .classification(accountCatalogue.getClassification().getState())
                 .build();
     }
     

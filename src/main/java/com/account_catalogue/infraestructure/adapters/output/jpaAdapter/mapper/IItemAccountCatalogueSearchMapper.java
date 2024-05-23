@@ -37,7 +37,8 @@ public interface IItemAccountCatalogueSearchMapper {
                 .description(accountCatalogueEntity.getDescription())
                 .nature(accountCatalogueEntity.getNature())
                 .financialStatus(accountCatalogueEntity.getFinancialStatus())
-                .classification(accountCatalogueEntity.getClassification())
+                .classification(accountCatalogueEntity.getClassification())     
+                .parent(auxParent(accountCatalogueEntity.getParent() == null ? null : accountCatalogueEntity.getParent()))  
                 .build();
 
         List<AccountCatalogue> children = new ArrayList<>();
@@ -50,6 +51,24 @@ public interface IItemAccountCatalogueSearchMapper {
         accountCatalogue.setChildren(children);
 
         return accountCatalogue;
+   }
+
+   default AccountCatalogue auxParent(AccountCatalogueEntity accountCatalogue){
+        if (accountCatalogue == null) {
+            AccountCatalogue accountCatalogueNull = AccountCatalogue.builder()
+                    .id(null)
+                    .code(null)
+                    .build();
+                    
+            return accountCatalogueNull;
+        }
+
+        AccountCatalogue accountCatalogueParent = AccountCatalogue.builder()
+                .id(accountCatalogue.getId())
+                .code(accountCatalogue.getCode())
+                .build();
+        
+        return  accountCatalogueParent;     
    }
 
 

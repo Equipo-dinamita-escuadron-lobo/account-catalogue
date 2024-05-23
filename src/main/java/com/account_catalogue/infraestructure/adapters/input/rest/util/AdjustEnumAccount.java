@@ -66,10 +66,10 @@ public class AdjustEnumAccount {
     public NatureEnum adjustNatureEnum(String state) {
         NatureEnum enumState;
         switch (state) {
-            case "Credíto":
+            case "Crédito":
                 enumState = NatureEnum.CREDIT;
                 break;
-            case "Debíto":
+            case "Débito":
                 enumState = NatureEnum.DEBIT;
                 break;
             default:

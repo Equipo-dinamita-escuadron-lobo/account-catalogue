@@ -3,6 +3,7 @@ package com.account_catalogue.domain.models;
 import lombok.*;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Set;
 
 @Data
@@ -17,6 +18,6 @@ public class Tax {
     private float interest;
     private String refundAccount;
     private String account;
-    private Set<AccountCatalogue> accounts;
+    private List<AccountCatalogue> accounts;
 
 }

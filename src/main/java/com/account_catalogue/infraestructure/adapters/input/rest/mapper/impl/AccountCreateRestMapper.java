@@ -27,9 +27,9 @@ public class AccountCreateRestMapper implements IAccountCreateRestMapper {
                 .id(accountCatalogueRes.getId())
                 .code(accountCatalogueRes.getCode())
                 .description(accountCatalogueRes.getDescription())
-                .financialStatus(accountCatalogueRes.getFinancialStatus())
-                .nature(accountCatalogueRes.getNature())
-                .classification(accountCatalogueRes.getClassification())
+                .financialStatus(accountCatalogueRes.getFinancialStatus().getState())
+                .nature(accountCatalogueRes.getNature().getState())
+                .classification(accountCatalogueRes.getClassification().getState())
                 .build();
        
         return accountCatalogue;   

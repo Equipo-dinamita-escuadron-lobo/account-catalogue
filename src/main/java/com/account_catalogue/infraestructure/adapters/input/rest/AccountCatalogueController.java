@@ -102,7 +102,9 @@ public class AccountCatalogueController {
         List<AccountCatalogueListRes> accountCatalogueListRes= new ArrayList<>();
         for(int i=1;i<=9;i++){
             AccountCatalogue accountCatalogue=accountCatalogueSearchInputPort.getAccountCatalogueTree(String.valueOf(i));
-            accountCatalogueListRes.add(accountSearchRestMapper.toAccountCatalogueListRes(accountCatalogue));
+            if (accountCatalogue!=null){
+                accountCatalogueListRes.add(accountSearchRestMapper.toAccountCatalogueListRes(accountCatalogue));
+            }
         }
         return ResponseEntity.ok(accountCatalogueListRes);
         

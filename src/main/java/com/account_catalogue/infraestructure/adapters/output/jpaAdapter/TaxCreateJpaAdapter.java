@@ -16,7 +16,8 @@ public class TaxCreateJpaAdapter implements ITaxCreateOutputPort {
     private  ITaxRepository taxRepository;
     @Override
     public Tax createTax(Tax tax) {
-       TaxEntity taxEntity=taxRepository.save(taxCreateMapper.toEntity(tax));
+        TaxEntity  taxEntity=taxCreateMapper.toEntity(tax);
+        taxEntity=taxRepository.save(taxEntity);
         return taxCreateMapper.toModel(taxEntity);
     }
 }

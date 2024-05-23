@@ -15,9 +15,9 @@ public interface IItemAccountSearchRestMapper {
                 .id(accountCatalogue.getId())
                .code(accountCatalogue.getCode())
                .description(accountCatalogue.getDescription())
-               .nature(accountCatalogue.getNature())
-               .financialStatus(accountCatalogue.getFinancialStatus())
-               .classification(accountCatalogue.getClassification())
+               .nature(accountCatalogue.getNature().getState())
+               .financialStatus(accountCatalogue.getFinancialStatus().getState())
+               .classification(accountCatalogue.getClassification().getState())
                .build();
    }
 }

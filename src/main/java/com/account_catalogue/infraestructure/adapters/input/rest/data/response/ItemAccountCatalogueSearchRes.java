@@ -14,7 +14,7 @@ public class ItemAccountCatalogueSearchRes {
     Long id;
     String code;
     private  String description;
-    private NatureEnum nature;
-    private FinancialStatusEnum financialStatus;
-    private ClassificationEnum classification;
+    private String  nature;
+    private String  financialStatus;
+    private String classification;
 }

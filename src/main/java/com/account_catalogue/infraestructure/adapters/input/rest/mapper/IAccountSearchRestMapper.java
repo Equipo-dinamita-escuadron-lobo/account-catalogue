@@ -26,6 +26,7 @@ public interface IAccountSearchRestMapper {
                 .financialStatus(accountCatalogue.getFinancialStatus().getState())
                 .classification(accountCatalogue.getClassification().getState())
                 .children(children)
+                .parent(accountCatalogue.getParent().getCode() == null ? null : accountCatalogue.getParent().getCode())
                 .build();
     }
 }

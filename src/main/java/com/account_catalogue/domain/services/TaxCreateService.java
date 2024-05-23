@@ -5,7 +5,6 @@ import com.account_catalogue.application.output.ITaxCreateOutputPort;
 import com.account_catalogue.domain.models.Tax;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service

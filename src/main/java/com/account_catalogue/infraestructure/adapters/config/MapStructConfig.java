@@ -1,9 +1,7 @@
 package com.account_catalogue.infraestructure.adapters.config;
 
-import com.account_catalogue.infraestructure.adapters.input.rest.mapper.IAccountSearchRestMapper;
-import com.account_catalogue.infraestructure.adapters.input.rest.mapper.IItemAccountSearchRestMapper;
-import com.account_catalogue.infraestructure.adapters.input.rest.mapper.ITaxCreateRestMapper;
-import com.account_catalogue.infraestructure.adapters.input.rest.mapper.ITaxSearchRestMapper;
+import com.account_catalogue.infraestructure.adapters.input.rest.mapper.*;
+import com.account_catalogue.infraestructure.adapters.output.jpaAdapter.mapper.IAccountTaxCreateMapper;
 import com.account_catalogue.infraestructure.adapters.output.jpaAdapter.mapper.IItemAccountCatalogueSearchMapper;
 import com.account_catalogue.infraestructure.adapters.output.jpaAdapter.mapper.ITaxCreateMapper;
 import com.account_catalogue.infraestructure.adapters.output.jpaAdapter.mapper.ITaxSearchMapper;
@@ -42,5 +40,13 @@ public class MapStructConfig {
     @Bean
     ITaxSearchRestMapper mapStructTaxSearchRestMapper(){
         return Mappers.getMapper(ITaxSearchRestMapper.class);
+    }
+    @Bean
+    IAccountTaxCreateMapper mapStructAccountTaxCreateMapper(){
+       return Mappers.getMapper(IAccountTaxCreateMapper.class);
+    }
+    @Bean
+    IAcccounTaxCreateRestMapper mapStructAccountTaxCreateRestMapper(){
+        return Mappers.getMapper(IAcccounTaxCreateRestMapper.class);
     }
 }

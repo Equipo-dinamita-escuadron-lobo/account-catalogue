@@ -6,27 +6,22 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Set;
-
 @Entity
 @Builder
 @AllArgsConstructor
 @Data
 @NoArgsConstructor
-@Table(name="Tax")
-public class TaxEntity {
+@Table(name="AccountTax")
+public class AccountTaxEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(unique = true)
-    private String code;
-    private String description;
-    private float interest;
-    private String refundAccount;
-    private String account;
-    @OneToMany(mappedBy = "tax")
-    private Set<AccountTaxEntity> accountImpuesto;
+    @ManyToOne
+    @JoinColumn(name = "codeAccount")
+    private AccountCatalogueEntity account;
+    @ManyToOne
+    @JoinColumn(name = "codeTax")
+    private TaxEntity  tax;
 
 
-    
 }

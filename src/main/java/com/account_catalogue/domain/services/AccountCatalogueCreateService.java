@@ -11,9 +11,7 @@ import com.account_catalogue.application.input.IAccountCatalogueCreateInputPort;
 @AllArgsConstructor
 public class AccountCatalogueCreateService implements IAccountCatalogueCreateInputPort {
 
-
     private  final IAccountCatalogueCreateOutputPort accountCatalogueCreateOutputPort;
-
 
     @Override
     public AccountCatalogue createAccountCatalogue(AccountCatalogue accountCatalogue) {

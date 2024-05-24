@@ -42,13 +42,8 @@ public class AccountCatalogueEntity {
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
     private List<AccountCatalogueEntity> children;
 
-    @ManyToMany
-    @JoinTable(
-            name="Account_Tax",
-            joinColumns = @JoinColumn(name="account_code"),
-            inverseJoinColumns = @JoinColumn(name="tax_code")
-    )
-    private Set<TaxEntity> taxes;
+   @OneToMany(mappedBy = "account")
+    private Set<AccountTaxEntity> accountTaxes;
 
     private String idEnterprise;
 

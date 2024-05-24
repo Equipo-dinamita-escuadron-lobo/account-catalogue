@@ -21,7 +21,7 @@ public class AccountCatalogueCreateJpaAdapter implements IAccountCatalogueCreate
 
         AccountCatalogueEntity parent = null;
         if (accountCatalogue.getParent() != null) {
-             parent = accountCatalogueRepository.findByCode(accountCatalogue.getParent().getCode());        
+             parent = accountCatalogueRepository.findByCode(accountCatalogue.getParent().getCode(), accountCatalogue.getIdEnterprise());       
         }
         
 
@@ -29,10 +29,10 @@ public class AccountCatalogueCreateJpaAdapter implements IAccountCatalogueCreate
         if(accountCatalogueEntity==null){
             return null;
         }
-        if(accountCatalogueRepository.findByCode(accountCatalogueEntity.getCode())==null){
+        if(accountCatalogueRepository.findByCode(accountCatalogueEntity.getCode(), accountCatalogueEntity.getIdEnterprise())==null){
             accountCatalogueEntity=accountCatalogueRepository.save(accountCatalogueEntity);
         }else{
-            accountCatalogueEntity=accountCatalogueRepository.findByCode(accountCatalogueEntity.getCode());
+            accountCatalogueEntity=accountCatalogueRepository.findByCode(accountCatalogueEntity.getCode(),accountCatalogueEntity.getIdEnterprise());
         }
         return accountCatalogueCreateMapper.toModel(accountCatalogueEntity);
     }

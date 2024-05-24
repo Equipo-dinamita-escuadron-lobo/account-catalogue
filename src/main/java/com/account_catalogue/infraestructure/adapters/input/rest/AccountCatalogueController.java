@@ -55,7 +55,7 @@ public class AccountCatalogueController {
     @PostMapping("/")
     public ResponseEntity<AccountCatalogueCreateRes> createAccountCatalogue(@RequestBody AccountCatalogueCreateReq accountCatalogueCreateReq){
         try{
-            AccountCatalogue padre = accountCatalogueSearchInputPort.getAccountCatalogueByCode(accountCatalogueCreateReq.getParent());
+            AccountCatalogue padre = accountCatalogueSearchInputPort.getAccountCatalogueByCode(accountCatalogueCreateReq.getParent(),accountCatalogueCreateReq.getIdEnterprise());
             AccountCatalogue account=accountCreateRestMapper.toDomain(accountCatalogueCreateReq,padre);
             account=accountCatalogueCreateInputPort.createAccountCatalogue(account);
             return   ResponseEntity.ok(accountCreateRestMapper.toCreateResponse(account));
@@ -74,8 +74,8 @@ public class AccountCatalogueController {
    }
 
     @GetMapping("/accountByCode/{code}")
-    public ResponseEntity<ItemAccountCatalogueSearchRes> getAccountCatalogue(@PathVariable("code")String code){
-        AccountCatalogue accountCatalogue=accountCatalogueSearchInputPort.getAccountCatalogueByCode(code);
+    public ResponseEntity<ItemAccountCatalogueSearchRes> getAccountCatalogue(@PathVariable("code")String code, String idEnterprise){
+        AccountCatalogue accountCatalogue=accountCatalogueSearchInputPort.getAccountCatalogueByCode(code,idEnterprise);
         return ResponseEntity.ok(itemAccountSearchRestMapper.toItemAccountCatalogueSearch(accountCatalogue));
     }
    
@@ -92,16 +92,16 @@ public class AccountCatalogueController {
     }
 
     @GetMapping("/tree/{code}")
-    public ResponseEntity<AccountCatalogueListRes> getAccountCatalogueTree(@PathVariable("code")String code){
-        AccountCatalogue accountCatalogue=accountCatalogueSearchInputPort.getAccountCatalogueTree(code);
+    public ResponseEntity<AccountCatalogueListRes> getAccountCatalogueTree(@PathVariable("code")String code,String idEnterprise){
+        AccountCatalogue accountCatalogue=accountCatalogueSearchInputPort.getAccountCatalogueTree(code,idEnterprise);
         return ResponseEntity.ok(accountSearchRestMapper.toAccountCatalogueListRes(accountCatalogue));
     }
 
     @GetMapping("/trees")
-    public ResponseEntity<List<AccountCatalogueListRes>> getAccountCatalogueTrees(){
+    public ResponseEntity<List<AccountCatalogueListRes>> getAccountCatalogueTrees(String idEnterprise){
         List<AccountCatalogueListRes> accountCatalogueListRes= new ArrayList<>();
         for(int i=1;i<=9;i++){
-            AccountCatalogue accountCatalogue=accountCatalogueSearchInputPort.getAccountCatalogueTree(String.valueOf(i));
+            AccountCatalogue accountCatalogue=accountCatalogueSearchInputPort.getAccountCatalogueTree(String.valueOf(i),idEnterprise);
             if (accountCatalogue!=null){
                 accountCatalogueListRes.add(accountSearchRestMapper.toAccountCatalogueListRes(accountCatalogue));
             }

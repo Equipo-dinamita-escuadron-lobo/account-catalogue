@@ -14,13 +14,13 @@ public class AccountCatalogueSearchService implements IAccountCatalogueSearchInp
     private final IAccountCatalogueSearchOutputPort accountCatalogueSearchOutputPort;
 
     @Override
-    public AccountCatalogue getAccountCatalogueByCode(String code) {
-        return accountCatalogueSearchOutputPort.getAccountCatalogueByCode(code);
+    public AccountCatalogue getAccountCatalogueByCode(String code, String idEnterprise) {
+        return accountCatalogueSearchOutputPort.getAccountCatalogueByCode(code, idEnterprise);
     }
 
     @Override
-    public AccountCatalogue getAccountCatalogueTree(String code) {
-        return accountCatalogueSearchOutputPort.getAccountCatalogueTree(code);
+    public AccountCatalogue getAccountCatalogueTree(String code, String idEnterprise) {
+        return accountCatalogueSearchOutputPort.getAccountCatalogueTree(code, idEnterprise);
     }
     
 }

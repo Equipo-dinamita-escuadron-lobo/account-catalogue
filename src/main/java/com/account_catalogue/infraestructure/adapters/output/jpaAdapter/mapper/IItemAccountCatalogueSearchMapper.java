@@ -22,6 +22,7 @@ public interface IItemAccountCatalogueSearchMapper {
                .nature(accountCatalogueEntity.getNature())
                .financialStatus(accountCatalogueEntity.getFinancialStatus())
                .classification(accountCatalogueEntity.getClassification())
+               .parent(auxParent(accountCatalogueEntity.getParent() == null ? null : accountCatalogueEntity.getParent()))
                .build();
    }
     AccountCatalogueEntity toEntity(AccountCatalogue accountCatalogue);

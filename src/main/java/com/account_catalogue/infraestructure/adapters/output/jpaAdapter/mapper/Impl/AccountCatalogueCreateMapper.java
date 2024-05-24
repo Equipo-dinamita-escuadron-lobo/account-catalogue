@@ -20,6 +20,7 @@ public class AccountCatalogueCreateMapper implements IAccountCatalogueCreateMapp
        }
 
         AccountCatalogueEntity accountCatalogueEntity = AccountCatalogueEntity.builder()
+                .idEnterprise(accountCatalogue.getIdEnterprise())
                 .code(accountCatalogue.getCode())
                 .description(accountCatalogue.getDescription())
                 .nature(accountCatalogue.getNature())
@@ -53,12 +54,14 @@ public class AccountCatalogueCreateMapper implements IAccountCatalogueCreateMapp
         }
 
         AccountCatalogue accountCatalogue = AccountCatalogue.builder()
+                .idEnterprise(accountCatalogueEntity.getIdEnterprise())
                 .id(accountCatalogueEntity.getId())
                 .code(accountCatalogueEntity.getCode())
                 .description(accountCatalogueEntity.getDescription())
                 .nature(accountCatalogueEntity.getNature())
                 .financialStatus(accountCatalogueEntity.getFinancialStatus())
                 .classification(accountCatalogueEntity.getClassification())
+                .parent(auxParent(accountCatalogueEntity.getParent() == null ? null : accountCatalogueEntity.getParent()))
                 .build();
 
         if(accountCatalogueEntity.getChildren() == null){
@@ -77,6 +80,19 @@ public class AccountCatalogueCreateMapper implements IAccountCatalogueCreateMapp
         return accountCatalogue;
     }
     
+    private AccountCatalogue auxParent(AccountCatalogueEntity accountCatalogue){
+        if(accountCatalogue == null){
+            return AccountCatalogue.builder()
+                    .id(null)
+                    .code(null)
+                    .build();
+        }
+
+        return AccountCatalogue.builder()
+                .id(accountCatalogue.getId())
+                .code(accountCatalogue.getCode())
+                .build();
+    }
 
 
     

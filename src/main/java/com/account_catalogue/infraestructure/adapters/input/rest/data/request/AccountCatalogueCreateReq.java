@@ -22,6 +22,8 @@ public class AccountCatalogueCreateReq {
     @JsonIgnore
     private long id;
 
+    private String idEnterprise;
+
     @NotBlank(message = "El código es requerido")
     private String code;
 

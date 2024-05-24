@@ -22,8 +22,9 @@ import lombok.Setter;
 @Setter
 public class AccountCatalogue {
     private Long id;
+    private String idEnterprise;
     private String code;
-    private  String description;
+    private String description;
     private NatureEnum nature;
     private FinancialStatusEnum financialStatus;
     private ClassificationEnum classification;

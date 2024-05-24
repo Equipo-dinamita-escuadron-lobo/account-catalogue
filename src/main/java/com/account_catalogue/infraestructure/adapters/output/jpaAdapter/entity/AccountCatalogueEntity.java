@@ -50,4 +50,6 @@ public class AccountCatalogueEntity {
     )
     private Set<TaxEntity> taxes;
 
+    private String idEnterprise;
+
 }

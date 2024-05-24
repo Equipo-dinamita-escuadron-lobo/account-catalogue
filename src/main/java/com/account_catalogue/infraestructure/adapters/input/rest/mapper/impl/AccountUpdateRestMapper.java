@@ -41,6 +41,7 @@ public class AccountUpdateRestMapper implements IAccountUpdateRestMapper {
                 .financialStatus(accountCatalogue.getFinancialStatus().getState())
                 .nature(accountCatalogue.getNature().getState())
                 .classification(accountCatalogue.getClassification().getState())
+                .parent(accountCatalogue.getParent().getCode() == null ? null : accountCatalogue.getParent().getCode())
                 .build();
     }
     

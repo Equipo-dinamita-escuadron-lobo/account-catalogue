@@ -79,10 +79,10 @@ public class AccountCatalogueController {
         return ResponseEntity.ok(itemAccountSearchRestMapper.toItemAccountCatalogueSearch(accountCatalogue));
     }
    
-    @DeleteMapping("/{code}")
-    public ResponseEntity<?> deleteByCode(@PathVariable("code")String code){
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteByCode(@PathVariable("id")Long id){
         try{
-            accountCatalogueDeleteInputPort.deleteByCode(code);
+            accountCatalogueDeleteInputPort.deleteById(id);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }catch(AccountCatalogueNotFoundException ex){
             Map<String,String> errorRespnse=new HashMap<>();

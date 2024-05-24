@@ -73,8 +73,8 @@ public class AccountCatalogueController {
         return ResponseEntity.ok(accountUpdateRestMapper.toUpdateResponse(updateAccountCatalogue));
    }
 
-    @GetMapping("/accountByCode/{code}")
-    public ResponseEntity<ItemAccountCatalogueSearchRes> getAccountCatalogue(@PathVariable("code")String code, String idEnterprise){
+    @GetMapping("/accountByCode/{code}/{idEnterprise}")
+    public ResponseEntity<ItemAccountCatalogueSearchRes> getAccountCatalogue(@PathVariable("code")String code, @PathVariable("idEnterprise")String idEnterprise){
         AccountCatalogue accountCatalogue=accountCatalogueSearchInputPort.getAccountCatalogueByCode(code,idEnterprise);
         return ResponseEntity.ok(itemAccountSearchRestMapper.toItemAccountCatalogueSearch(accountCatalogue));
     }
@@ -91,14 +91,14 @@ public class AccountCatalogueController {
         }
     }
 
-    @GetMapping("/tree/{code}")
-    public ResponseEntity<AccountCatalogueListRes> getAccountCatalogueTree(@PathVariable("code")String code,String idEnterprise){
+    @GetMapping("/tree/{code}/{idEnterprise}")
+    public ResponseEntity<AccountCatalogueListRes> getAccountCatalogueTree(@PathVariable("code")String code, @PathVariable("idEnterprise")String idEnterprise){
         AccountCatalogue accountCatalogue=accountCatalogueSearchInputPort.getAccountCatalogueTree(code,idEnterprise);
         return ResponseEntity.ok(accountSearchRestMapper.toAccountCatalogueListRes(accountCatalogue));
     }
 
-    @GetMapping("/trees")
-    public ResponseEntity<List<AccountCatalogueListRes>> getAccountCatalogueTrees(String idEnterprise){
+    @GetMapping("/trees/{idEnterprise}")
+    public ResponseEntity<List<AccountCatalogueListRes>> getAccountCatalogueTrees(@PathVariable("idEnterprise")String idEnterprise){
         List<AccountCatalogueListRes> accountCatalogueListRes= new ArrayList<>();
         for(int i=1;i<=9;i++){
             AccountCatalogue accountCatalogue=accountCatalogueSearchInputPort.getAccountCatalogueTree(String.valueOf(i),idEnterprise);

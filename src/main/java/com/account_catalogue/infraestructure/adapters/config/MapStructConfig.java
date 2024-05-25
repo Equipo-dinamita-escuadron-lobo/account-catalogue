@@ -46,7 +46,7 @@ public class MapStructConfig {
        return Mappers.getMapper(IAccountTaxCreateMapper.class);
     }
     @Bean
-    IAcccounTaxCreateRestMapper mapStructAccountTaxCreateRestMapper(){
-        return Mappers.getMapper(IAcccounTaxCreateRestMapper.class);
+    IAccounTaxCreateRestMapper mapStructAccountTaxCreateRestMapper(){
+        return Mappers.getMapper(IAccounTaxCreateRestMapper.class);
     }
 }

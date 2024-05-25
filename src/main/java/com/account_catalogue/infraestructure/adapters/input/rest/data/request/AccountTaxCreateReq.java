@@ -11,7 +11,7 @@ import lombok.*;
 @Builder
 
 public class AccountTaxCreateReq {
-    private AccountCatalogue accountCatalogue;
-    private Tax tax;
+    private String codeAccount;
+    private String codeTax;
 
 }

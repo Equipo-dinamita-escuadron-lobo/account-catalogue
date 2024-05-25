@@ -10,10 +10,10 @@ import org.springframework.stereotype.Service;
 @Service
 @AllArgsConstructor
 public class AccountTaxCreateService implements IAccountTaxCreateInputPort {
-
-   // private final IAccountTaxCreateOutputPort accountTaxCreateOutputPort;
+    private final IAccountTaxCreateOutputPort accountTaxCreateOutputPort;
     @Override
-    public AccountTax createAccounTax(AccountTax accountTax) {
-        return null;
+    public AccountTax createAccounTax(String codeAccount, String codeTax) {
+        return accountTaxCreateOutputPort.createAccounTax(codeAccount, codeTax);
     }
+
 }

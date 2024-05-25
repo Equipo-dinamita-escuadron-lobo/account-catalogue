@@ -24,12 +24,14 @@ public class AccountCreateRestMapper implements IAccountCreateRestMapper {
         }
 
         AccountCatalogueCreateRes accountCatalogue=AccountCatalogueCreateRes.builder()
+                .idEnterprise(accountCatalogueRes.getIdEnterprise())
                 .id(accountCatalogueRes.getId())
                 .code(accountCatalogueRes.getCode())
                 .description(accountCatalogueRes.getDescription())
                 .financialStatus(accountCatalogueRes.getFinancialStatus().getState())
                 .nature(accountCatalogueRes.getNature().getState())
                 .classification(accountCatalogueRes.getClassification().getState())
+                .parent(accountCatalogueRes.getParent().getCode() == null ? null : accountCatalogueRes.getParent().getCode())
                 .build();
        
         return accountCatalogue;   
@@ -42,6 +44,7 @@ public class AccountCreateRestMapper implements IAccountCreateRestMapper {
         }
 
         AccountCatalogue accountCatalogue=AccountCatalogue.builder()
+                .idEnterprise(accountCatalogueCreateReq.getIdEnterprise())
                 .code(accountCatalogueCreateReq.getCode())
                 .description(accountCatalogueCreateReq.getDescription())
                 .financialStatus(adjustEnum.adjustFinancialStatusEnum(accountCatalogueCreateReq.getFinancialStatus()))

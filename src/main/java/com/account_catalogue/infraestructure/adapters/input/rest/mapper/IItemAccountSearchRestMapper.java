@@ -12,12 +12,13 @@ public interface IItemAccountSearchRestMapper {
            return null;
        }
        return ItemAccountCatalogueSearchRes.builder()
-                .id(accountCatalogue.getId())
+               .id(accountCatalogue.getId())
                .code(accountCatalogue.getCode())
                .description(accountCatalogue.getDescription())
                .nature(accountCatalogue.getNature().getState())
                .financialStatus(accountCatalogue.getFinancialStatus().getState())
                .classification(accountCatalogue.getClassification().getState())
+               .parent(accountCatalogue.getParent().getCode() == null ? null : accountCatalogue.getParent().getCode())
                .build();
    }
 }

@@ -13,7 +13,7 @@ public class AccountCatalogueDeleteService implements IAccountCatalogueDeleteInp
     private  final IAccountCatalogueDeleteOutputPort accountCatalogueDeleteOutputPort;
    @Transactional
     @Override
-    public void deleteByCode(String code) {
-        accountCatalogueDeleteOutputPort.deleteByCode(code);
+    public void deleteById(Long id) {
+        accountCatalogueDeleteOutputPort.deleteById(id);
     }
 }

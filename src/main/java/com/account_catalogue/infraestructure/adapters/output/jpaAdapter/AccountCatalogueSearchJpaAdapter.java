@@ -17,14 +17,14 @@ public class AccountCatalogueSearchJpaAdapter implements IAccountCatalogueSearch
 
 
     @Override
-    public AccountCatalogue getAccountCatalogueByCode(String code) {
-        AccountCatalogueEntity accountCatalogue=accountCatalogueRepository.findByCode(code);
+    public AccountCatalogue getAccountCatalogueByCode(String code, String idEnterprise) {
+        AccountCatalogueEntity accountCatalogue=accountCatalogueRepository.findByCode(code, idEnterprise);
         return itemAccountCatalogueSearchMapper.toDomain(accountCatalogue);
     }
 
     @Override
-    public AccountCatalogue getAccountCatalogueTree(String code) {
-        AccountCatalogueEntity accountCatalogue=accountCatalogueRepository.findByCode(code);
+    public AccountCatalogue getAccountCatalogueTree(String code, String idEnterprise) {
+        AccountCatalogueEntity accountCatalogue=accountCatalogueRepository.findByCode(code, idEnterprise);
         return itemAccountCatalogueSearchMapper.toDomainTree(accountCatalogue);
     }
 }

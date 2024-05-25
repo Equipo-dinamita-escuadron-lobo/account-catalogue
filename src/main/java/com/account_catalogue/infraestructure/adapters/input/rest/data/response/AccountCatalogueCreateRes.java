@@ -14,10 +14,12 @@ import lombok.Setter;
 @Builder
 public class AccountCatalogueCreateRes {
     private long id;
+    private String idEnterprise;
     private String code;
     private String description;
     private String nature;
     private String financialStatus;
     private String classification;
+    private String parent;
 
 }

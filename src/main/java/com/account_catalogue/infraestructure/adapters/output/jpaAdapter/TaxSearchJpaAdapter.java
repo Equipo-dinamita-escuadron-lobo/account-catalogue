@@ -2,7 +2,6 @@ package com.account_catalogue.infraestructure.adapters.output.jpaAdapter;
 
 import com.account_catalogue.application.output.ITaxSearchOutputPort;
 import com.account_catalogue.domain.models.Tax;
-import com.account_catalogue.infraestructure.adapters.output.jpaAdapter.entity.TaxEntity;
 import com.account_catalogue.infraestructure.adapters.output.jpaAdapter.mapper.ITaxSearchMapper;
 import com.account_catalogue.infraestructure.adapters.output.jpaAdapter.repository.ITaxRepository;
 import lombok.Data;

@@ -14,4 +14,5 @@ public class AccountCatalogueUpdateRes {
     private String nature;
     private String financialStatus;
     private String classification;
+    private String parent;
 }

@@ -26,7 +26,6 @@ public class AccountCatalogueEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true)
     private String code;
 
     private String description;
@@ -44,5 +43,7 @@ public class AccountCatalogueEntity {
 
    @OneToMany(mappedBy = "account")
     private Set<AccountTaxEntity> accountTaxes;
+
+    private String idEnterprise;
 
 }

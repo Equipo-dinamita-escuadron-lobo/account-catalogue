@@ -6,6 +6,4 @@ import com.account_catalogue.infraestructure.adapters.output.jpaAdapter.entity.A
 public interface IAccountCatalogueUpdateMapper {
 
     AccountCatalogue toAccountCatalogue(AccountCatalogueEntity accountCatalogueEntity);
- 
-    AccountCatalogueEntity toAccountCatalogueEntity(AccountCatalogue accountCatalogue);
 }

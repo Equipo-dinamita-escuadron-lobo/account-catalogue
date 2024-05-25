@@ -11,7 +11,7 @@ public class AccountCatalogueDeleteJpaAdapter implements IAccountCatalogueDelete
 
     private final IAccountCatalogueRepository accountCatalogueRepository;
     @Override
-    public void deleteByCode(String code) {
-       accountCatalogueRepository.deleteByCode(code);
+    public void deleteById(Long id) {
+       accountCatalogueRepository.deleteById(id);
     }
 }

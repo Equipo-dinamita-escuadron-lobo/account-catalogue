@@ -2,9 +2,7 @@ package com.account_catalogue.infraestructure.adapters.input.rest.data.request;
 
 
 import java.util.List;
-import java.util.Set;
 
-import com.account_catalogue.domain.models.Tax;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -24,6 +22,8 @@ public class AccountCatalogueCreateReq {
     //El id no es necesario ya que es autogenerado
     @JsonIgnore
     private long id;
+
+    private String idEnterprise;
 
     @NotBlank(message = "El código es requerido")
     private String code;

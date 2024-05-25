@@ -55,7 +55,7 @@ public class AccountCatalogueController {
     @PostMapping("/")
     public ResponseEntity<AccountCatalogueCreateRes> createAccountCatalogue(@RequestBody AccountCatalogueCreateReq accountCatalogueCreateReq){
         try{
-            AccountCatalogue padre = accountCatalogueSearchInputPort.getAccountCatalogueByCode(accountCatalogueCreateReq.getParent());
+            AccountCatalogue padre = accountCatalogueSearchInputPort.getAccountCatalogueByCode(accountCatalogueCreateReq.getParent(),accountCatalogueCreateReq.getIdEnterprise());
             AccountCatalogue account=accountCreateRestMapper.toDomain(accountCatalogueCreateReq,padre);
             account=accountCatalogueCreateInputPort.createAccountCatalogue(account);
             return   ResponseEntity.ok(accountCreateRestMapper.toCreateResponse(account));
@@ -73,16 +73,16 @@ public class AccountCatalogueController {
         return ResponseEntity.ok(accountUpdateRestMapper.toUpdateResponse(updateAccountCatalogue));
    }
 
-    @GetMapping("/accountByCode/{code}")
-    public ResponseEntity<ItemAccountCatalogueSearchRes> getAccountCatalogue(@PathVariable("code")String code){
-        AccountCatalogue accountCatalogue=accountCatalogueSearchInputPort.getAccountCatalogueByCode(code);
+    @GetMapping("/accountByCode/{code}/{idEnterprise}")
+    public ResponseEntity<ItemAccountCatalogueSearchRes> getAccountCatalogue(@PathVariable("code")String code, @PathVariable("idEnterprise")String idEnterprise){
+        AccountCatalogue accountCatalogue=accountCatalogueSearchInputPort.getAccountCatalogueByCode(code,idEnterprise);
         return ResponseEntity.ok(itemAccountSearchRestMapper.toItemAccountCatalogueSearch(accountCatalogue));
     }
    
-    @DeleteMapping("/{code}")
-    public ResponseEntity<?> deleteByCode(@PathVariable("code")String code){
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteByCode(@PathVariable("id")Long id){
         try{
-            accountCatalogueDeleteInputPort.deleteByCode(code);
+            accountCatalogueDeleteInputPort.deleteById(id);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }catch(AccountCatalogueNotFoundException ex){
             Map<String,String> errorRespnse=new HashMap<>();
@@ -91,17 +91,17 @@ public class AccountCatalogueController {
         }
     }
 
-    @GetMapping("/tree/{code}")
-    public ResponseEntity<AccountCatalogueListRes> getAccountCatalogueTree(@PathVariable("code")String code){
-        AccountCatalogue accountCatalogue=accountCatalogueSearchInputPort.getAccountCatalogueTree(code);
+    @GetMapping("/tree/{code}/{idEnterprise}")
+    public ResponseEntity<AccountCatalogueListRes> getAccountCatalogueTree(@PathVariable("code")String code, @PathVariable("idEnterprise")String idEnterprise){
+        AccountCatalogue accountCatalogue=accountCatalogueSearchInputPort.getAccountCatalogueTree(code,idEnterprise);
         return ResponseEntity.ok(accountSearchRestMapper.toAccountCatalogueListRes(accountCatalogue));
     }
 
-    @GetMapping("/trees")
-    public ResponseEntity<List<AccountCatalogueListRes>> getAccountCatalogueTrees(){
+    @GetMapping("/trees/{idEnterprise}")
+    public ResponseEntity<List<AccountCatalogueListRes>> getAccountCatalogueTrees(@PathVariable("idEnterprise")String idEnterprise){
         List<AccountCatalogueListRes> accountCatalogueListRes= new ArrayList<>();
         for(int i=1;i<=9;i++){
-            AccountCatalogue accountCatalogue=accountCatalogueSearchInputPort.getAccountCatalogueTree(String.valueOf(i));
+            AccountCatalogue accountCatalogue=accountCatalogueSearchInputPort.getAccountCatalogueTree(String.valueOf(i),idEnterprise);
             if (accountCatalogue!=null){
                 accountCatalogueListRes.add(accountSearchRestMapper.toAccountCatalogueListRes(accountCatalogue));
             }

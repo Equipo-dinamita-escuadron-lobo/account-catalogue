@@ -8,4 +8,6 @@ public interface IAccountCatalogueSearchInputPort {
 
     AccountCatalogue getAccountCatalogueTree(String code, String idEnterprise);
 
+    AccountCatalogue getAccountCatalogueById(Long id);
+
 }

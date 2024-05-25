@@ -13,7 +13,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @Builder
 public class AccountCatalogueCreateRes {
-    private long id;
+    private Long id;
     private String idEnterprise;
     private String code;
     private String description;

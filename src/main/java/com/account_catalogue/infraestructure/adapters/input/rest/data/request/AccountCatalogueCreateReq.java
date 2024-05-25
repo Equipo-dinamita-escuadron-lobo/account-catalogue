@@ -21,7 +21,7 @@ import lombok.Setter;
 public class AccountCatalogueCreateReq {
     //El id no es necesario ya que es autogenerado
     @JsonIgnore
-    private long id;
+    private Long id;
 
     private String idEnterprise;
 
@@ -40,7 +40,7 @@ public class AccountCatalogueCreateReq {
     //@NotBlank(message = "La clasificacion es requerido")
     private String classification;
     
-    private String parent;
+    private Long parent;
 
     private List<AccountCatalogueCreateReq> children;
 }

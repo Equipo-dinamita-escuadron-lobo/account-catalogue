@@ -27,4 +27,10 @@ public class AccountCatalogueSearchJpaAdapter implements IAccountCatalogueSearch
         AccountCatalogueEntity accountCatalogue=accountCatalogueRepository.findByCode(code, idEnterprise);
         return itemAccountCatalogueSearchMapper.toDomainTree(accountCatalogue);
     }
+
+    @Override
+    public AccountCatalogue getAccountCatalogueById(Long id) {
+        AccountCatalogueEntity accountCatalogue=accountCatalogueRepository.findById(id).orElse(null);
+        return itemAccountCatalogueSearchMapper.toDomain(accountCatalogue);
+    }
 }

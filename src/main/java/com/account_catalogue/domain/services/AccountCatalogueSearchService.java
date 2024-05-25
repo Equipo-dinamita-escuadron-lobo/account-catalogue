@@ -22,5 +22,10 @@ public class AccountCatalogueSearchService implements IAccountCatalogueSearchInp
     public AccountCatalogue getAccountCatalogueTree(String code, String idEnterprise) {
         return accountCatalogueSearchOutputPort.getAccountCatalogueTree(code, idEnterprise);
     }
+
+    @Override
+    public AccountCatalogue getAccountCatalogueById(Long id) {
+        return accountCatalogueSearchOutputPort.getAccountCatalogueById(id);
+    }
     
 }

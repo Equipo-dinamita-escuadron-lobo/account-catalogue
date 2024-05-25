@@ -7,4 +7,6 @@ public interface IAccountCatalogueSearchOutputPort {
     AccountCatalogue getAccountCatalogueByCode(String code,String idEnterprise);
 
     AccountCatalogue getAccountCatalogueTree(String code,String idEnterprise);
+
+    AccountCatalogue getAccountCatalogueById(Long id);
 }

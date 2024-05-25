@@ -1,7 +1,6 @@
 package com.account_catalogue.domain.models;
 
 import java.util.List;
-import java.util.Set;
 
 import com.account_catalogue.domain.enums.ClassificationEnum;
 import com.account_catalogue.domain.enums.FinancialStatusEnum;

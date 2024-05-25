@@ -35,7 +35,7 @@ public class AccountCatalogueEntity {
     private ClassificationEnum classification;
 
     @ManyToOne
-    @JoinColumn(name = "parent_id", referencedColumnName = "code") 
+    @JoinColumn(name = "parent_id", referencedColumnName = "id") 
     private AccountCatalogueEntity parent;
 
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)

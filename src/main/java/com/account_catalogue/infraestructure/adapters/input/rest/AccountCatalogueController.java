@@ -55,7 +55,7 @@ public class AccountCatalogueController {
     @PostMapping("/")
     public ResponseEntity<AccountCatalogueCreateRes> createAccountCatalogue(@RequestBody AccountCatalogueCreateReq accountCatalogueCreateReq){
         try{
-            AccountCatalogue padre = accountCatalogueSearchInputPort.getAccountCatalogueByCode(accountCatalogueCreateReq.getParent(),accountCatalogueCreateReq.getIdEnterprise());
+            AccountCatalogue padre = accountCatalogueSearchInputPort.getAccountCatalogueById(accountCatalogueCreateReq.getParent());
             AccountCatalogue account=accountCreateRestMapper.toDomain(accountCatalogueCreateReq,padre);
             account=accountCatalogueCreateInputPort.createAccountCatalogue(account);
             return   ResponseEntity.ok(accountCreateRestMapper.toCreateResponse(account));

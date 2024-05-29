@@ -3,6 +3,8 @@ package com.account_catalogue.infraestructure.adapters.output.jpaAdapter.entity;
 import java.util.List;
 import java.util.Set;
 
+import org.hibernate.annotations.TenantId;
+
 import com.account_catalogue.domain.enums.ClassificationEnum;
 import com.account_catalogue.domain.enums.FinancialStatusEnum;
 import com.account_catalogue.domain.enums.NatureEnum;
@@ -45,5 +47,9 @@ public class AccountCatalogueEntity {
     private Set<AccountTaxEntity> accountTaxes;
 
     private String idEnterprise;
+
+    @TenantId
+    String tenantId;
+
 
 }

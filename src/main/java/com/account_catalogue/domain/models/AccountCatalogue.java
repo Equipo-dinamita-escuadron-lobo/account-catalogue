@@ -1,5 +1,6 @@
 package com.account_catalogue.domain.models;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -7,6 +8,8 @@ import com.account_catalogue.domain.enums.ClassificationEnum;
 import com.account_catalogue.domain.enums.FinancialStatusEnum;
 import com.account_catalogue.domain.enums.NatureEnum;
 
+import com.account_catalogue.infraestructure.adapters.output.jpaAdapter.entity.TaxEntity;
+import jakarta.persistence.OneToMany;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -30,5 +33,6 @@ public class AccountCatalogue {
     private ClassificationEnum classification;
     private AccountCatalogue  parent;
     private List<AccountCatalogue> children;
-    private List<Tax> taxes;
+    private List<TaxEntity> depositAccounts;
+    private List<TaxEntity>  refundAccounts;
 }

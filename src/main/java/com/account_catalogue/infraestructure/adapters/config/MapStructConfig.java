@@ -1,10 +1,11 @@
 package com.account_catalogue.infraestructure.adapters.config;
 
 import com.account_catalogue.infraestructure.adapters.input.rest.mapper.*;
-import com.account_catalogue.infraestructure.adapters.output.jpaAdapter.mapper.IAccountTaxCreateMapper;
 import com.account_catalogue.infraestructure.adapters.output.jpaAdapter.mapper.IItemAccountCatalogueSearchMapper;
 import com.account_catalogue.infraestructure.adapters.output.jpaAdapter.mapper.ITaxCreateMapper;
 import com.account_catalogue.infraestructure.adapters.output.jpaAdapter.mapper.ITaxSearchMapper;
+import com.account_catalogue.infraestructure.adapters.output.jpaAdapter.mapper.ITaxUpdateMapper;
+import org.mapstruct.Mapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.mapstruct.factory.Mappers;
@@ -42,11 +43,12 @@ public class MapStructConfig {
         return Mappers.getMapper(ITaxSearchRestMapper.class);
     }
     @Bean
-    IAccountTaxCreateMapper mapStructAccountTaxCreateMapper(){
-       return Mappers.getMapper(IAccountTaxCreateMapper.class);
+    ITaxUpdateMapper mapStructUpdateMapper(){
+        return Mappers.getMapper(ITaxUpdateMapper.class);
     }
     @Bean
-    IAccounTaxCreateRestMapper mapStructAccountTaxCreateRestMapper(){
-        return Mappers.getMapper(IAccounTaxCreateRestMapper.class);
+    ITaxUpdateRestMapper mapStructUpdateRestMapper(){
+        return Mappers.getMapper(ITaxUpdateRestMapper.class);
     }
+
 }

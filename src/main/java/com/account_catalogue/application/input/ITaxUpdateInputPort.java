@@ -3,6 +3,6 @@ package com.account_catalogue.application.input;
 import com.account_catalogue.domain.DTO.TaxDTO;
 import com.account_catalogue.domain.models.Tax;
 
-public interface ITaxCreateInputPort {
-    Tax createTax(TaxDTO tax);
+public interface ITaxUpdateInputPort {
+    Tax update(TaxDTO taxDTO,String code);
 }

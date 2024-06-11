@@ -1,5 +1,6 @@
 package com.account_catalogue.infraestructure.adapters.output.jpaAdapter.entity;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -41,8 +42,14 @@ public class AccountCatalogueEntity {
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
     private List<AccountCatalogueEntity> children;
 
-   @OneToMany(mappedBy = "account")
-    private Set<AccountTaxEntity> accountTaxes;
+   @OneToMany(mappedBy = "depositAccount")
+   private List<TaxEntity> depositAccounts;
+
+   @OneToMany(mappedBy = "refundAccount")
+   private List<TaxEntity>  refundAccounts;
+
+
+
 
     private String idEnterprise;
 

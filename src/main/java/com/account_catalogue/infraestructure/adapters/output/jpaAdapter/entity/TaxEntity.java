@@ -6,13 +6,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Set;
+
 
 @Entity
 @Builder
 @AllArgsConstructor
 @Data
 @NoArgsConstructor
+
 @Table(name="Tax")
 public class TaxEntity {
     @Id
@@ -22,10 +23,18 @@ public class TaxEntity {
     private String code;
     private String description;
     private float interest;
-    private String refundAccount;
-    private String account;
-    @OneToMany(mappedBy = "tax")
-    private Set<AccountTaxEntity> accountImpuesto;
+
+    @ManyToOne
+    @JoinColumn(name="depositAccount_code")
+    private  AccountCatalogueEntity depositAccount;
+
+    @ManyToOne
+    @JoinColumn(name="refundAccount_code")
+    private  AccountCatalogueEntity refundAccount;
+
+
+
+
 
 
 

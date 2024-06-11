@@ -7,6 +7,7 @@ import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -41,6 +42,7 @@ import lombok.AllArgsConstructor;
 @RestController
 @AllArgsConstructor
 @CrossOrigin(origins = "*")
+//@PreAuthorize("hasRole('admin_client')")
 public class AccountCatalogueController {
     private final IAccountCatalogueCreateInputPort accountCatalogueCreateInputPort;
     private final IAccountCreateRestMapper accountCreateRestMapper;
@@ -55,7 +57,7 @@ public class AccountCatalogueController {
     @PostMapping("/")
     public ResponseEntity<AccountCatalogueCreateRes> createAccountCatalogue(@RequestBody AccountCatalogueCreateReq accountCatalogueCreateReq){
         try{
-            AccountCatalogue padre = accountCatalogueSearchInputPort.getAccountCatalogueByCode(accountCatalogueCreateReq.getParent(),accountCatalogueCreateReq.getIdEnterprise());
+            AccountCatalogue padre = accountCatalogueSearchInputPort.getAccountCatalogueById(accountCatalogueCreateReq.getParent());
             AccountCatalogue account=accountCreateRestMapper.toDomain(accountCatalogueCreateReq,padre);
             account=accountCatalogueCreateInputPort.createAccountCatalogue(account);
             return   ResponseEntity.ok(accountCreateRestMapper.toCreateResponse(account));

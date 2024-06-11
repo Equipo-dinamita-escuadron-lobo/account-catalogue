@@ -4,6 +4,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.hibernate.annotations.TenantId;
+
 import com.account_catalogue.domain.enums.ClassificationEnum;
 import com.account_catalogue.domain.enums.FinancialStatusEnum;
 import com.account_catalogue.domain.enums.NatureEnum;
@@ -36,7 +38,7 @@ public class AccountCatalogueEntity {
     private ClassificationEnum classification;
 
     @ManyToOne
-    @JoinColumn(name = "parent_id", referencedColumnName = "code") 
+    @JoinColumn(name = "parent_id", referencedColumnName = "id") 
     private AccountCatalogueEntity parent;
 
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
@@ -52,5 +54,9 @@ public class AccountCatalogueEntity {
 
 
     private String idEnterprise;
+
+    @TenantId
+    String tenantId;
+
 
 }

@@ -2,14 +2,8 @@ package com.account_catalogue.infraestructure.adapters.input.rest.data.request;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.NotBlank;
-import lombok.*;
 
-@Getter
-@Setter
-@AllArgsConstructor
-@NoArgsConstructor
-@Builder
-public class TaxCreateReq {
+public class TaxUpdateReq {
     @JsonIgnore
     private  Long id;
     @NotBlank(message = "El código es requerido")

@@ -7,8 +7,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Data
-public class TaxSearchRes {
+public class TaxUpdateRes {
     private  Long id;
     private String code;
     private String description;

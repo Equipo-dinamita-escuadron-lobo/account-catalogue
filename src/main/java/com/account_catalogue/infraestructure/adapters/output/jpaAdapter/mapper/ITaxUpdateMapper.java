@@ -1,17 +1,12 @@
 package com.account_catalogue.infraestructure.adapters.output.jpaAdapter.mapper;
 
-import com.account_catalogue.domain.DTO.TaxDTO;
+
 import com.account_catalogue.domain.models.Tax;
-import com.account_catalogue.infraestructure.adapters.output.jpaAdapter.entity.AccountCatalogueEntity;
 import com.account_catalogue.infraestructure.adapters.output.jpaAdapter.entity.TaxEntity;
 import org.mapstruct.Mapper;
 
-import java.util.HashSet;
-import java.util.Set;
-
-
 @Mapper
-public interface ITaxCreateMapper {
+public interface ITaxUpdateMapper {
     default TaxEntity toEntity(Tax tax){
         if(tax==null){
             return null;
@@ -20,7 +15,6 @@ public interface ITaxCreateMapper {
 
 
         return TaxEntity.builder()
-                .id(tax.getId())
                 .code(tax.getCode())
                 .description(tax.getDescription())
                 .interest(tax.getInterest())
@@ -34,7 +28,6 @@ public interface ITaxCreateMapper {
         }
 
         return Tax.builder()
-                .id(taxEntity.getId())
                 .code(taxEntity.getCode())
                 .description(taxEntity.getDescription())
                 .interest(taxEntity.getInterest())

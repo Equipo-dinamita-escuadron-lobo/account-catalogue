@@ -11,4 +11,6 @@ public interface IAccountCatalogueRepository extends JpaRepository<AccountCatalo
     AccountCatalogueEntity findByCode(String code, String idEnterprise);
 
     AccountCatalogueEntity findById(long id);
+
+    AccountCatalogueEntity findByCode(String code);
 }

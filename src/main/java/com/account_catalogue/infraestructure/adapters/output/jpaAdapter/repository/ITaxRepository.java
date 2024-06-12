@@ -7,5 +7,6 @@ public interface ITaxRepository extends JpaRepository<TaxEntity,Long> {
 
  TaxEntity findByCode(String code);
  boolean existsByCode(String code);
- boolean deleteByCode(String code);
+
+    void deleteByCode(String code) ;
 }

@@ -14,6 +14,6 @@ public class TaxUpdateService implements ITaxUpdateInputPort {
 
     @Override
     public Tax update(TaxDTO taxDTO,String code) {
-        return null;
+        return taxUpdateOutputPort.update(taxDTO,code);
     }
 }

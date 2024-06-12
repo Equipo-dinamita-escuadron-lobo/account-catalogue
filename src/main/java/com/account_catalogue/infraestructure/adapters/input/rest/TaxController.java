@@ -57,17 +57,28 @@ public class TaxController {
 
     @GetMapping("/{code}")
     ResponseEntity<TaxSearchRes> getTax(@PathVariable("code") String code){
-       Tax tax=taxSearchInputPort.getTax(code);
-       return ResponseEntity.ok(taxSearchRestMapper.toSearchResponse(tax));
+     try{
+         Tax tax=taxSearchInputPort.getTax(code);
+         return ResponseEntity.ok(taxSearchRestMapper.toSearchResponse(tax));
+     }catch (Exception e){
+         e.printStackTrace();
+         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+     }
 
     }
     @GetMapping("/taxes")
     ResponseEntity <List<TaxSearchRes>>  getTaxes(){
-        List<Tax> taxes=taxSearchInputPort.getTaxes();
-        return ResponseEntity.ok(taxSearchRestMapper.toSearchListResponse(taxes));
+        try {
+            List<Tax> taxes=taxSearchInputPort.getTaxes();
+            return ResponseEntity.ok(taxSearchRestMapper.toSearchListResponse(taxes));
+        }catch (Exception e){
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+
     }
     @PutMapping("/{code}")
-    ResponseEntity<TaxUpdateRes> updateTax(@PathVariable("code")String code,@RequestBody TaxUpdateReq taxUpdateReq){
+    ResponseEntity<TaxUpdateRes> updateTax( @PathVariable("code")String code,@RequestBody TaxUpdateReq taxUpdateReq){
         try{
             TaxDTO taxDTO=taxUpdateRestMapper.toDomain(taxUpdateReq);
             Tax  tax=taxUpdateInputPort.update(taxDTO,code);
@@ -80,12 +91,18 @@ public class TaxController {
     }
     @DeleteMapping("/{code}")
     ResponseEntity<?> deleteByCode(@PathVariable("code")String code){
-        if(taxDeleteInputPort.deleteByCode(code)){
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        try {
+            if(taxDeleteInputPort.deleteByCode(code)){
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 
-        }else{
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error Message");
+            }else{
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error Message");
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while deleting the tax.");
         }
+
     }
 
 }

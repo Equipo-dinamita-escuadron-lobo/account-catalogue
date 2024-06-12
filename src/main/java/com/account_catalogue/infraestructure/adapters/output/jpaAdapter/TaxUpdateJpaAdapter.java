@@ -24,38 +24,35 @@ public class TaxUpdateJpaAdapter implements ITaxUpdateOutputPort {
     private IAccountCatalogueRepository accountCatalogueRepository;
     @Override
     public Tax update(TaxDTO taxDTO,String code) {
+        String codeAux;
 
         TaxEntity taxEntity=taxRepository.findByCode(code);
+
 
         AccountCatalogueEntity depositAccount;
         AccountCatalogueEntity refundAccount;
 
         if(taxEntity==null){
             return null;
-
         }
-        if(taxEntity.getDepositAccount().getCode()!=taxDTO.getDepositAccount()){
-                    depositAccount=accountCatalogueRepository.findByCode(taxDTO.getRefundAccount());
-        }else{
-            depositAccount=taxEntity.getDepositAccount();
+
+        if(!taxEntity.getDepositAccount().getCode().equals(taxDTO.getDepositAccount())) {
+
+            taxEntity.setDepositAccount(accountCatalogueRepository.findByCode(taxDTO.getRefundAccount()));
         }
-        if(taxEntity.getRefundAccount().getCode()!=taxDTO.getRefundAccount()){
-            refundAccount =accountCatalogueRepository.findByCode(taxDTO.getRefundAccount());
-
-        }else{
-            refundAccount=taxEntity.getRefundAccount();
+        if(!taxEntity.getRefundAccount().getCode().equals(taxDTO.getRefundAccount())){
+            taxEntity.setRefundAccount(accountCatalogueRepository.findByCode(taxDTO.getRefundAccount()));
         }
-           Tax tax= Tax.builder()
-                .code(taxDTO.getCode())
-                .description(taxDTO.getDescription())
-                .interest(taxDTO.getInterest())
-                .depositAccount(depositAccount)
-                .refundAccount(refundAccount)
-                .build();
 
-        TaxEntity taxEntityAux=taxUpdateMapper.toEntity(tax);
-        taxEntityAux=taxRepository.save(taxEntity);
+       if(!taxEntity.getCode().equals(taxDTO.getCode())){
 
-        return taxUpdateMapper.toModel(taxEntityAux);
+            taxEntity.setCode(taxDTO.getCode());
+       }
+
+        taxEntity.setDescription(taxDTO.getDescription());
+        taxEntity.setInterest(taxDTO.getInterest());
+        taxEntity=taxRepository.save(taxEntity);
+
+        return taxUpdateMapper.toModel(taxEntity);
     }
 }

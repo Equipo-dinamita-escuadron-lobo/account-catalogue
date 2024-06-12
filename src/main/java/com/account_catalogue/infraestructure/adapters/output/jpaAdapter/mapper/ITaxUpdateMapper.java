@@ -28,6 +28,7 @@ public interface ITaxUpdateMapper {
         }
 
         return Tax.builder()
+                .id(taxEntity.getId())
                 .code(taxEntity.getCode())
                 .description(taxEntity.getDescription())
                 .interest(taxEntity.getInterest())

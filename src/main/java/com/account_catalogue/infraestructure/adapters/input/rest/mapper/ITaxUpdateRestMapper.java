@@ -10,12 +10,25 @@ import org.mapstruct.Mapper;
 
 @Mapper
 public interface ITaxUpdateRestMapper {
-    TaxDTO toDomain(TaxUpdateReq taxUpdateReq);
+    default TaxDTO toDomain(TaxUpdateReq taxUpdateReq){
+        if(taxUpdateReq==null){
+            return null;
+        }
+        return TaxDTO.builder()
+                .code(taxUpdateReq.getCode())
+                .description(taxUpdateReq.getDescription())
+                .interest(taxUpdateReq.getInterest())
+                .depositAccount(taxUpdateReq.getDepositAccount())
+                .refundAccount(taxUpdateReq.getRefundAccount())
+                .build();
+
+    }
     default TaxUpdateRes toCreateResponse(Tax tax){
         if(tax==null){
             return null;
         }
         return TaxUpdateRes.builder()
+                .id(tax.getId())
                 .code(tax.getCode())
                 .description(tax.getDescription())
                 .interest(tax.getInterest())

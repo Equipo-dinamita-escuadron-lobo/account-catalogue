@@ -16,7 +16,7 @@ import com.account_catalogue.infraestructure.adapters.input.rest.mapper.ITaxSear
 import com.account_catalogue.infraestructure.adapters.input.rest.mapper.ITaxUpdateRestMapper;
 import lombok.AllArgsConstructor;
 
-import org.springframework.beans.factory.annotation.Qualifier;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -55,10 +55,10 @@ public class TaxController {
         }
     }
 
-    @GetMapping("/{code}")
-    ResponseEntity<TaxSearchRes> getTax(@PathVariable("code") String code){
+    @GetMapping("/{code}/{idEnterprise}")
+    ResponseEntity<TaxSearchRes> getTax(@PathVariable("code") String code, @PathVariable String idEnterprise){
      try{
-         Tax tax=taxSearchInputPort.getTax(code);
+         Tax tax=taxSearchInputPort.getTax(code,idEnterprise);
          return ResponseEntity.ok(taxSearchRestMapper.toSearchResponse(tax));
      }catch (Exception e){
          e.printStackTrace();
@@ -66,10 +66,10 @@ public class TaxController {
      }
 
     }
-    @GetMapping("/taxes")
-    ResponseEntity <List<TaxSearchRes>>  getTaxes(){
+    @GetMapping("/taxes/{idEnterprise}")
+    ResponseEntity <List<TaxSearchRes>>  getTaxes(@PathVariable("idEnterprise") String idEnterprise){
         try {
-            List<Tax> taxes=taxSearchInputPort.getTaxes();
+            List<Tax> taxes=taxSearchInputPort.getTaxes(idEnterprise);
             return ResponseEntity.ok(taxSearchRestMapper.toSearchListResponse(taxes));
         }catch (Exception e){
             e.printStackTrace();
@@ -77,11 +77,11 @@ public class TaxController {
         }
 
     }
-    @PutMapping("/{code}")
-    ResponseEntity<TaxUpdateRes> updateTax( @PathVariable("code")String code,@RequestBody TaxUpdateReq taxUpdateReq){
+    @PutMapping("/{id}")
+    ResponseEntity<TaxUpdateRes> updateTax( @PathVariable("id")long id,@RequestBody TaxUpdateReq taxUpdateReq){
         try{
             TaxDTO taxDTO=taxUpdateRestMapper.toDomain(taxUpdateReq);
-            Tax  tax=taxUpdateInputPort.update(taxDTO,code);
+            Tax  tax=taxUpdateInputPort.update(taxDTO,id);
             return ResponseEntity.ok(taxUpdateRestMapper.toCreateResponse(tax));
 
         }catch(Exception e){
@@ -89,10 +89,10 @@ public class TaxController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-    @DeleteMapping("/{code}")
-    ResponseEntity<?> deleteByCode(@PathVariable("code")String code){
+    @DeleteMapping("/{id}")
+    ResponseEntity<?> deleteByCode(@PathVariable("id")long id){
         try {
-            if(taxDeleteInputPort.deleteByCode(code)){
+            if(taxDeleteInputPort.deleteByCode(id)){
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 
             }else{

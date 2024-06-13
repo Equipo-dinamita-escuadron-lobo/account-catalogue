@@ -10,6 +10,7 @@ import lombok.*;
 public class TaxCreateRes {
 
     private  Long id;
+    private String idEnterprise;
     private String code;
     private String description;
     private float interest;

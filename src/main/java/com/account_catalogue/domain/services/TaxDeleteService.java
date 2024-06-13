@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 public class TaxDeleteService implements ITaxDeleteInputPort {
     private final ITaxDeleteOutputPort taxDeleteOutputPort;
     @Override
-    public boolean deleteByCode(String code) {
-        return taxDeleteOutputPort.deleteByCode(code);
+    public boolean deleteByCode(long id) {
+        return taxDeleteOutputPort.deleteByCode(id);
     }
 }

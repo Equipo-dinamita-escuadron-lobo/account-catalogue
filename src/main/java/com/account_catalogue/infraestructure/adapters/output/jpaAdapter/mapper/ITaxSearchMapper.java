@@ -15,6 +15,7 @@ public interface  ITaxSearchMapper {
         }
         return Tax.builder()
                 .id(taxEntity.getId())
+                .idEnterprise(taxEntity.getIdEnterprise())
                 .code(taxEntity.getCode())
                 .description(taxEntity.getDescription())
                 .interest(taxEntity.getInterest())
@@ -32,6 +33,7 @@ public interface  ITaxSearchMapper {
                     Tax tax  =Tax.builder()
                             .id(taxEntity.getId())
                             .code(taxEntity.getCode())
+                            .idEnterprise(taxEntity.getIdEnterprise())
                             .description(taxEntity.getDescription())
                             .interest(taxEntity.getInterest())
                             .depositAccount(taxEntity.getDepositAccount())

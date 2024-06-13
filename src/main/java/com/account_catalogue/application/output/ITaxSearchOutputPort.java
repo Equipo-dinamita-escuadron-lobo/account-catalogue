@@ -6,7 +6,7 @@ import java.util.List;
 
 public interface ITaxSearchOutputPort {
 
-    Tax getTax(String code);
-    List<Tax> getTaxes();
+    Tax getTax(String code, String idEnterprise);
+    List<Tax> getTaxes( String idEnterprise);
 
 }

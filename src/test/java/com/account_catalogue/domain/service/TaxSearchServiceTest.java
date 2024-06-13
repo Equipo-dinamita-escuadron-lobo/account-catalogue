@@ -37,7 +37,7 @@ public class TaxSearchServiceTest {
     private TaxSearchService taxSearchService;
 
 
-    private TaxDTO taxDTO;
+
     private AccountCatalogueEntity account1;
     private  AccountCatalogueEntity account2;
     private Tax tax;
@@ -46,6 +46,7 @@ public class TaxSearchServiceTest {
        TaxDTO taxDTO;
 
         account1=AccountCatalogueEntity.builder()
+
                 .id(1L)
                 .code("2")
                 .description("dos")
@@ -81,6 +82,7 @@ public class TaxSearchServiceTest {
 
         tax = Tax.builder()
                 .id(1L)
+                .idEnterprise("1")
                 .code("123")
                 .description("iva")
                 .interest(2.7f)
@@ -97,6 +99,7 @@ public class TaxSearchServiceTest {
     void testGetTaxes(){
        Tax tax2 = Tax.builder()
                 .id(2L)
+               .idEnterprise("1")
                 .code("1234")
                 .description("iva")
                .interest(2.7f)
@@ -105,9 +108,9 @@ public class TaxSearchServiceTest {
                 .build();
 
         //given
-        given(taxSearchOutputPort.getTaxes()).willReturn(List.of(tax,tax2));
+        given(taxSearchOutputPort.getTaxes("1")).willReturn(List.of(tax,tax2));
         //when
-        List<Tax> taxes=taxSearchService.getTaxes();
+        List<Tax> taxes=taxSearchService.getTaxes("1");
 
         //then
         assertThat(taxes).isNotNull();
@@ -126,11 +129,11 @@ public class TaxSearchServiceTest {
                 .depositAccount(account2)
                 .build();
         //given
-        given(taxSearchOutputPort.getTaxes()).willReturn(Collections.emptyList());
+        given(taxSearchOutputPort.getTaxes("2")).willReturn(Collections.emptyList());
 
 
         //when
-        List<Tax> taxes=taxSearchService.getTaxes();
+        List<Tax> taxes=taxSearchService.getTaxes("2");
 
         //then
         assertThat(taxes).isEmpty();
@@ -140,9 +143,9 @@ public class TaxSearchServiceTest {
     @Test
     void testGetTax(){
         //giiven
-        given(taxSearchOutputPort.getTax("123")).willReturn(tax);
+        given(taxSearchOutputPort.getTax("123","1")).willReturn(tax);
         //when
-        Tax taxAux=taxSearchService.getTax(tax.getCode());
+        Tax taxAux=taxSearchService.getTax(tax.getCode(),tax.getIdEnterprise());
         //then
         assertThat(taxAux).isNotNull();
         assertThat(taxAux.getId()).isEqualTo(1L);
@@ -153,9 +156,9 @@ public class TaxSearchServiceTest {
     @Test
     void testGetTaxIncorrrect(){
         //giiven
-        given(taxSearchOutputPort.getTax("123")).willReturn(null);
+        given(taxSearchOutputPort.getTax("123","2")).willReturn(null);
         //when
-        Tax taxAux=taxSearchService.getTax(tax.getCode());
+        Tax taxAux=taxSearchService.getTax(tax.getCode(),"2");
         //then
         assertThat(taxAux).isNull();
 

@@ -9,6 +9,7 @@ import lombok.*;
 @Builder
 public class TaxUpdateRes {
     private  Long id;
+    private String idEnterprise;
     private String code;
     private String description;
     private float interest;

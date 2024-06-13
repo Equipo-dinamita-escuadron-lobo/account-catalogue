@@ -16,6 +16,7 @@ public interface ITaxUpdateMapper {
 
         return TaxEntity.builder()
                 .code(tax.getCode())
+                .idEnterprise(tax.getIdEnterprise())
                 .description(tax.getDescription())
                 .interest(tax.getInterest())
                 .depositAccount(tax.getDepositAccount())
@@ -30,6 +31,7 @@ public interface ITaxUpdateMapper {
         return Tax.builder()
                 .id(taxEntity.getId())
                 .code(taxEntity.getCode())
+                .idEnterprise(taxEntity.getIdEnterprise())
                 .description(taxEntity.getDescription())
                 .interest(taxEntity.getInterest())
                 .refundAccount(taxEntity.getRefundAccount())

@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
+import org.hibernate.annotations.TenantId;
 
 
 @Entity
@@ -33,11 +33,14 @@ public class TaxEntity {
     private  AccountCatalogueEntity refundAccount;
 
 
+    private String idEnterprise;
+
+    @TenantId
+    String tenantId;
 
 
 
 
 
 
-    
 }

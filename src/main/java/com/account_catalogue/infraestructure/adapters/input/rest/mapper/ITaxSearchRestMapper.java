@@ -1,7 +1,6 @@
 package com.account_catalogue.infraestructure.adapters.input.rest.mapper;
 
 import com.account_catalogue.domain.models.Tax;
-import com.account_catalogue.infraestructure.adapters.input.rest.data.response.TaxCreateRes;
 import com.account_catalogue.infraestructure.adapters.input.rest.data.response.TaxSearchRes;
 import org.mapstruct.Mapper;
 
@@ -15,6 +14,7 @@ public interface ITaxSearchRestMapper {
         }
         return TaxSearchRes.builder()
                 .id(tax.getId())
+                .idEnterprise(tax.getIdEnterprise())
                 .code(tax.getCode())
                 .description(tax.getDescription())
                 .interest(tax.getInterest())
@@ -30,6 +30,7 @@ public interface ITaxSearchRestMapper {
                 .map(tax -> {
                         TaxSearchRes taxSearchRes = TaxSearchRes.builder()
                             .id(tax.getId())
+                            .idEnterprise(tax.getIdEnterprise())
                             .code(tax.getCode())
                             .description(tax.getDescription())
                             .interest(tax.getInterest())

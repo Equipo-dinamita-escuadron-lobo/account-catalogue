@@ -10,6 +10,7 @@ import lombok.*;
 @Data
 public class TaxSearchRes {
     private  Long id;
+    private String idEnterprise;
     private String code;
     private String description;
     private float interest;

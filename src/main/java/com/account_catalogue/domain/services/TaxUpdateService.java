@@ -13,7 +13,7 @@ public class TaxUpdateService implements ITaxUpdateInputPort {
     private ITaxUpdateOutputPort taxUpdateOutputPort;
 
     @Override
-    public Tax update(TaxDTO taxDTO,String code) {
-        return taxUpdateOutputPort.update(taxDTO,code);
+    public Tax update(TaxDTO taxDTO,long id) {
+        return taxUpdateOutputPort.update(taxDTO,id);
     }
 }

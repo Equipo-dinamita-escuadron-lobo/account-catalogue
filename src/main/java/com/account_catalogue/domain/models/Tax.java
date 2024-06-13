@@ -16,6 +16,7 @@ import java.util.Set;
 @Getter
 public class Tax {
     private  Long id;
+    private String idEnterprise;
     private String code;
     private String description;
     private float interest;

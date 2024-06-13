@@ -68,6 +68,7 @@ public class TaxCreateServiceTest {
 
         taxDTO = TaxDTO.builder()
                 .id(1L)
+                .idEnterprise("1")
                 .code("123")
                 .description("iva")
                 .interest(2.7f)
@@ -77,6 +78,7 @@ public class TaxCreateServiceTest {
 
         tax = Tax.builder()
                 .id(1L)
+                .idEnterprise("1")
                 .code("123")
                 .description("iva")
                 .interest(2.7f)

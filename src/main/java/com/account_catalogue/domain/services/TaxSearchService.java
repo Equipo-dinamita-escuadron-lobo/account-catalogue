@@ -14,12 +14,12 @@ public class TaxSearchService implements ITaxSearchInputPort {
     private final ITaxSearchOutputPort taxSearchOutputPort;
 
     @Override
-    public Tax getTax(String code) {
-        return taxSearchOutputPort.getTax(code);
+    public Tax getTax(String code, String idEnterprise) {
+        return taxSearchOutputPort.getTax(code,idEnterprise);
     }
 
     @Override
-    public List<Tax> getTaxes() {
-        return taxSearchOutputPort.getTaxes();
+    public List<Tax> getTaxes( String idEnterprise) {
+        return taxSearchOutputPort.getTaxes( idEnterprise);
     }
 }

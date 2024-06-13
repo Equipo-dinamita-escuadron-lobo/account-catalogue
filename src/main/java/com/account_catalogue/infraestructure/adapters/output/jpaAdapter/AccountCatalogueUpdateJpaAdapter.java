@@ -6,17 +6,19 @@ import com.account_catalogue.infraestructure.adapters.output.jpaAdapter.entity.A
 import com.account_catalogue.infraestructure.adapters.output.jpaAdapter.mapper.IAccountCatalogueUpdateMapper;
 import com.account_catalogue.infraestructure.adapters.output.jpaAdapter.repository.IAccountCatalogueRepository;
 
+import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
+@Data
 public class AccountCatalogueUpdateJpaAdapter implements IAccountCatalogueUpdateOutputPort {
 
-    @Autowired
-    private IAccountCatalogueRepository accountCatalogueRepository;
 
-    @Autowired
-    private IAccountCatalogueUpdateMapper accountCatalogueUpdateMapper;
+    private final  IAccountCatalogueRepository accountCatalogueRepository;
+
+
+    private final IAccountCatalogueUpdateMapper accountCatalogueUpdateMapper;
     
     @Override
     public AccountCatalogue updateAccountCatalogue(long id, AccountCatalogue accountCatalogue) {

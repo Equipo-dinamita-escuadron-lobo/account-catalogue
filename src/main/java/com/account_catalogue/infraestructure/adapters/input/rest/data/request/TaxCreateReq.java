@@ -12,6 +12,8 @@ import lombok.*;
 public class TaxCreateReq {
     @JsonIgnore
     private  Long id;
+    @NotBlank(message = "El id de la empresa es requerido")
+    private String idEnterprise;
     @NotBlank(message = "El código es requerido")
     private String code;
     @NotBlank(message = "la descripcion es requerdio")

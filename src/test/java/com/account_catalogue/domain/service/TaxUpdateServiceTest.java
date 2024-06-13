@@ -65,6 +65,7 @@ public class TaxUpdateServiceTest {
 
         taxDTO = TaxDTO.builder()
                 .id(1L)
+                .idEnterprise("1")
                 .code("123")
                 .description("iva")
                 .interest(2.7f)
@@ -74,6 +75,7 @@ public class TaxUpdateServiceTest {
 
         tax = Tax.builder()
                 .id(1L)
+                .idEnterprise("1")
                 .code("123")
                 .description("iva")
                 .interest(2.7f)
@@ -87,14 +89,14 @@ public class TaxUpdateServiceTest {
     @Test
     void testUpdateTax(){
         //given
-        String code="123";
-        given(taxUpdateService.update(taxDTO,code)).willReturn(tax);
+        long id=1L;
+        given(taxUpdateOutputPort.update(taxDTO,id)).willReturn(tax);
 
         tax.setDescription("retefuente");
         tax.setInterest(2.0f);
 
         //when
-        Tax taxUpdate=taxUpdateService.update(taxDTO,code);
+        Tax taxUpdate=taxUpdateService.update(taxDTO,id);
 
         //then
         assertThat(taxUpdate.getDescription()).isEqualTo("retefuente");

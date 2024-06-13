@@ -17,14 +17,14 @@ public class TaxSearchJpaAdapter implements ITaxSearchOutputPort {
     private final ITaxSearchMapper taxSearchMapper;
 
     @Override
-    public Tax getTax(String code) {
-        TaxEntity taxEntity=taxRepository.findByCode(code);
+    public Tax getTax(String code, String idEnterprise) {
+        TaxEntity taxEntity=taxRepository.findByCode(code, idEnterprise);
         return taxSearchMapper.toDomain(taxEntity);
     }
 
     @Override
-    public List<Tax> getTaxes() {
-        List<TaxEntity> taxEntities=taxRepository.findAll();
+    public List<Tax> getTaxes( String idEnterprise) {
+        List<TaxEntity> taxEntities=taxRepository.findAllByIdEnterprise( idEnterprise);
         return taxSearchMapper.toDomainList(taxEntities);
 
     }

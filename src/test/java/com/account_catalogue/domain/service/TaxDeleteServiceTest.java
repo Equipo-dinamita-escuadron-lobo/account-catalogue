@@ -37,7 +37,7 @@ public class TaxDeleteServiceTest {
     @DisplayName("Test eliminar impuesto")
     @Test
     void testDeleteTax(){
-        String taxId="1L";
+        long taxId=1L;
         doReturn(true).when(taxDeleteOutputPort).deleteByCode(taxId);
 
         //when

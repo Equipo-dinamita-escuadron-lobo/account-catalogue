@@ -21,6 +21,7 @@ public interface ITaxCreateMapper {
 
         return TaxEntity.builder()
                 .id(tax.getId())
+                .idEnterprise(tax.getIdEnterprise())
                 .code(tax.getCode())
                 .description(tax.getDescription())
                 .interest(tax.getInterest())
@@ -35,6 +36,7 @@ public interface ITaxCreateMapper {
 
         return Tax.builder()
                 .id(taxEntity.getId())
+                .idEnterprise(taxEntity.getIdEnterprise())
                 .code(taxEntity.getCode())
                 .description(taxEntity.getDescription())
                 .interest(taxEntity.getInterest())

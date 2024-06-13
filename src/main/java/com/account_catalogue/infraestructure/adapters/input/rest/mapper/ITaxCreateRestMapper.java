@@ -11,13 +11,26 @@ import org.mapstruct.Mapper;
 @Mapper
 public interface ITaxCreateRestMapper {
 
-    TaxDTO toDomain(TaxCreateReq taxCreateReq);
+    default TaxDTO toDomain(TaxCreateReq taxCreateReq){
+        if(taxCreateReq==null){
+            return null;
+        }
+        return TaxDTO.builder()
+                .idEnterprise(taxCreateReq.getIdEnterprise())
+                .code(taxCreateReq.getCode())
+                .description(taxCreateReq.getDescription())
+                .interest(taxCreateReq.getInterest())
+                .refundAccount(taxCreateReq.getRefundAccount())
+                .depositAccount(taxCreateReq.getDepositAccount())
+                .build();
+    }
     default TaxCreateRes toCreateResponse(Tax tax){
         if(tax==null){
             return null;
         }
         return TaxCreateRes.builder()
                 .id(tax.getId())
+                .idEnterprise(tax.getIdEnterprise())
                 .code(tax.getCode())
                 .description(tax.getDescription())
                 .interest(tax.getInterest())

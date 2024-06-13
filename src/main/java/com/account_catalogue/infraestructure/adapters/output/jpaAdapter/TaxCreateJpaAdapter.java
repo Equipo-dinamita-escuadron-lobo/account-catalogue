@@ -15,21 +15,22 @@ import org.springframework.stereotype.Component;
 @Component
 @Data
 public class TaxCreateJpaAdapter implements ITaxCreateOutputPort {
-   @Autowired
-    private ITaxCreateMapper taxCreateMapper;
-    @Autowired
-    private  ITaxRepository taxRepository;
 
-    @Autowired
-    private IAccountCatalogueRepository accountCatalogueRepository;
+    private final ITaxCreateMapper taxCreateMapper;
+
+    private final ITaxRepository taxRepository;
+
+
+    private final IAccountCatalogueRepository accountCatalogueRepository;
     @Override
     public Tax createTax(TaxDTO tax) {
 
-    AccountCatalogueEntity depositAccount=accountCatalogueRepository.findByCode(tax.getDepositAccount());
-    AccountCatalogueEntity refundAccount=accountCatalogueRepository.findByCode(tax.getRefundAccount());
+    AccountCatalogueEntity depositAccount=accountCatalogueRepository.findByCode(tax.getDepositAccount(),tax.getIdEnterprise());
+    AccountCatalogueEntity refundAccount=accountCatalogueRepository.findByCode(tax.getRefundAccount(),tax.getIdEnterprise());
 
         Tax  taxAux=Tax.builder()
                 .code(tax.getCode())
+                .idEnterprise(tax.getIdEnterprise())
                 .description(tax.getDescription())
                 .interest(tax.getInterest())
                 .refundAccount(refundAccount)

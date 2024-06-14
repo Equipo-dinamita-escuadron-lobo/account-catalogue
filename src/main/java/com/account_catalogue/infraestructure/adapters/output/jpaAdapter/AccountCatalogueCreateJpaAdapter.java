@@ -7,7 +7,10 @@ import com.account_catalogue.infraestructure.adapters.output.jpaAdapter.mapper.I
 import com.account_catalogue.infraestructure.adapters.output.jpaAdapter.repository.IAccountCatalogueRepository;
 import lombok.Data;
 import org.springframework.stereotype.Component;
-
+/**
+ * Adaptador para la creacion de cuentas usando JPA.
+ * Implementa la interfaz IAccountCatalogueCreateOutputPort.
+ */
 @Component
 @Data
 public class AccountCatalogueCreateJpaAdapter implements IAccountCatalogueCreateOutputPort {
@@ -15,6 +18,13 @@ public class AccountCatalogueCreateJpaAdapter implements IAccountCatalogueCreate
     private final IAccountCatalogueRepository accountCatalogueRepository;
 
     private final IAccountCatalogueCreateMapper accountCatalogueCreateMapper;
+
+    /**
+     * Crea una cuenta
+     *
+     * @param accountCatalogue de la clase de dominio AccountCatalogue
+     * @return el modelo de dominio del catalogo de cuenta
+     */
     
     @Override
     public AccountCatalogue createAccountCatalogue(AccountCatalogue accountCatalogue) {

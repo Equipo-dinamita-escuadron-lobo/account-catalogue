@@ -25,8 +25,24 @@ public class TaxCreateJpaAdapter implements ITaxCreateOutputPort {
     @Override
     public Tax createTax(TaxDTO tax) {
 
+
+
+    if(taxRepository.existsByCode(tax.getCode())){
+        throw new IllegalArgumentException("El impuesto con ese código ya fue creado.");
+    }
+
     AccountCatalogueEntity depositAccount=accountCatalogueRepository.findByCode(tax.getDepositAccount(),tax.getIdEnterprise());
-    AccountCatalogueEntity refundAccount=accountCatalogueRepository.findByCode(tax.getRefundAccount(),tax.getIdEnterprise());
+        if(depositAccount==null){
+            throw new IllegalArgumentException("No existe la cuenta de depósito que seleccionaste.");
+        }
+
+
+        AccountCatalogueEntity refundAccount=accountCatalogueRepository.findByCode(tax.getRefundAccount(),tax.getIdEnterprise());
+    if(refundAccount==null){
+        throw new IllegalArgumentException("No existe la cuenta de devolución que seleccionaste.");
+    }
+
+
 
         Tax  taxAux=Tax.builder()
                 .code(tax.getCode())

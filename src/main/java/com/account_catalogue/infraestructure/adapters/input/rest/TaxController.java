@@ -48,7 +48,8 @@ public class TaxController {
              Tax  tax=taxCreateInputPort.createTax(taxDTO);
             return ResponseEntity.ok(taxCreateRestMapper.toCreateResponse(tax));
 
-
+       } catch (IllegalArgumentException e) {
+           return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }catch (Exception e){
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -83,7 +84,8 @@ public class TaxController {
             TaxDTO taxDTO=taxUpdateRestMapper.toDomain(taxUpdateReq);
             Tax  tax=taxUpdateInputPort.update(taxDTO,id);
             return ResponseEntity.ok(taxUpdateRestMapper.toCreateResponse(tax));
-
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }catch(Exception e){
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -96,7 +98,7 @@ public class TaxController {
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 
             }else{
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error Message");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Id No Encontrado");
             }
         }catch (Exception e){
             e.printStackTrace();

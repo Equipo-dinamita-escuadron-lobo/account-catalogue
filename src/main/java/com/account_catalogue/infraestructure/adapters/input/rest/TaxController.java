@@ -8,9 +8,7 @@ import com.account_catalogue.domain.DTO.TaxDTO;
 import com.account_catalogue.domain.models.Tax;
 import com.account_catalogue.infraestructure.adapters.input.rest.data.request.TaxCreateReq;
 import com.account_catalogue.infraestructure.adapters.input.rest.data.request.TaxUpdateReq;
-import com.account_catalogue.infraestructure.adapters.input.rest.data.response.TaxCreateRes;
 import com.account_catalogue.infraestructure.adapters.input.rest.data.response.TaxSearchRes;
-import com.account_catalogue.infraestructure.adapters.input.rest.data.response.TaxUpdateRes;
 import com.account_catalogue.infraestructure.adapters.input.rest.mapper.ITaxCreateRestMapper;
 import com.account_catalogue.infraestructure.adapters.input.rest.mapper.ITaxSearchRestMapper;
 import com.account_catalogue.infraestructure.adapters.input.rest.mapper.ITaxUpdateRestMapper;
@@ -42,14 +40,14 @@ public class TaxController {
 
 
     @PostMapping("/")
-    ResponseEntity<TaxCreateRes> createTax(@RequestBody TaxCreateReq taxCreateReq){
+    ResponseEntity<?> createTax(@RequestBody TaxCreateReq taxCreateReq){
         try{
             TaxDTO taxDTO=taxCreateRestMapper.toDomain(taxCreateReq);
              Tax  tax=taxCreateInputPort.createTax(taxDTO);
             return ResponseEntity.ok(taxCreateRestMapper.toCreateResponse(tax));
 
        } catch (IllegalArgumentException e) {
-           return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+           return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }catch (Exception e){
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -79,13 +77,13 @@ public class TaxController {
 
     }
     @PutMapping("/{id}")
-    ResponseEntity<TaxUpdateRes> updateTax( @PathVariable("id")long id,@RequestBody TaxUpdateReq taxUpdateReq){
+    ResponseEntity<?> updateTax( @PathVariable("id")long id,@RequestBody TaxUpdateReq taxUpdateReq){
         try{
             TaxDTO taxDTO=taxUpdateRestMapper.toDomain(taxUpdateReq);
             Tax  tax=taxUpdateInputPort.update(taxDTO,id);
             return ResponseEntity.ok(taxUpdateRestMapper.toCreateResponse(tax));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }catch(Exception e){
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

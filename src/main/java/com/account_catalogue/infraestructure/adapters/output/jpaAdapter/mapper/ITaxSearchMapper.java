@@ -5,7 +5,6 @@ import com.account_catalogue.infraestructure.adapters.output.jpaAdapter.entity.T
 import org.mapstruct.Mapper;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Mapper
 public interface  ITaxSearchMapper {

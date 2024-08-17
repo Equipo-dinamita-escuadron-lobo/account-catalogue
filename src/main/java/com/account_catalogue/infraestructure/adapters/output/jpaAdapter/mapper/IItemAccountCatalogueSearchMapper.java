@@ -7,11 +7,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 @Mapper
 public interface IItemAccountCatalogueSearchMapper {
 
-   default AccountCatalogue toDomain(AccountCatalogueEntity accountCatalogueEntity){
+    default AccountCatalogue toDomain(AccountCatalogueEntity accountCatalogueEntity){
        if(accountCatalogueEntity==null ){
            return null;
        }
@@ -24,10 +25,12 @@ public interface IItemAccountCatalogueSearchMapper {
                .classification(accountCatalogueEntity.getClassification())
                .parent(auxParent(accountCatalogueEntity.getParent() == null ? null : accountCatalogueEntity.getParent()))
                .build();
-   }
+    }
+
+    @Mapping(target = "tenantId", ignore = true)
     AccountCatalogueEntity toEntity(AccountCatalogue accountCatalogue);
 
-   default AccountCatalogue toDomainTree(AccountCatalogueEntity accountCatalogueEntity){
+    default AccountCatalogue toDomainTree(AccountCatalogueEntity accountCatalogueEntity){
         if (accountCatalogueEntity == null) {
             return null;
         }
@@ -52,7 +55,7 @@ public interface IItemAccountCatalogueSearchMapper {
         accountCatalogue.setChildren(children);
 
         return accountCatalogue;
-   }
+    }
 
    default AccountCatalogue auxParent(AccountCatalogueEntity accountCatalogue){
         if (accountCatalogue == null) {

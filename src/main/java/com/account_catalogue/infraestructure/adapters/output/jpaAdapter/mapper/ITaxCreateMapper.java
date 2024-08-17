@@ -1,14 +1,8 @@
 package com.account_catalogue.infraestructure.adapters.output.jpaAdapter.mapper;
 
-import com.account_catalogue.domain.DTO.TaxDTO;
 import com.account_catalogue.domain.models.Tax;
-import com.account_catalogue.infraestructure.adapters.output.jpaAdapter.entity.AccountCatalogueEntity;
 import com.account_catalogue.infraestructure.adapters.output.jpaAdapter.entity.TaxEntity;
 import org.mapstruct.Mapper;
-
-import java.util.HashSet;
-import java.util.Set;
-
 
 @Mapper
 public interface ITaxCreateMapper {

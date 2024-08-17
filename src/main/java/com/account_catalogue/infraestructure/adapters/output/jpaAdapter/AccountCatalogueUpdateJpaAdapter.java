@@ -7,7 +7,6 @@ import com.account_catalogue.infraestructure.adapters.output.jpaAdapter.mapper.I
 import com.account_catalogue.infraestructure.adapters.output.jpaAdapter.repository.IAccountCatalogueRepository;
 
 import lombok.Data;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -16,7 +15,6 @@ public class AccountCatalogueUpdateJpaAdapter implements IAccountCatalogueUpdate
 
 
     private final  IAccountCatalogueRepository accountCatalogueRepository;
-
 
     private final IAccountCatalogueUpdateMapper accountCatalogueUpdateMapper;
     

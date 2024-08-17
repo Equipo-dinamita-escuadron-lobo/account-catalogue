@@ -1,6 +1,5 @@
 package com.account_catalogue.domain.models;
 
-import java.util.HashSet;
 import java.util.List;
 
 import com.account_catalogue.domain.enums.ClassificationEnum;
@@ -8,7 +7,6 @@ import com.account_catalogue.domain.enums.FinancialStatusEnum;
 import com.account_catalogue.domain.enums.NatureEnum;
 
 import com.account_catalogue.infraestructure.adapters.output.jpaAdapter.entity.TaxEntity;
-import jakarta.persistence.OneToMany;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

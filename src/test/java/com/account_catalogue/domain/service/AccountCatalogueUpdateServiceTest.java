@@ -1,10 +1,11 @@
 package com.account_catalogue.domain.service;
 import com.account_catalogue.application.output.IAccountCatalogueUpdateOutputPort;
+import com.account_catalogue.application.services.AccountCatalogueUpdateService;
 import com.account_catalogue.domain.enums.ClassificationEnum;
 import com.account_catalogue.domain.enums.FinancialStatusEnum;
 import com.account_catalogue.domain.enums.NatureEnum;
 import com.account_catalogue.domain.models.AccountCatalogue;
-import com.account_catalogue.domain.services.AccountCatalogueUpdateService;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

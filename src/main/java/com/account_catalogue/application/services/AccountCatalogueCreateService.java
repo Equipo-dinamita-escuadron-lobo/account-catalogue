@@ -1,4 +1,4 @@
-package com.account_catalogue.domain.services;
+package com.account_catalogue.application.services;
 
 import com.account_catalogue.application.output.IAccountCatalogueCreateOutputPort;
 import com.account_catalogue.domain.models.AccountCatalogue;

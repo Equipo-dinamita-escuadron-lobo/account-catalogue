@@ -1,12 +1,11 @@
 package com.account_catalogue.domain.service;
 
 import com.account_catalogue.application.output.ITaxSearchOutputPort;
-import com.account_catalogue.domain.DTO.TaxDTO;
+import com.account_catalogue.application.services.TaxSearchService;
 import com.account_catalogue.domain.enums.ClassificationEnum;
 import com.account_catalogue.domain.enums.FinancialStatusEnum;
 import com.account_catalogue.domain.enums.NatureEnum;
 import com.account_catalogue.domain.models.Tax;
-import com.account_catalogue.domain.services.TaxSearchService;
 import com.account_catalogue.infraestructure.adapters.output.jpaAdapter.entity.AccountCatalogueEntity;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -43,7 +42,6 @@ public class TaxSearchServiceTest {
     private Tax tax;
     @BeforeEach
     void setup (){
-       TaxDTO taxDTO;
 
         account1=AccountCatalogueEntity.builder()
 
@@ -68,16 +66,6 @@ public class TaxSearchServiceTest {
                 .idEnterprise("1")
                 .parent(null)
                 .children(null)
-                .build();
-
-
-        taxDTO = TaxDTO.builder()
-                .id(1L)
-                .code("123")
-                .description("iva")
-                .interest(2.7f)
-                .refundAccount("1L")
-                .depositAccount("2L")
                 .build();
 
         tax = Tax.builder()
@@ -120,14 +108,6 @@ public class TaxSearchServiceTest {
     @DisplayName("Test prar retornar una lista vacia de impuestos")
     @Test
     void testGetTaxesEmpty(){
-        Tax tax2 = Tax.builder()
-                .id(2L)
-                .code("1234")
-                .description("iva")
-                .interest(2.7f)
-                .refundAccount(account1)
-                .depositAccount(account2)
-                .build();
         //given
         given(taxSearchOutputPort.getTaxes("2")).willReturn(Collections.emptyList());
 

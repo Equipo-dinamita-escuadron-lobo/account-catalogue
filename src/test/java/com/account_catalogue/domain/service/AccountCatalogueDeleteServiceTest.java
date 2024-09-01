@@ -1,7 +1,7 @@
 package com.account_catalogue.domain.service;
 
 import com.account_catalogue.application.output.IAccountCatalogueDeleteOutputPort;
-import com.account_catalogue.domain.services.AccountCatalogueDeleteService;
+import com.account_catalogue.application.services.AccountCatalogueDeleteService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

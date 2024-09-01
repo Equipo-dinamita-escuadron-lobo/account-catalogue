@@ -1,4 +1,4 @@
-package com.account_catalogue.domain.services;
+package com.account_catalogue.application.services;
 
 import com.account_catalogue.application.input.ITaxUpdateInputPort;
 import com.account_catalogue.application.output.ITaxUpdateOutputPort;

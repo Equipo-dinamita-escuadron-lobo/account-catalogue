@@ -9,7 +9,7 @@ http://localhost:8080/api/accountCatalogue/test/ping
 http://localhost:8080/swagger-ui/index.html#/
 ```
 
-## Diagrama de Contexto
+## Diagrama de Contexto 
 ![](https://res.cloudinary.com/dtmtu3rkh/image/upload/v1718347245/Contexto.drawio_fays6y.svg)
 
 ## Diagrama de Contenedores

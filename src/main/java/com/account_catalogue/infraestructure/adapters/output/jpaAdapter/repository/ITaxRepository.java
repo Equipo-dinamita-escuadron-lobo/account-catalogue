@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 
-public interface ITaxRepository extends JpaRepository<TaxEntity,Long> {
+public interface ITaxRepository extends JpaRepository<TaxEntity, Long> {
 
     @Query("SELECT a FROM TaxEntity a WHERE a.code=?1 AND a.idEnterprise= ?2")
     TaxEntity findByCode(String code ,String idEnterprise);
@@ -17,4 +17,6 @@ public interface ITaxRepository extends JpaRepository<TaxEntity,Long> {
     void deleteByCode(String code) ;
 
     List<TaxEntity> findAllByIdEnterprise(String idEnterprise);
+
+    boolean existsByCodeAndIdEnterprise(String code, String idEnterprise);
 }

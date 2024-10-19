@@ -20,24 +20,25 @@ public class TaxCreateJpaAdapter implements ITaxCreateOutputPort {
     private final ITaxRepository taxRepository;
 
     private final IAccountCatalogueRepository accountCatalogueRepository;
+
     @Override
     public Tax createTax(TaxDTO tax) {
-
-        if(taxRepository.existsByCode(tax.getCode())){
-            throw new IllegalArgumentException("El impuesto con ese código ya fue creado.");
+        // Verificar si el impuesto ya existe para la misma empresa
+        if (taxRepository.existsByCodeAndIdEnterprise(tax.getCode(), tax.getIdEnterprise())) {
+            throw new IllegalArgumentException("El impuesto con ese código ya fue creado para esta empresa.");
         }
 
-        AccountCatalogueEntity depositAccount=accountCatalogueRepository.findByCode(tax.getDepositAccount(),tax.getIdEnterprise());
-        if(depositAccount==null){
+        AccountCatalogueEntity depositAccount = accountCatalogueRepository.findByCode(tax.getDepositAccount(), tax.getIdEnterprise());
+        if (depositAccount == null) {
             throw new IllegalArgumentException("No existe la cuenta de depósito que seleccionaste.");
         }
 
-        AccountCatalogueEntity refundAccount=accountCatalogueRepository.findByCode(tax.getRefundAccount(),tax.getIdEnterprise());
-        if(refundAccount==null){
+        AccountCatalogueEntity refundAccount = accountCatalogueRepository.findByCode(tax.getRefundAccount(), tax.getIdEnterprise());
+        if (refundAccount == null) {
             throw new IllegalArgumentException("No existe la cuenta de devolución que seleccionaste.");
         }
 
-        Tax  taxAux=Tax.builder()
+        Tax taxAux = Tax.builder()
                 .code(tax.getCode())
                 .idEnterprise(tax.getIdEnterprise())
                 .description(tax.getDescription())
@@ -46,10 +47,10 @@ public class TaxCreateJpaAdapter implements ITaxCreateOutputPort {
                 .depositAccount(depositAccount)
                 .build();
 
-        TaxEntity  taxEntity=taxCreateMapper.toEntity(taxAux);
+        TaxEntity taxEntity = taxCreateMapper.toEntity(taxAux);
         depositAccount.getDepositAccounts().add(taxEntity);
         refundAccount.getRefundAccounts().add(taxEntity);
-        taxEntity=taxRepository.save(taxEntity);
+        taxEntity = taxRepository.save(taxEntity);
         return taxCreateMapper.toModel(taxEntity);
     }
 }

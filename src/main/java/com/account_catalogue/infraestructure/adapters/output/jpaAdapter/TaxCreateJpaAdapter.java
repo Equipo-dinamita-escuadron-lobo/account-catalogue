@@ -30,7 +30,7 @@ public class TaxCreateJpaAdapter implements ITaxCreateOutputPort {
 
         AccountCatalogueEntity depositAccount = accountCatalogueRepository.findByCode(tax.getDepositAccount(), tax.getIdEnterprise());
         if (depositAccount == null) {
-            throw new IllegalArgumentException("No existe la cuenta de depósito que seleccionaste para: " + tax.getCode() + " "+ tax.getDepositAccount() + " " +  tax.getIdEnterprise());
+            throw new IllegalArgumentException("No existe la cuenta de depósito que seleccionaste.");
         }
 
         AccountCatalogueEntity refundAccount = accountCatalogueRepository.findByCode(tax.getRefundAccount(), tax.getIdEnterprise());

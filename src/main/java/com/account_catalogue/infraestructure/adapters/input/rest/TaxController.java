@@ -43,7 +43,6 @@ public class TaxController {
     ResponseEntity<?> createTax(@RequestBody TaxCreateReq taxCreateReq){
         try{
             TaxDTO taxDTO=taxCreateRestMapper.toDomain(taxCreateReq);
-            System.out.println("En Tax controller, datos del DTO:"+ taxDTO.getCode() +" "+ taxDTO.getIdEnterprise() + " "+ taxDTO.getDepositAccount() + " " + taxDTO.getRefundAccount());
              Tax  tax=taxCreateInputPort.createTax(taxDTO);
             return ResponseEntity.ok(taxCreateRestMapper.toCreateResponse(tax));
 

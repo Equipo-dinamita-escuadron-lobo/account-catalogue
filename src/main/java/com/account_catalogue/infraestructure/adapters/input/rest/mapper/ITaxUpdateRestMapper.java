@@ -8,6 +8,13 @@ import org.mapstruct.Mapper;
 
 @Mapper
 public interface ITaxUpdateRestMapper {
+    /**
+     * Este método toma un objeto TaxUpdateReq y devuelve un objeto TaxDTO.
+     * Es una simple mapeo del request al DTO.
+     *
+     * @param taxUpdateReq el request a mapear
+     * @return el DTO mapeado, o null si el request es null
+     */
     default TaxDTO toDomain(TaxUpdateReq taxUpdateReq){
         if(taxUpdateReq==null){
             return null;
@@ -22,6 +29,12 @@ public interface ITaxUpdateRestMapper {
                 .build();
 
     }
+    /**
+     * Mapea un objeto Tax a un objeto TaxUpdateRes.
+     *
+     * @param tax el objeto Tax a mapear
+     * @return un objeto TaxUpdateRes con la información mapeada, o null si el objeto Tax es null
+     */
     default TaxUpdateRes toCreateResponse(Tax tax){
         if(tax==null){
             return null;

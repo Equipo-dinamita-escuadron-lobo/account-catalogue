@@ -11,6 +11,12 @@ import org.springframework.stereotype.Service;
 public class AccountCatalogueDeleteService implements IAccountCatalogueDeleteInputPort {
 
     private  final IAccountCatalogueDeleteOutputPort accountCatalogueDeleteOutputPort;
+
+    /**
+     * Elimina un catalogo de cuenta por su ID.
+     * 
+     * @param id ID del cat logo de cuenta a eliminar
+     */
    @Transactional
     @Override
     public void deleteById(Long id) {

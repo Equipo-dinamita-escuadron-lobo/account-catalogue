@@ -13,6 +13,12 @@ public class TaxDeleteJpaAdapter implements ITaxDeleteOutputPort {
 
 
     private final ITaxRepository taxRepository;
+    /**
+     * Elimina un impuesto por su ID.
+     *
+     * @param id El ID del impuesto a eliminar.
+     * @return true si se elimin con xito, false de lo contrario.
+     */
     @Override
     @Transactional
     public boolean deleteByCode(long id) {

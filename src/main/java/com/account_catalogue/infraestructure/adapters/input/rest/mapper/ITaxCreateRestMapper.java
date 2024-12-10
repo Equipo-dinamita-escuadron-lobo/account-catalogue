@@ -6,13 +6,18 @@ import com.account_catalogue.infraestructure.adapters.input.rest.data.request.Ta
 import com.account_catalogue.infraestructure.adapters.input.rest.data.response.TaxCreateRes;
 import org.mapstruct.Mapper;
 
-
-
 @Mapper
 public interface ITaxCreateRestMapper {
 
-    default TaxDTO toDomain(TaxCreateReq taxCreateReq){
-        if(taxCreateReq==null){
+    /**
+     * Este método toma un objeto TaxCreateReq y devuelve un objeto TaxDTO.
+     * Es una simple mapeo del request al DTO.
+     *
+     * @param taxCreateReq el request a mapear
+     * @return el DTO mapeado, o null si el request es null
+     */
+    default TaxDTO toDomain(TaxCreateReq taxCreateReq) {
+        if (taxCreateReq == null) {
             return null;
         }
         return TaxDTO.builder()
@@ -24,8 +29,16 @@ public interface ITaxCreateRestMapper {
                 .depositAccount(taxCreateReq.getDepositAccount())
                 .build();
     }
-    default TaxCreateRes toCreateResponse(Tax tax){
-        if(tax==null){
+
+    /**
+     * Este método toma un objeto Tax y devuelve un objeto TaxCreateRes.
+     * Es una simple mapeo del Tax a la respuesta.
+     *
+     * @param tax el Tax a mapear
+     * @return la respuesta mapeada, o null si el Tax es null
+     */
+    default TaxCreateRes toCreateResponse(Tax tax) {
+        if (tax == null) {
             return null;
         }
         return TaxCreateRes.builder()

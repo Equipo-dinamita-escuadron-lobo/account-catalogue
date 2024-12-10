@@ -7,9 +7,15 @@ import org.mapstruct.Mapper;
 import java.util.List;
 
 @Mapper
-public interface  ITaxSearchMapper {
-    default Tax toDomain(TaxEntity taxEntity){
-        if(taxEntity==null){
+public interface ITaxSearchMapper {
+    /**
+     * Mapea un objeto TaxEntity a un objeto Tax.
+     *
+     * @param taxEntity el objeto TaxEntity a mapear
+     * @return el objeto Tax mapeado, o null si el objeto TaxEntity es null
+     */
+    default Tax toDomain(TaxEntity taxEntity) {
+        if (taxEntity == null) {
             return null;
         }
         return Tax.builder()
@@ -23,13 +29,20 @@ public interface  ITaxSearchMapper {
                 .build();
     }
 
-    default  List<Tax> toDomainList(List<TaxEntity> taxes){
-        if(taxes==null){
+    /**
+     * Mapea una lista de objetos TaxEntity a una lista de objetos Tax.
+     *
+     * @param taxes la lista de objetos TaxEntity a mapear
+     * @return una lista de objetos Tax mapeados, o null si la lista de entrada es
+     *         null
+     */
+    default List<Tax> toDomainList(List<TaxEntity> taxes) {
+        if (taxes == null) {
             return null;
         }
-        return  taxes.stream()
-                .map(taxEntity->{
-                    Tax tax  =Tax.builder()
+        return taxes.stream()
+                .map(taxEntity -> {
+                    Tax tax = Tax.builder()
                             .id(taxEntity.getId())
                             .code(taxEntity.getCode())
                             .idEnterprise(taxEntity.getIdEnterprise())

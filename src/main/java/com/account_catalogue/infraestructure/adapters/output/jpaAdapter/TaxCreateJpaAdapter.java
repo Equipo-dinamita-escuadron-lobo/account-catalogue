@@ -21,6 +21,27 @@ public class TaxCreateJpaAdapter implements ITaxCreateOutputPort {
 
     private final IAccountCatalogueRepository accountCatalogueRepository;
 
+    /**
+     * Crea una nueva entrada de impuesto en el sistema.
+     *
+     * Este método verifica si ya existe un impuesto con el código dado para la
+     * empresa
+     * especificada. Si es así, se lanza una IllegalArgumentException. También
+     * verifica
+     * la existencia de las cuentas de depósito y reembolso asociadas con el
+     * impuesto.
+     * Si alguna de estas cuentas no existe, se lanza una IllegalArgumentException.
+     *
+     * Después de la validación, se crea un nuevo TaxEntity y se guarda en el
+     * repositorio.
+     *
+     * @param tax el objeto TaxDTO que contiene los detalles del impuesto a crear
+     * @return el objeto Tax creado
+     * @throws IllegalArgumentException si el código de impuesto ya existe para la
+     *                                  empresa,
+     *                                  o si las cuentas de depósito o reembolso no
+     *                                  existen
+     */
     @Override
     public Tax createTax(TaxDTO tax) {
         // Verificar si el impuesto ya existe para la misma empresa
@@ -28,12 +49,14 @@ public class TaxCreateJpaAdapter implements ITaxCreateOutputPort {
             throw new IllegalArgumentException("El impuesto con ese código ya fue creado para esta empresa.");
         }
 
-        AccountCatalogueEntity depositAccount = accountCatalogueRepository.findByCode(tax.getDepositAccount(), tax.getIdEnterprise());
+        AccountCatalogueEntity depositAccount = accountCatalogueRepository.findByCode(tax.getDepositAccount(),
+                tax.getIdEnterprise());
         if (depositAccount == null) {
             throw new IllegalArgumentException("No existe la cuenta de depósito que seleccionaste.");
         }
 
-        AccountCatalogueEntity refundAccount = accountCatalogueRepository.findByCode(tax.getRefundAccount(), tax.getIdEnterprise());
+        AccountCatalogueEntity refundAccount = accountCatalogueRepository.findByCode(tax.getRefundAccount(),
+                tax.getIdEnterprise());
         if (refundAccount == null) {
             throw new IllegalArgumentException("No existe la cuenta de devolución que seleccionaste.");
         }

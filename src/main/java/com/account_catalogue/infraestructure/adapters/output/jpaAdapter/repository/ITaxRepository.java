@@ -8,6 +8,14 @@ import java.util.List;
 
 public interface ITaxRepository extends JpaRepository<TaxEntity, Long> {
 
+    /**
+     * Encuentra un TaxEntity por código y id de empresa.
+     * 
+     * @param code         el código del impuesto.
+     * @param idEnterprise el id de la empresa.
+     * @return el TaxEntity con el código y id de empresa dados. Si no se
+     *         encuentra, se devuelve null.
+     */
     @Query("SELECT a FROM TaxEntity a WHERE a.code=?1 AND a.idEnterprise= ?2")
     TaxEntity findByCode(String code ,String idEnterprise);
 

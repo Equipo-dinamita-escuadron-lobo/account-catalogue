@@ -8,8 +8,15 @@ import java.util.List;
 
 @Mapper
 public interface ITaxSearchRestMapper {
-    default TaxSearchRes toSearchResponse(Tax tax){
-        if(tax==null){
+    /**
+     * Mapea un objeto de dominio Tax a un objeto de respuesta TaxSearchRes.
+     *
+     * @param tax el objeto de dominio Tax a mapear
+     * @return un objeto de respuesta TaxSearchRes con la información mapeada, o
+     *         null si el objeto Tax de entrada es null
+     */
+    default TaxSearchRes toSearchResponse(Tax tax) {
+        if (tax == null) {
             return null;
         }
         return TaxSearchRes.builder()
@@ -22,13 +29,22 @@ public interface ITaxSearchRestMapper {
                 .depositAccount(tax.getDepositAccount().getCode())
                 .build();
     }
-    default List<TaxSearchRes> toSearchListResponse(List<Tax> taxes){
-        if(taxes==null){
+
+    /**
+     * Mapea una lista de objetos de dominio Tax a una lista de objetos de respuesta
+     * TaxSearchRes.
+     *
+     * @param taxes la lista de objetos de dominio Tax a mapear
+     * @return una lista de objetos de respuesta TaxSearchRes con la información
+     *         mapeada, o null si la lista de entrada es null
+     */
+    default List<TaxSearchRes> toSearchListResponse(List<Tax> taxes) {
+        if (taxes == null) {
             return null;
         }
-        return  taxes.stream()
+        return taxes.stream()
                 .map(tax -> {
-                        TaxSearchRes taxSearchRes = TaxSearchRes.builder()
+                    TaxSearchRes taxSearchRes = TaxSearchRes.builder()
                             .id(tax.getId())
                             .idEnterprise(tax.getIdEnterprise())
                             .code(tax.getCode())

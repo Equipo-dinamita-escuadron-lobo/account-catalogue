@@ -7,6 +7,12 @@ import org.mapstruct.Mapper;
 
 @Mapper
 public interface ITaxUpdateMapper {
+    /**
+     * Mapea un objeto Tax a un objeto TaxEntity.
+     *
+     * @param tax el objeto Tax a mapear
+     * @return el objeto TaxEntity mapeado, o null si el objeto Tax es null
+     */
     default TaxEntity toEntity(Tax tax){
         if(tax==null){
             return null;
@@ -23,6 +29,12 @@ public interface ITaxUpdateMapper {
                 .refundAccount(tax.getRefundAccount())
                 .build();
     }
+    /**
+     * Mapea un objeto TaxEntity a un objeto Tax.
+     *
+     * @param taxEntity el TaxEntity a mapear
+     * @return el modelo de dominio Tax mapeado, o null si el TaxEntity es null
+     */
     default Tax toModel(TaxEntity taxEntity){
         if(taxEntity==null){
             return null;

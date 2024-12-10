@@ -12,25 +12,43 @@ import org.mapstruct.Mapping;
 @Mapper
 public interface IItemAccountCatalogueSearchMapper {
 
-    default AccountCatalogue toDomain(AccountCatalogueEntity accountCatalogueEntity){
-       if(accountCatalogueEntity==null ){
-           return null;
-       }
-       return AccountCatalogue.builder()
-               .id(accountCatalogueEntity.getId())
-               .code(accountCatalogueEntity.getCode())
-               .description(accountCatalogueEntity.getDescription())
-               .nature(accountCatalogueEntity.getNature())
-               .financialStatus(accountCatalogueEntity.getFinancialStatus())
-               .classification(accountCatalogueEntity.getClassification())
-               .parent(auxParent(accountCatalogueEntity.getParent() == null ? null : accountCatalogueEntity.getParent()))
-               .build();
+    /**
+     * Convierte un objeto AccountCatalogueEntity en un objeto AccountCatalogue.
+     * 
+     * @param accountCatalogueEntity el objeto AccountCatalogueEntity a convertir.
+     *                               Si es null, el m todo devuelve null.
+     * @return un objeto AccountCatalogue que contiene los detalles del
+     *         AccountCatalogueEntity proporcionado, o null si la entrada es
+     *         null.
+     */
+    default AccountCatalogue toDomain(AccountCatalogueEntity accountCatalogueEntity) {
+        if (accountCatalogueEntity == null) {
+            return null;
+        }
+        return AccountCatalogue.builder()
+                .id(accountCatalogueEntity.getId())
+                .code(accountCatalogueEntity.getCode())
+                .description(accountCatalogueEntity.getDescription())
+                .nature(accountCatalogueEntity.getNature())
+                .financialStatus(accountCatalogueEntity.getFinancialStatus())
+                .classification(accountCatalogueEntity.getClassification())
+                .parent(auxParent(
+                        accountCatalogueEntity.getParent() == null ? null : accountCatalogueEntity.getParent()))
+                .build();
     }
 
+    /**
+     * Convierte un objeto AccountCatalogue en un objeto AccountCatalogueEntity.
+     * 
+     * @param accountCatalogue el objeto AccountCatalogue a convertir.
+     * @return un objeto AccountCatalogueEntity que representa el objeto
+     *         AccountCatalogue proporcionado.
+     *         El campo tenantId se ignora durante el mapeo.
+     */
     @Mapping(target = "tenantId", ignore = true)
     AccountCatalogueEntity toEntity(AccountCatalogue accountCatalogue);
 
-    default AccountCatalogue toDomainTree(AccountCatalogueEntity accountCatalogueEntity){
+    default AccountCatalogue toDomainTree(AccountCatalogueEntity accountCatalogueEntity) {
         if (accountCatalogueEntity == null) {
             return null;
         }
@@ -41,8 +59,9 @@ public interface IItemAccountCatalogueSearchMapper {
                 .description(accountCatalogueEntity.getDescription())
                 .nature(accountCatalogueEntity.getNature())
                 .financialStatus(accountCatalogueEntity.getFinancialStatus())
-                .classification(accountCatalogueEntity.getClassification())     
-                .parent(auxParent(accountCatalogueEntity.getParent() == null ? null : accountCatalogueEntity.getParent()))  
+                .classification(accountCatalogueEntity.getClassification())
+                .parent(auxParent(
+                        accountCatalogueEntity.getParent() == null ? null : accountCatalogueEntity.getParent()))
                 .build();
 
         List<AccountCatalogue> children = new ArrayList<>();
@@ -57,13 +76,25 @@ public interface IItemAccountCatalogueSearchMapper {
         return accountCatalogue;
     }
 
-   default AccountCatalogue auxParent(AccountCatalogueEntity accountCatalogue){
+    /**
+     * Convierte un objeto AccountCatalogueEntity en un objeto AccountCatalogue con
+     * los campos id y code.
+     * 
+     * @param accountCatalogue el objeto AccountCatalogueEntity a convertir.
+     *                         Si es null, el m todo devuelve un objeto
+     *                         AccountCatalogue con los campos id y code
+     *                         establecidos en null.
+     * @return un objeto AccountCatalogue que contiene los campos id y code del
+     *         AccountCatalogueEntity proporcionado, o un objeto con los campos
+     *         id y code establecidos en null si la entrada es null.
+     */
+    default AccountCatalogue auxParent(AccountCatalogueEntity accountCatalogue) {
         if (accountCatalogue == null) {
             AccountCatalogue accountCatalogueNull = AccountCatalogue.builder()
                     .id(null)
                     .code(null)
                     .build();
-                    
+
             return accountCatalogueNull;
         }
 
@@ -71,11 +102,8 @@ public interface IItemAccountCatalogueSearchMapper {
                 .id(accountCatalogue.getId())
                 .code(accountCatalogue.getCode())
                 .build();
-        
-        return  accountCatalogueParent;     
-   }
 
+        return accountCatalogueParent;
+    }
 
 }
-
-

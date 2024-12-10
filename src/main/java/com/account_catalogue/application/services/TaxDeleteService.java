@@ -9,6 +9,13 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 public class TaxDeleteService implements ITaxDeleteInputPort {
     private final ITaxDeleteOutputPort taxDeleteOutputPort;
+
+    /**
+     * Elimina un impuesto por su ID.
+     *
+     * @param id ID del impuesto a eliminar
+     * @return true si se elimin con xito, false de lo contrario
+     */
     @Override
     public boolean deleteByCode(long id) {
         return taxDeleteOutputPort.deleteByCode(id);

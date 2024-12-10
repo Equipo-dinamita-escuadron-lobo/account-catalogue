@@ -18,6 +18,16 @@ public class AccountCatalogueUpdateJpaAdapter implements IAccountCatalogueUpdate
 
     private final IAccountCatalogueUpdateMapper accountCatalogueUpdateMapper;
     
+    /**
+     * Actualiza los detalles de un catálogo de cuentas existente en la base de datos.
+     * 
+     * @param id el ID del catálogo de cuentas a actualizar.
+     * @param accountCatalogue el objeto AccountCatalogue que contiene los detalles
+     *                         actualizados del catálogo de cuentas.
+     * @return el objeto AccountCatalogue actualizado con los detalles
+     *         actualizados del catálogo de cuentas, o null si el catálogo de
+     *         cuentas no existe.
+     */
     @Override
     public AccountCatalogue updateAccountCatalogue(long id, AccountCatalogue accountCatalogue) {
         AccountCatalogueEntity accountCatalogueEntity = accountCatalogueRepository.findById(id);

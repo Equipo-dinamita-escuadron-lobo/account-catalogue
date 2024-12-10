@@ -8,46 +8,142 @@ import com.account_catalogue.infraestructure.adapters.output.jpaAdapter.mapper.I
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.mapstruct.factory.Mappers;
+
 @Configuration
 public class MapStructConfig {
 
-
-
+    /**
+     * Este método se utiliza para generar una implementación de la interfaz
+     * IAccountSearchRestMapper
+     * en tiempo de compilación utilizando la biblioteca MapStruct. La interfaz se
+     * utiliza para mapear el modelo de dominio AccountCatalogue al objeto de
+     * transferencia de datos AccountCatalogueListRes
+     * que se utiliza para respuestas en la API REST. El mapeador se registra como
+     * un Bean de Spring
+     * para hacerlo disponible para inyección de dependencias.
+     */
     @Bean
-    IAccountSearchRestMapper mapStructMapperAccountSearchRestMapper(){
+    IAccountSearchRestMapper mapStructMapperAccountSearchRestMapper() {
         return Mappers.getMapper(IAccountSearchRestMapper.class);
     }
+
+    /**
+     * Este método se utiliza para generar una implementación de la interfaz
+     * IItemAccountCatalogueSearchMapper
+     * en tiempo de compilación utilizando la biblioteca MapStruct. La interfaz se
+     * utiliza para mapear el modelo de dominio AccountCatalogue al objeto de
+     * transferencia de datos ItemAccountCatalogueSearchRes
+     * que se utiliza para respuestas en la API REST. El mapeador se registra como
+     * un Bean de Spring
+     * para hacerlo disponible para inyección de dependencias.
+     */
     @Bean
-    IItemAccountCatalogueSearchMapper mapStructMapperitemAccountCatalogueSearchMapper(){
+    IItemAccountCatalogueSearchMapper mapStructMapperitemAccountCatalogueSearchMapper() {
         return Mappers.getMapper(IItemAccountCatalogueSearchMapper.class);
     }
+
+    /**
+     * Este método se utiliza para generar una implementación de la interfaz
+     * IItemAccountSearchRestMapper
+     * en tiempo de compilación utilizando la biblioteca MapStruct. La interfaz se
+     * utiliza para mapear el modelo de dominio AccountCatalogue al objeto de
+     * transferencia de datos ItemAccountCatalogueSearchRes
+     * que se utiliza para respuestas en la API REST. El mapeador se registra como
+     * un Bean de Spring
+     * para hacerlo disponible para inyección de dependencias.
+     */
     @Bean
-    IItemAccountSearchRestMapper mapStructItemAccountSearchRestMapper(){
+    IItemAccountSearchRestMapper mapStructItemAccountSearchRestMapper() {
         return Mappers.getMapper(IItemAccountSearchRestMapper.class);
     }
+
+    /**
+     * Este método se utiliza para generar una implementación de la interfaz
+     * ITaxCreateMapper
+     * en tiempo de compilación utilizando la biblioteca MapStruct. La interfaz se
+     * utiliza para mapear el modelo de dominio Tax al objeto de transferencia de
+     * datos TaxEntity
+     * que se utiliza para interacciones con el repositorio JPA. El mapeador se
+     * registra como un Bean de Spring
+     * para hacerlo disponible para inyección de dependencias.
+     */
     @Bean
-    ITaxCreateMapper mapStructTaxCreateMapper(){
+    ITaxCreateMapper mapStructTaxCreateMapper() {
         return Mappers.getMapper(ITaxCreateMapper.class);
     }
+
+    /**
+     * Este método se utiliza para generar una implementación de la interfaz
+     * ITaxCreateRestMapper
+     * en tiempo de compilación utilizando la biblioteca MapStruct. La interfaz se
+     * utiliza para mapear el objeto de transferencia de datos TaxCreateReq al
+     * modelo de dominio Tax
+     * que se utiliza en la lógica de negocio de la aplicación. El mapeador se
+     * registra como un Bean de Spring
+     * para hacerlo disponible para inyección de dependencias.
+     */
     @Bean
-    ITaxCreateRestMapper mapStructTaxCreateRestMapper(){
+    ITaxCreateRestMapper mapStructTaxCreateRestMapper() {
         return Mappers.getMapper(ITaxCreateRestMapper.class);
     }
+
+    /**
+     * Este método se utiliza para generar una implementación de la interfaz
+     * ITaxSearchMapper
+     * en tiempo de compilación utilizando la biblioteca MapStruct. La interfaz se
+     * utiliza para mapear el modelo de dominio Tax al objeto de transferencia de
+     * datos TaxEntity
+     * que se utiliza para interacciones con el repositorio JPA. El mapeador se
+     * registra como un Bean de Spring
+     * para hacerlo disponible para inyección de dependencias.
+     */
     @Bean
-    ITaxSearchMapper mapStructtaxSearchMapper(){
+    ITaxSearchMapper mapStructtaxSearchMapper() {
         return Mappers.getMapper(ITaxSearchMapper.class);
     }
+
+    /**
+     * Este método se utiliza para generar una implementación de la interfaz
+     * ITaxSearchRestMapper
+     * en tiempo de compilación utilizando la biblioteca MapStruct. La interfaz se
+     * utiliza para mapear el modelo de dominio Tax al objeto de transferencia de
+     * datos TaxSearchRes
+     * que se utiliza para respuestas en la API REST. El mapeador se registra como
+     * un Bean de Spring
+     * para hacerlo disponible para inyección de dependencias.
+     */
     @Bean
-    ITaxSearchRestMapper mapStructTaxSearchRestMapper(){
+    ITaxSearchRestMapper mapStructTaxSearchRestMapper() {
         return Mappers.getMapper(ITaxSearchRestMapper.class);
     }
+
+    /**
+     * Este método se utiliza para generar una implementación de la interfaz
+     * ITaxUpdateMapper
+     * en tiempo de compilación utilizando la biblioteca MapStruct. La interfaz se
+     * utiliza para mapear el modelo de dominio Tax al objeto de transferencia de
+     * datos TaxEntity
+     * que se utiliza para interacciones con el repositorio JPA. El mapeador se
+     * registra como un Bean de Spring
+     * para hacerlo disponible para inyección de dependencias.
+     */
     @Bean
-    ITaxUpdateMapper mapStructUpdateMapper(){
+    ITaxUpdateMapper mapStructUpdateMapper() {
         return Mappers.getMapper(ITaxUpdateMapper.class);
     }
+
+    /**
+     * Este método se utiliza para generar una implementación de la interfaz
+     * ITaxUpdateRestMapper
+     * en tiempo de compilación utilizando la biblioteca MapStruct. La interfaz se
+     * utiliza para mapear el objeto de transferencia de datos TaxUpdateReq al
+     * modelo de dominio Tax
+     * que se utiliza en la lógica de negocio de la aplicación. El mapeador se
+     * registra como un Bean de Spring
+     * para hacerlo disponible para inyección de dependencias.
+     */
     @Bean
-    ITaxUpdateRestMapper mapStructUpdateRestMapper(){
+    ITaxUpdateRestMapper mapStructUpdateRestMapper() {
         return Mappers.getMapper(ITaxUpdateRestMapper.class);
     }
-
 }

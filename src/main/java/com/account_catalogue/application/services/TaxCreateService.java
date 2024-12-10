@@ -13,6 +13,13 @@ import org.springframework.stereotype.Service;
 @Data
 public class TaxCreateService implements ITaxCreateInputPort {
     private final ITaxCreateOutputPort taxCreateOutputPort;
+
+    /**
+     * Crea una nueva entrada de impuesto en el sistema.
+     *
+     * @param tax el objeto TaxDTO que contiene los detalles del impuesto a crear.
+     * @return el objeto Tax creado.
+     */
     @Override
     public Tax createTax(TaxDTO tax) {
         return taxCreateOutputPort.createTax(tax);

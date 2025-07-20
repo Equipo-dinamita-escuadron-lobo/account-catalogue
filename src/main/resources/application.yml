@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: catalogue
+
+  profiles:
+    active:
+    - ${PROFILE:dev}
+
+springdoc:
+  swagger-ui:
+    path: ${SWAGGER_PATH:/swagger-ui.html}
+
+server:
+  error:
+    include-stacktrace: never

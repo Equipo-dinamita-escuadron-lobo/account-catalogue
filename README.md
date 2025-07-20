@@ -4,7 +4,7 @@ Para utilizar Swagger, primero se debe hacer ping u otra petición antes de acce
 ```
 http://localhost:8080/api/accountCatalogue/test/ping
 ```
-**URL Swagger**
+**URL Swagger** 
 ```
 http://localhost:8080/swagger-ui/index.html#/
 ```

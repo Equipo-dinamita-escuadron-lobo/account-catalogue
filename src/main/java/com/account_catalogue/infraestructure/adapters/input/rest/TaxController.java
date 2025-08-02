@@ -30,7 +30,6 @@ import java.util.List;
 @RequestMapping("/api/tax")
 @RestController
 @AllArgsConstructor
-@CrossOrigin(origins = "*")
 public class TaxController {
 
     private final ITaxCreateRestMapper taxCreateRestMapper;

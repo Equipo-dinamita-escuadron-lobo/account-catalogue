@@ -34,11 +34,7 @@ import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.mappe
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.mapper.IItemAccountSearchRestMapper;
 import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueNotFoundException;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
+
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 
@@ -58,11 +54,6 @@ public class AccountCatalogueController {
 
 
     @PostMapping("/")
-    @Operation(summary = "Crear un catálogo de cuentas", description = "Crea un nuevo catálogo de cuentas con un padre específico.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Catálogo de cuentas creado exitosamente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = AccountCatalogueCreateRes.class))),
-            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content)
-    })
     public ResponseEntity<AccountCatalogueCreateRes> createAccountCatalogue(
             @RequestBody AccountCatalogueCreateReq accountCatalogueCreateReq) {
         try {
@@ -78,12 +69,6 @@ public class AccountCatalogueController {
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Actualizar un catálogo de cuentas", description = "Actualiza los detalles de un catálogo de cuentas existente basado en su ID.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Catálogo de cuentas actualizado exitosamente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = AccountCatalogueUpdateRes.class))),
-            @ApiResponse(responseCode = "400", description = "Datos inválidos", content = @Content),
-            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content)
-    })
     public ResponseEntity<AccountCatalogueUpdateRes> updateAccountCatalogue(@PathVariable("id") int id,
             @Valid @RequestBody AccountCatalogueUpdateReq accountCatalogueUpdateReq) {
         AccountCatalogue updateAccountCatalogue = accountUpdateRestMapper.toDomain(accountCatalogueUpdateReq);
@@ -92,11 +77,6 @@ public class AccountCatalogueController {
     }
 
     @GetMapping("/accountByCode/{code}/{idEnterprise}")
-    @Operation(summary = "Obtener un catálogo de cuentas por código", description = "Recupera un catálogo de cuentas basado en el código y el ID de la empresa.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Catálogo de cuentas encontrado exitosamente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ItemAccountCatalogueSearchRes.class))),
-            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content)
-    })
     public ResponseEntity<ItemAccountCatalogueSearchRes> getAccountCatalogue(@PathVariable("code") String code,
             @PathVariable("idEnterprise") String idEnterprise) {
         AccountCatalogue accountCatalogue = accountCatalogueSearchInputPort.getAccountCatalogueByCode(code,
@@ -105,29 +85,19 @@ public class AccountCatalogueController {
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Eliminar un catálogo de cuentas", description = "Elimina un catálogo de cuentas basado en su ID.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "204", description = "Catálogo de cuentas eliminado exitosamente", content = @Content),
-            @ApiResponse(responseCode = "404", description = "Catálogo de cuentas no encontrado", content = @Content),
-            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content)
-    })
     public ResponseEntity<?> deleteByCode(@PathVariable("id") Long id) {
         try {
             accountCatalogueDeleteInputPort.deleteById(id);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (AccountCatalogueNotFoundException ex) {
             Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("Error Message", ex.getMessage());
+            errorResponse.put("code", ex.getErrorCode().getCode());
+            errorResponse.put("message", ex.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
         }
     }
 
     @GetMapping("/tree/{code}/{idEnterprise}")
-    @Operation(summary = "Obtener árbol de catálogo de cuentas", description = "Recupera el árbol completo de un catálogo de cuentas basado en el código y el ID de la empresa.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Árbol de catálogo de cuentas recuperado exitosamente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = AccountCatalogueListRes.class))),
-            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content)
-    })
     public ResponseEntity<AccountCatalogueListRes> getAccountCatalogueTree(@PathVariable("code") String code,
             @PathVariable("idEnterprise") String idEnterprise) {
         AccountCatalogue accountCatalogue = accountCatalogueSearchInputPort.getAccountCatalogueTree(code, idEnterprise);
@@ -135,11 +105,6 @@ public class AccountCatalogueController {
     }
 
     @GetMapping("/trees/{idEnterprise}")
-    @Operation(summary = "Obtener árboles de catálogos de cuentas", description = "Recupera todos los árboles de catálogos de cuentas para una empresa específica basada en su ID.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Árboles de catálogos de cuentas recuperados exitosamente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = AccountCatalogueListRes.class))),
-            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content)
-    })
     public ResponseEntity<List<AccountCatalogueListRes>> getAccountCatalogueTrees(
             @PathVariable("idEnterprise") String idEnterprise) {
         List<AccountCatalogueListRes> accountCatalogueListRes = new ArrayList<>();

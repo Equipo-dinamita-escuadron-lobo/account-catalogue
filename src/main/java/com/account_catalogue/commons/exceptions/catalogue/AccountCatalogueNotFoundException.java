@@ -1,8 +1,18 @@
 package com.account_catalogue.commons.exceptions.catalogue;
 
-public class AccountCatalogueNotFoundException extends RuntimeException{
-    public AccountCatalogueNotFoundException(String message){
-        super(message);
-    }
+import com.account_catalogue.commons.exceptions.BaseBusinessException;
 
+public class AccountCatalogueNotFoundException extends BaseBusinessException {
+    
+    public AccountCatalogueNotFoundException() {
+        super(AccountCatalogueErrorCode.ACCOUNT_NOT_FOUND);
+    }
+    
+    public AccountCatalogueNotFoundException(String customMessage) {
+        super(AccountCatalogueErrorCode.ACCOUNT_NOT_FOUND, customMessage);
+    }
+    
+    public AccountCatalogueNotFoundException(String customMessage, Throwable cause) {
+        super(AccountCatalogueErrorCode.ACCOUNT_NOT_FOUND, customMessage, cause);
+    }
 }

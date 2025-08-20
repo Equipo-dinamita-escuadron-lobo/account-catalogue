@@ -1,4 +1,4 @@
-package com.account_catalogue.catalogue.infraestructure.adapters.config;
+package com.account_catalogue.commons.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

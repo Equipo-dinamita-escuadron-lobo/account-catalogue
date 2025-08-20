@@ -1,11 +1,11 @@
-package com.account_catalogue.catalogue.infraestructure.adapters.config;
+package com.account_catalogue.commons.config;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.multitenancy.interceptor.TenantInterceptor;
+import com.account_catalogue.commons.multitenancy.interceptor.TenantInterceptor;
 
 @RequiredArgsConstructor
 @Configuration

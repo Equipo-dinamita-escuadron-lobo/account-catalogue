@@ -1,9 +1,9 @@
-package com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.multitenancy.async;
+package com.account_catalogue.commons.multitenancy.async;
 
 import org.springframework.core.task.TaskDecorator;
 import org.springframework.lang.NonNull;
 
-import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.multitenancy.utils.TenantContext;
+import com.account_catalogue.commons.multitenancy.utils.TenantContext;
 
 public class TenantAwareTaskDecorator implements TaskDecorator {
 

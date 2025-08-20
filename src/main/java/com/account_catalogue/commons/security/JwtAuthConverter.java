@@ -1,4 +1,4 @@
-package com.account_catalogue.catalogue.infraestructure.security;
+package com.account_catalogue.commons.security;
 
 import org.springframework.stereotype.Component;
 

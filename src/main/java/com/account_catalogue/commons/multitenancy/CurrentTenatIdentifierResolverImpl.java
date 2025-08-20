@@ -1,4 +1,4 @@
-package com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.multitenancy;
+package com.account_catalogue.commons.multitenancy;
 
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.context.spi.CurrentTenantIdentifierResolver;
@@ -6,7 +6,7 @@ import org.springframework.boot.autoconfigure.orm.jpa.HibernatePropertiesCustomi
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
-import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.multitenancy.utils.TenantContext;
+import com.account_catalogue.commons.multitenancy.utils.TenantContext;
 
 import java.util.Map;
 

@@ -1,4 +1,4 @@
-package com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.multitenancy.async;
+package com.account_catalogue.commons.multitenancy.async;
 
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Configuration;

@@ -1,4 +1,4 @@
-package com.account_catalogue.catalogue.infraestructure.security;
+package com.account_catalogue.commons.security;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;

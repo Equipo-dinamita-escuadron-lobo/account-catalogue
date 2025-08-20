@@ -1,4 +1,4 @@
-package com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.multitenancy.utils;
+package com.account_catalogue.commons.multitenancy.utils;
 
 import lombok.extern.slf4j.Slf4j;
 

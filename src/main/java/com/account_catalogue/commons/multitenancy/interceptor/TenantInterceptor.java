@@ -1,4 +1,4 @@
-package com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.multitenancy.interceptor;
+package com.account_catalogue.commons.multitenancy.interceptor;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -6,8 +6,8 @@ import org.springframework.ui.ModelMap;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.context.request.WebRequestInterceptor;
 
-import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.multitenancy.utils.TenantContext;
-import com.account_catalogue.catalogue.infraestructure.security.IJwtUtils;
+import com.account_catalogue.commons.multitenancy.utils.TenantContext;
+import com.account_catalogue.commons.security.IJwtUtils;
 
 @Component
 public class TenantInterceptor implements WebRequestInterceptor {

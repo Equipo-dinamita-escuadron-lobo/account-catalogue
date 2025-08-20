@@ -1,12 +1,12 @@
 package com.account_catalogue.domain.service;
 
 
-import com.account_catalogue.application.output.IAccountCatalogueCreateOutputPort;
-import com.account_catalogue.application.services.AccountCatalogueCreateService;
-import com.account_catalogue.domain.enums.ClassificationEnum;
-import com.account_catalogue.domain.enums.FinancialStatusEnum;
-import com.account_catalogue.domain.enums.NatureEnum;
-import com.account_catalogue.domain.models.AccountCatalogue;
+import com.account_catalogue.catalogue.application.output.IAccountCatalogueCreateOutputPort;
+import com.account_catalogue.catalogue.application.services.AccountCatalogueCreateService;
+import com.account_catalogue.catalogue.domain.enums.ClassificationEnum;
+import com.account_catalogue.catalogue.domain.enums.FinancialStatusEnum;
+import com.account_catalogue.catalogue.domain.enums.NatureEnum;
+import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

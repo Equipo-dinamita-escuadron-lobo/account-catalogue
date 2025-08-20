@@ -1,7 +1,5 @@
 package com.account_catalogue.domain.service;
 
-import com.account_catalogue.application.output.IAccountCatalogueDeleteOutputPort;
-import com.account_catalogue.application.services.AccountCatalogueDeleteService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -9,6 +7,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.context.ActiveProfiles;
+
+import com.account_catalogue.catalogue.application.output.IAccountCatalogueDeleteOutputPort;
+import com.account_catalogue.catalogue.application.services.AccountCatalogueDeleteService;
 
 import static org.mockito.BDDMockito.*;
 

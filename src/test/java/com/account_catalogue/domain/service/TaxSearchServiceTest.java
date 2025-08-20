@@ -1,12 +1,12 @@
 package com.account_catalogue.domain.service;
 
-import com.account_catalogue.application.output.ITaxSearchOutputPort;
-import com.account_catalogue.application.services.TaxSearchService;
-import com.account_catalogue.domain.enums.ClassificationEnum;
-import com.account_catalogue.domain.enums.FinancialStatusEnum;
-import com.account_catalogue.domain.enums.NatureEnum;
-import com.account_catalogue.domain.models.Tax;
-import com.account_catalogue.infraestructure.adapters.output.jpaAdapter.entity.AccountCatalogueEntity;
+import com.account_catalogue.catalogue.domain.enums.ClassificationEnum;
+import com.account_catalogue.catalogue.domain.enums.FinancialStatusEnum;
+import com.account_catalogue.catalogue.domain.enums.NatureEnum;
+import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.entity.AccountCatalogueEntity;
+import com.account_catalogue.taxes.application.output.ITaxSearchOutputPort;
+import com.account_catalogue.taxes.application.services.TaxSearchService;
+import com.account_catalogue.taxes.domain.models.Tax;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

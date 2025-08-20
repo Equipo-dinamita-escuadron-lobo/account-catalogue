@@ -1,0 +1,12 @@
+package com.account_catalogue.catalogue.application.output;
+
+import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
+
+public interface IAccountCatalogueSearchOutputPort {
+
+    AccountCatalogue getAccountCatalogueByCode(String code,String idEnterprise);
+
+    AccountCatalogue getAccountCatalogueTree(String code,String idEnterprise);
+
+    AccountCatalogue getAccountCatalogueById(Long id);
+}

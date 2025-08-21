@@ -96,10 +96,15 @@ public class AccountCatalogueController {
             @PathVariable("idEnterprise") String idEnterprise) {
         List<AccountCatalogueListRes> accountCatalogueListRes = new ArrayList<>();
         for (int i = 1; i <= 9; i++) {
-            AccountCatalogue accountCatalogue = accountCatalogueSearchInputPort
-                    .getAccountCatalogueTree(String.valueOf(i), idEnterprise);
-            if (accountCatalogue != null) {
-                accountCatalogueListRes.add(accountSearchRestMapper.toAccountCatalogueListRes(accountCatalogue));
+            try {
+                AccountCatalogue accountCatalogue = accountCatalogueSearchInputPort
+                        .getAccountCatalogueTree(String.valueOf(i), idEnterprise);
+                if (accountCatalogue != null) {
+                    accountCatalogueListRes.add(accountSearchRestMapper.toAccountCatalogueListRes(accountCatalogue));
+                }
+            } catch (Exception e) {
+                // Si la cuenta con código 'i' no existe, simplemente continúa con el siguiente
+                // No lanza excepción, solo omite la cuenta inexistente
             }
         }
         return ResponseEntity.ok(accountCatalogueListRes);

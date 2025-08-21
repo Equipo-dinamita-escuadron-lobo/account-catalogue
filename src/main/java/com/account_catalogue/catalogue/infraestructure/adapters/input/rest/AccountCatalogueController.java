@@ -1,9 +1,7 @@
 package com.account_catalogue.catalogue.infraestructure.adapters.input.rest;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,7 +30,7 @@ import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.mappe
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.mapper.IAccountSearchRestMapper;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.mapper.IAccountUpdateRestMapper;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.mapper.IItemAccountSearchRestMapper;
-import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueNotFoundException;
+
 
 
 import jakarta.validation.Valid;
@@ -56,16 +54,13 @@ public class AccountCatalogueController {
     @PostMapping("/")
     public ResponseEntity<AccountCatalogueCreateRes> createAccountCatalogue(
             @RequestBody AccountCatalogueCreateReq accountCatalogueCreateReq) {
-        try {
-            AccountCatalogue padre = accountCatalogueSearchInputPort
-                    .getAccountCatalogueById(accountCatalogueCreateReq.getParent());
-            AccountCatalogue account = accountCreateRestMapper.toDomain(accountCatalogueCreateReq, padre);
-            account = accountCatalogueCreateInputPort.createAccountCatalogue(account);
-            return ResponseEntity.ok(accountCreateRestMapper.toCreateResponse(account));
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        AccountCatalogue padre = null;
+        if (accountCatalogueCreateReq.getParent() != null) {
+            padre = accountCatalogueSearchInputPort.getAccountCatalogueById(accountCatalogueCreateReq.getParent());
         }
+        AccountCatalogue account = accountCreateRestMapper.toDomain(accountCatalogueCreateReq, padre);
+        account = accountCatalogueCreateInputPort.createAccountCatalogue(account);
+        return ResponseEntity.ok(accountCreateRestMapper.toCreateResponse(account));
     }
 
     @PutMapping("/{id}")
@@ -79,22 +74,14 @@ public class AccountCatalogueController {
     @GetMapping("/accountByCode/{code}/{idEnterprise}")
     public ResponseEntity<ItemAccountCatalogueSearchRes> getAccountCatalogue(@PathVariable("code") String code,
             @PathVariable("idEnterprise") String idEnterprise) {
-        AccountCatalogue accountCatalogue = accountCatalogueSearchInputPort.getAccountCatalogueByCode(code,
-                idEnterprise);
+        AccountCatalogue accountCatalogue = accountCatalogueSearchInputPort.getAccountCatalogueByCode(code, idEnterprise);
         return ResponseEntity.ok(itemAccountSearchRestMapper.toItemAccountCatalogueSearch(accountCatalogue));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteByCode(@PathVariable("id") Long id) {
-        try {
-            accountCatalogueDeleteInputPort.deleteById(id);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (AccountCatalogueNotFoundException ex) {
-            Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("code", ex.getErrorCode().getCode());
-            errorResponse.put("message", ex.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
-        }
+    public ResponseEntity<Void> deleteByCode(@PathVariable("id") Long id) {
+        accountCatalogueDeleteInputPort.deleteById(id);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @GetMapping("/tree/{code}/{idEnterprise}")

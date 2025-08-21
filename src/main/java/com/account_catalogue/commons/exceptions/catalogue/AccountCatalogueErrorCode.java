@@ -14,7 +14,8 @@ public enum AccountCatalogueErrorCode implements ErrorCodeDefinition {
     INVALID_ACCOUNT_CODE("INVALID_ACCOUNT_CODE", "Código de cuenta inválido"),
     ACCOUNT_HAS_CHILDREN("ACCOUNT_HAS_CHILDREN", "La cuenta tiene subcuentas asociadas"),
     PARENT_ACCOUNT_NOT_FOUND("PARENT_ACCOUNT_NOT_FOUND", "Cuenta padre no encontrada"),
-    INVALID_ACCOUNT_LEVEL("INVALID_ACCOUNT_LEVEL", "Nivel de cuenta inválido");
+    ACCOUNT_ASSOCIATED_WITH_TAX("ACCOUNT_ASSOCIATED_WITH_TAX", "La cuenta está asociada a uno o más impuestos"),
+    INVALID_ACCOUNT_CODE_LENGTH("INVALID_ACCOUNT_CODE_LENGTH", "El código de cuenta debe tener exactamente 1, 2, 4, 6 u 8 dígitos");
 
     private final String code;
     private final String message;

@@ -11,6 +11,7 @@ public enum AccountCatalogueErrorCode implements ErrorCodeDefinition {
 
     ACCOUNT_NOT_FOUND("ACCOUNT_NOT_FOUND", "Cuenta no encontrada"),
     ACCOUNT_ALREADY_EXISTS("ACCOUNT_ALREADY_EXISTS", "La cuenta ya existe"),
+    ACCOUNT_DESCRIPTION_ALREADY_EXISTS("ACCOUNT_DESCRIPTION_ALREADY_EXISTS", "Ya existe una cuenta con esta descripción"),
     INVALID_ACCOUNT_CODE("INVALID_ACCOUNT_CODE", "Código de cuenta inválido"),
     ACCOUNT_HAS_CHILDREN("ACCOUNT_HAS_CHILDREN", "La cuenta tiene subcuentas asociadas"),
     PARENT_ACCOUNT_NOT_FOUND("PARENT_ACCOUNT_NOT_FOUND", "Cuenta padre no encontrada"),

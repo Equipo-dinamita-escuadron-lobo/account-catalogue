@@ -8,7 +8,7 @@ import com.account_catalogue.catalogue.application.output.IAccountCatalogueSearc
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
 import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueAlreadyExistsException;
 import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueAssociatedWithTaxException;
-import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueHasChildrenException;
+import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueDescriptionAlreadyExistsException;
 import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueNotFoundException;
 import com.account_catalogue.commons.exceptions.catalogue.InvalidAccountCodeException;
 
@@ -171,6 +171,40 @@ public class AccountCatalogueValidationService {
             throw new InvalidAccountCodeException(
                 "La descripción de la cuenta contiene caracteres no válidos. " +
                 "Solo se permiten letras, números, espacios y los siguientes caracteres especiales: - . , ( )"
+            );
+        }
+    }
+    
+    /**
+     * Valida que no exista ya una cuenta con la misma descripción para la misma empresa.
+     * 
+     * @param description la descripción de la cuenta
+     * @param idEnterprise el ID de la empresa
+     * @throws AccountCatalogueDescriptionAlreadyExistsException si ya existe una cuenta con esta descripción
+     */
+    public void validateAccountDescriptionDoesNotExist(String description, String idEnterprise) {
+        AccountCatalogue existingAccount = accountCatalogueSearchOutputPort.getAccountCatalogueByDescriptionAndIdEnterprise(description, idEnterprise);
+        if (existingAccount != null) {
+            throw new AccountCatalogueDescriptionAlreadyExistsException(
+                "Ya existe una cuenta con la descripción '" + description + "' para la empresa '" + idEnterprise + "'"
+            );
+        }
+    }
+    
+    /**
+     * Valida que no exista ya otra cuenta con la misma descripción para la misma empresa, excluyendo una cuenta específica.
+     * Útil para validaciones de actualización.
+     * 
+     * @param description la descripción de la cuenta
+     * @param idEnterprise el ID de la empresa
+     * @param excludeId el ID de la cuenta a excluir de la validación
+     * @throws AccountCatalogueDescriptionAlreadyExistsException si ya existe otra cuenta con esta descripción
+     */
+    public void validateAccountDescriptionDoesNotExistExcluding(String description, String idEnterprise, Long excludeId) {
+        AccountCatalogue existingAccount = accountCatalogueSearchOutputPort.getAccountCatalogueByDescriptionAndIdEnterprise(description, idEnterprise);
+        if (existingAccount != null && !existingAccount.getId().equals(excludeId)) {
+            throw new AccountCatalogueDescriptionAlreadyExistsException(
+                "Ya existe otra cuenta con la descripción '" + description + "' para la empresa '" + idEnterprise + "'"
             );
         }
     }

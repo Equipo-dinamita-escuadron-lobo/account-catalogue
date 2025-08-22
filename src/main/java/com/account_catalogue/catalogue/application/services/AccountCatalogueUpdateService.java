@@ -40,6 +40,13 @@ public class AccountCatalogueUpdateService implements IAccountCatalogueUpdateInp
             id
         );
         
+        // Validar que no existe otra cuenta con la misma descripción (excluyendo la actual)
+        validationService.validateAccountDescriptionDoesNotExistExcluding(
+            accountCatalogue.getDescription(), 
+            accountCatalogue.getIdEnterprise(), 
+            id
+        );
+        
         // Solo validar que la cuenta no está asociada a impuestos
         // (Se permite actualizar cuentas que tienen hijos)
         validationService.validateAccountNotAssociatedWithTaxes(existingAccount);

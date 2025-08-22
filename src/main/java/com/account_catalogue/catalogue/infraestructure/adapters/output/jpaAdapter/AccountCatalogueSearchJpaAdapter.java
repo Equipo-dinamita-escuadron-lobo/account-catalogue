@@ -65,4 +65,17 @@ public class AccountCatalogueSearchJpaAdapter implements IAccountCatalogueSearch
         AccountCatalogueEntity accountCatalogue = accountCatalogueRepository.findByIdAndIdEnterprise(id, idEnterprise);
         return itemAccountCatalogueSearchMapper.toDomain(accountCatalogue);
     }
+
+    /**
+     * Obtiene el catálogo de cuentas por descripción y id de empresa.
+     * 
+     * @param description  la descripción del catálogo de cuentas
+     * @param idEnterprise el id de la empresa
+     * @return el catálogo de cuentas si existe, null en caso contrario
+     */
+    @Override
+    public AccountCatalogue getAccountCatalogueByDescriptionAndIdEnterprise(String description, String idEnterprise) {
+        AccountCatalogueEntity accountCatalogue = accountCatalogueRepository.findByDescriptionAndIdEnterprise(description, idEnterprise);
+        return itemAccountCatalogueSearchMapper.toDomain(accountCatalogue);
+    }
 }

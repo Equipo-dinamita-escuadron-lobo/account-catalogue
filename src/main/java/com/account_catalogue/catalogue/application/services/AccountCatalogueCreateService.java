@@ -28,9 +28,15 @@ public class AccountCatalogueCreateService implements IAccountCatalogueCreateInp
         // Validar la descripción de la cuenta
         validationService.validateAccountDescription(accountCatalogue.getDescription());
         
-        // Validar que la cuenta no exista ya
+        // Validar que la cuenta no exista ya por código
         validationService.validateAccountDoesNotExist(
             accountCatalogue.getCode(), 
+            accountCatalogue.getIdEnterprise()
+        );
+        
+        // Validar que no exista ya una cuenta con la misma descripción
+        validationService.validateAccountDescriptionDoesNotExist(
+            accountCatalogue.getDescription(), 
             accountCatalogue.getIdEnterprise()
         );
         

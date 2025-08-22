@@ -1,0 +1,25 @@
+package com.account_catalogue.paymentMethods.presentation.DTO.request;
+
+import jakarta.validation.constraints.*;
+import lombok.*;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class PaymentMethodCreateReq {
+
+    @NotBlank(message = "La empresa es obligatoria")
+    private String idEnterprise;
+
+    @NotBlank(message = "El nombre del método de pago es obligatorio")
+    @Size(max = 100, message = "El nombre no debe exceder 100 caracteres")
+    private String name;
+
+    @NotBlank(message = "La cuenta contable asociada es obligatoria")
+    private String accountingAccount;
+
+    @Builder.Default
+    private Boolean status = true;
+}

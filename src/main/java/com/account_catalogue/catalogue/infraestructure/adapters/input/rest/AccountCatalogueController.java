@@ -78,9 +78,9 @@ public class AccountCatalogueController {
         return ResponseEntity.ok(itemAccountSearchRestMapper.toItemAccountCatalogueSearch(accountCatalogue));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteByCode(@PathVariable("id") Long id) {
-        accountCatalogueDeleteInputPort.deleteById(id);
+    @DeleteMapping("/{id}/{idEnterprise}")
+    public ResponseEntity<Void> deleteByCode(@PathVariable("id") Long id, @PathVariable("idEnterprise") String idEnterprise) {
+        accountCatalogueDeleteInputPort.deleteById(id, idEnterprise);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 

@@ -1,4 +1,4 @@
-package com.account_catalogue.catalogue.domain.services;
+package com.account_catalogue.catalogue.application.services;
 
 import java.util.regex.Pattern;
 
@@ -109,6 +109,24 @@ public class AccountCatalogueValidationService {
         if (account == null) {
             throw new AccountCatalogueNotFoundException(
                 "No se encontró una cuenta con el ID '" + id + "'"
+            );
+        }
+        return account;
+    }
+
+    /**
+     * Valida que la cuenta existe en el sistema por ID y empresa.
+     * 
+     * @param id el ID de la cuenta
+     * @param idEnterprise el ID de la empresa
+     * @return la cuenta encontrada
+     * @throws AccountCatalogueNotFoundException si la cuenta no existe
+     */
+    public AccountCatalogue validateAccountExistsByIdAndEnterprise(Long id, String idEnterprise) {
+        AccountCatalogue account = accountCatalogueSearchOutputPort.getAccountCatalogueByIdAndIdEnterprise(id, idEnterprise);
+        if (account == null) {
+            throw new AccountCatalogueNotFoundException(
+                "No se encontró una cuenta con el ID '" + id + "' para la empresa '" + idEnterprise + "'"
             );
         }
         return account;

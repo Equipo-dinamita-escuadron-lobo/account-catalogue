@@ -20,6 +20,17 @@ public interface IAccountCatalogueRepository extends JpaRepository<AccountCatalo
 
     AccountCatalogueEntity findById(long id);
 
+    /**
+     * Encuentra un AccountCatalogueEntity por ID y id de empresa.
+     * 
+     * @param id           el ID de la cuenta.
+     * @param idEnterprise el id de la empresa.
+     * @return el AccountCatalogueEntity con el ID y id de empresa dados. Si no
+     *         se encuentra, se devuelve null.
+     */
+    @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.id = ?1 AND a.idEnterprise = ?2")
+    AccountCatalogueEntity findByIdAndIdEnterprise(Long id, String idEnterprise);
+
     AccountCatalogueEntity findByCode(String code);
 
 }

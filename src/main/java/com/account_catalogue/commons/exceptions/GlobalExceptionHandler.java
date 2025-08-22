@@ -1,11 +1,14 @@
 package com.account_catalogue.commons.exceptions;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
+
+import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueErrorCode;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
@@ -115,6 +118,44 @@ public class GlobalExceptionHandler {
             return HttpStatus.CONFLICT;
         }
         return HttpStatus.BAD_REQUEST;
+    }
+
+    /**
+     * Maneja excepciones de violación de integridad de datos (claves foráneas).
+     */
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponse> handleDataIntegrityViolationException(
+            DataIntegrityViolationException ex, WebRequest request) {
+
+        String errorMessage = ex.getMessage();
+        
+        // Verificar si es una violación de clave foránea relacionada con Tax
+        if (errorMessage != null && errorMessage.contains("fkkndntrea9snpaq594re8whhmk") 
+            && errorMessage.contains("table \"tax\"")) {
+            
+            ErrorResponse errorResponse = ErrorResponse.builder()
+                    .timestamp(LocalDateTime.now())
+                    .status(HttpStatus.CONFLICT.value())
+                    .error("Data Integrity Violation")
+                    .message(AccountCatalogueErrorCode.ACCOUNT_ASSOCIATED_WITH_TAX.getMessage())
+                    .code(AccountCatalogueErrorCode.ACCOUNT_ASSOCIATED_WITH_TAX.getCode())
+                    .path(request.getDescription(false).replace("uri=", ""))
+                    .build();
+
+            return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+        }
+        
+        // Para otras violaciones de integridad, devolver error genérico
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.CONFLICT.value())
+                .error("Data Integrity Violation")
+                .message("No se puede completar la operación debido a restricciones de integridad de datos")
+                .code(ErrorCode.GENERIC_ERROR.getCode())
+                .path(request.getDescription(false).replace("uri=", ""))
+                .build();
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
     }
 
     /**

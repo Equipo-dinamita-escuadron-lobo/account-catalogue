@@ -3,7 +3,6 @@ package com.account_catalogue.catalogue.application.services;
 import com.account_catalogue.catalogue.application.input.IAccountCatalogueSearchInputPort;
 import com.account_catalogue.catalogue.application.output.IAccountCatalogueSearchOutputPort;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
-import com.account_catalogue.catalogue.domain.services.AccountCatalogueValidationService;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;

@@ -11,8 +11,10 @@ import org.mapstruct.Mapping;
 public interface PaymentMethodDomainMapper {
     
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "isDeleted", ignore = true)
     PaymentMethod toDomain(PaymentMethodCreateReq request);
     
+    @Mapping(target = "isDeleted", ignore = true)
     PaymentMethod toDomain(PaymentMethodUpdateReq request);
     
     PaymentMethodRes toRes(PaymentMethod domain);

@@ -1,0 +1,74 @@
+package com.account_catalogue.banks.presentation.controller;
+
+import com.account_catalogue.banks.domain.model.Bank;
+import com.account_catalogue.banks.domain.services.IBankService;
+import com.account_catalogue.banks.domain.mapper.BankDomainMapper;
+import com.account_catalogue.banks.presentation.DTO.request.BankCreateReq;
+import com.account_catalogue.banks.presentation.DTO.request.BankUpdateReq;
+import com.account_catalogue.banks.presentation.DTO.response.BankRes;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/accountCatalogue/banks")
+@RequiredArgsConstructor
+public class BankController {
+
+    private final IBankService service;
+    private final BankDomainMapper mapper;
+
+    @PostMapping("/create")
+    public ResponseEntity<BankRes> create(@Valid @RequestBody BankCreateReq request) {
+        Bank created = service.create(request);
+        return ResponseEntity.ok(mapper.toRes(created));
+    }
+
+    @PutMapping("/update")
+    public ResponseEntity<BankRes> update(@Valid @RequestBody BankUpdateReq request) {
+        Bank updated = service.update(request);
+        return ResponseEntity.ok(mapper.toRes(updated));
+    }
+
+    @GetMapping("/findById/{id}/{enterpriseId}")
+    public ResponseEntity<BankRes> getById(@PathVariable Long id, @PathVariable String enterpriseId) {
+        return ResponseEntity.ok(mapper.toRes(service.findById(id, enterpriseId)));
+    }
+
+    @GetMapping("/findAll/{enterpriseId}")
+    public ResponseEntity<?> list(
+            @PathVariable("enterpriseId") String enterpriseId,
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "10") Integer size) {
+        return ResponseEntity.ok(service.findAllByEnterprise(enterpriseId, page, size)
+                .map(mapper::toRes));
+    }
+
+    @GetMapping("/findAllByStatus/{enterpriseId}")
+    public ResponseEntity<?> listByStatus(
+            @PathVariable("enterpriseId") String enterpriseId,
+            @RequestParam Boolean status,
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "10") Integer size) {
+        return ResponseEntity.ok(service.findAllByEnterpriseAndStatus(enterpriseId, status, page, size)
+                .map(mapper::toRes));
+    }
+
+    @PatchMapping("/changeState/{id}/{enterpriseId}")
+    public ResponseEntity<BankRes> changeState(
+            @PathVariable Long id, 
+            @PathVariable String enterpriseId,
+            @RequestParam Boolean state) {
+        Bank updated = service.changeState(id, enterpriseId, state);
+        return ResponseEntity.ok(mapper.toRes(updated));
+    }
+
+    @DeleteMapping("/delete/{id}/{enterpriseId}")
+    public ResponseEntity<BankRes> softDelete(
+            @PathVariable Long id, 
+            @PathVariable String enterpriseId) {
+        Bank deleted = service.softDelete(id, enterpriseId);
+        return ResponseEntity.ok(mapper.toRes(deleted));
+    }
+}

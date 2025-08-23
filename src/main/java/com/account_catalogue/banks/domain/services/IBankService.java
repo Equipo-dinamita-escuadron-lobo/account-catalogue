@@ -1,0 +1,24 @@
+package com.account_catalogue.banks.domain.services;
+
+import org.springframework.data.domain.Page;
+
+import com.account_catalogue.banks.domain.model.Bank;
+import com.account_catalogue.banks.presentation.DTO.request.BankCreateReq;
+import com.account_catalogue.banks.presentation.DTO.request.BankUpdateReq;
+
+public interface IBankService {
+
+    Bank create(BankCreateReq request);
+
+    Bank update(BankUpdateReq request);
+
+    Bank findById(Long id, String idEnterprise);
+
+    Page<Bank> findAllByEnterprise(String idEnterprise, int page, int size);
+
+    Page<Bank> findAllByEnterpriseAndStatus(String idEnterprise, Boolean status, int page, int size);
+
+    Bank changeState(Long id, String idEnterprise, Boolean newState);
+
+    Bank softDelete(Long id, String idEnterprise);
+}

@@ -19,4 +19,6 @@ public interface IPaymentMethodService {
     Page<PaymentMethod> findAllByEnterpriseAndStatus(String idEnterprise, Boolean status, int page, int size);
 
     PaymentMethod changeState(Long id, String idEnterprise, Boolean newState);
+
+    PaymentMethod softDelete(Long id, String idEnterprise);
 }

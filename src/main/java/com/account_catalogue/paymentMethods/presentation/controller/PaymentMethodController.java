@@ -63,4 +63,12 @@ public class PaymentMethodController {
         PaymentMethod updated = service.changeState(id, enterpriseId, state);
         return ResponseEntity.ok(mapper.toRes(updated));
     }
+
+    @DeleteMapping("/delete/{id}/{enterpriseId}")
+    public ResponseEntity<PaymentMethodRes> softDelete(
+            @PathVariable Long id, 
+            @PathVariable String enterpriseId) {
+        PaymentMethod deleted = service.softDelete(id, enterpriseId);
+        return ResponseEntity.ok(mapper.toRes(deleted));
+    }
 }

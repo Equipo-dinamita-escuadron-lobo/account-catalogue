@@ -12,5 +12,7 @@ public class PaymentMethodRes {
     private String name;
     private String accountingAccount;
     private Boolean status;
+    @Builder.Default
+    private Boolean isDeleted = false;
     private String idEnterprise;
 }

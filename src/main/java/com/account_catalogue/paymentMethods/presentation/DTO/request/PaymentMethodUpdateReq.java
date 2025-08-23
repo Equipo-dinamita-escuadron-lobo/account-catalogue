@@ -20,6 +20,11 @@ public class PaymentMethodUpdateReq {
     @Size(max = 100, message = "El nombre no debe exceder 100 caracteres")
     private String name;
 
+    /**
+     * IMPORTANTE: La cuenta contable NO puede ser modificada una vez creado el método de pago.
+     * Si se envía un valor diferente al actual, se lanzará una excepción.
+     * Este campo debe enviarse con el valor actual para validación.
+     */
     @NotBlank(message = "La cuenta contable asociada es obligatoria")
     private String accountingAccount;
 

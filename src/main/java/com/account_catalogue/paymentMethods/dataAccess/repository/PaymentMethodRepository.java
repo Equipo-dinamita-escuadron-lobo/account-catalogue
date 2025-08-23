@@ -6,15 +6,16 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
-public interface PaymentMethodRepository extends JpaRepository<PaymentMethodEntity, Long> {
+public interface PaymentMethodRepository extends JpaRepository<PaymentMethodEntity, Long> {    
+   
+    boolean existsByNameAndIdEnterpriseAndIsDeletedFalse(String name, String idEnterprise);
     
-    boolean existsByNameAndIdEnterprise(String name, String idEnterprise);
+    boolean existsByNameAndIdEnterpriseAndIdNotAndIsDeletedFalse(String name, String idEnterprise, Long id);
     
-    boolean existsByNameAndIdEnterpriseAndIdNot(String name, String idEnterprise, Long id);
+    Optional<PaymentMethodEntity> findByIdAndIdEnterpriseAndIsDeletedFalse(Long id, String idEnterprise);
     
-    Optional<PaymentMethodEntity> findByIdAndIdEnterprise(Long id, String idEnterprise);
+    Page<PaymentMethodEntity> findAllByIdEnterpriseAndIsDeletedFalse(String idEnterprise, Pageable pageable);
     
-    Page<PaymentMethodEntity> findAllByIdEnterprise(String idEnterprise, Pageable pageable);
-    
-    Page<PaymentMethodEntity> findAllByIdEnterpriseAndStatus(String idEnterprise, Boolean status, Pageable pageable);
+    Page<PaymentMethodEntity> findAllByIdEnterpriseAndStatusAndIsDeletedFalse(String idEnterprise, Boolean status, Pageable pageable);
+
 }

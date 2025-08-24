@@ -27,8 +27,8 @@ public class BankEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "codigo", nullable = false)
-    private Integer codigo;
+    @Column(name = "codigo", nullable = false, length = 2)
+    private String codigo;
 
     @Column(name = "nombre", nullable = false)
     private String nombre;

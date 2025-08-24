@@ -8,11 +8,11 @@ import java.util.Optional;
 
 public interface BankRepository extends JpaRepository<BankEntity, Long> {
     
-    boolean existsByCodigoAndIdEnterpriseAndIsDeletedFalse(Integer codigo, String idEnterprise);
+    boolean existsByCodigoAndIdEnterpriseAndIsDeletedFalse(String codigo, String idEnterprise);
     
     boolean existsByNombreAndIdEnterpriseAndIsDeletedFalse(String nombre, String idEnterprise);
     
-    boolean existsByCodigoAndIdEnterpriseAndIdNotAndIsDeletedFalse(Integer codigo, String idEnterprise, Long id);
+    boolean existsByCodigoAndIdEnterpriseAndIdNotAndIsDeletedFalse(String codigo, String idEnterprise, Long id);
     
     boolean existsByNombreAndIdEnterpriseAndIdNotAndIsDeletedFalse(String nombre, String idEnterprise, Long id);
     

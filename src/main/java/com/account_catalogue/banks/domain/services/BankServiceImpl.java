@@ -130,16 +130,25 @@ public class BankServiceImpl implements IBankService {
     }
 
     /**
-     * Valida que el código del banco esté en el rango válido (1-99).
+     * Valida que el código del banco tenga el formato correcto (exactamente 2 dígitos: 01-99).
      */
-    private void validateBankCode(Integer codigo) {
-        if (codigo == null) {
+    private void validateBankCode(String codigo) {
+        if (codigo == null || codigo.trim().isEmpty()) {
             throw new InvalidBankCodeException("El código del banco no puede estar vacío");
         }
 
-        if (codigo < 1 || codigo > 99) {
+        String trimmedCodigo = codigo.trim();
+        
+        if (!trimmedCodigo.matches("^\\d{2}$")) {
             throw new InvalidBankCodeException(
-                "El código del banco debe estar entre 1 y 99. Código proporcionado: '" + codigo + "'"
+                "El código debe ser exactamente 2 dígitos (01-99). Código proporcionado: '" + trimmedCodigo + "'"
+            );
+        }
+
+        int codigoInt = Integer.parseInt(trimmedCodigo);
+        if (codigoInt < 1 || codigoInt > 99) {
+            throw new InvalidBankCodeException(
+                "El código debe estar entre 01 y 99. Código proporcionado: '" + trimmedCodigo + "'"
             );
         }
     }

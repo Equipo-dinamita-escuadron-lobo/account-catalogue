@@ -49,10 +49,10 @@ public class AccountCatalogueEntity {
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
     private List<AccountCatalogueEntity> children;
 
-   @OneToMany(mappedBy = "depositAccount")
+   @OneToMany(mappedBy = "depositAccount", fetch = FetchType.EAGER)
    private List<TaxEntity> depositAccounts;
 
-   @OneToMany(mappedBy = "refundAccount")
+   @OneToMany(mappedBy = "refundAccount", fetch = FetchType.EAGER)
    private List<TaxEntity>  refundAccounts;
 
 

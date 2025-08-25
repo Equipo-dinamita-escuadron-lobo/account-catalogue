@@ -35,6 +35,8 @@ public interface IItemAccountCatalogueSearchMapper {
                 .crossing(accountCatalogueEntity.getCrossing())
                 .costCenter(accountCatalogueEntity.getCostCenter())
                 .isDeleted(accountCatalogueEntity.getIsDeleted())
+                .depositAccounts(accountCatalogueEntity.getDepositAccounts())
+                .refundAccounts(accountCatalogueEntity.getRefundAccounts())
                 .parent(auxParent(
                         accountCatalogueEntity.getParent() == null ? null : accountCatalogueEntity.getParent()))
                 .build();
@@ -66,6 +68,8 @@ public interface IItemAccountCatalogueSearchMapper {
                 .crossing(accountCatalogueEntity.getCrossing())
                 .costCenter(accountCatalogueEntity.getCostCenter())
                 .isDeleted(accountCatalogueEntity.getIsDeleted())
+                .depositAccounts(accountCatalogueEntity.getDepositAccounts())
+                .refundAccounts(accountCatalogueEntity.getRefundAccounts())
                 .parent(auxParent(
                         accountCatalogueEntity.getParent() == null ? null : accountCatalogueEntity.getParent()))
                 .build();

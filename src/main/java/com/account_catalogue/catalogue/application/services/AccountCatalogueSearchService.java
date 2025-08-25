@@ -40,7 +40,7 @@ public class AccountCatalogueSearchService implements IAccountCatalogueSearchInp
         // Primero validar que existe
         validationService.validateAccountExists(code, idEnterprise);
         // Luego obtener el árbol
-        return accountCatalogueSearchOutputPort.getAccountCatalogueTree(code, idEnterprise);
+        return accountCatalogueSearchOutputPort.getAccountCatalogueTreeByCode(code, idEnterprise);
     }
 
     /**

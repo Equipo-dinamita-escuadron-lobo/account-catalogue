@@ -34,6 +34,7 @@ public interface IItemAccountCatalogueSearchMapper {
                 .classification(accountCatalogueEntity.getClassification())
                 .crossing(accountCatalogueEntity.getCrossing())
                 .costCenter(accountCatalogueEntity.getCostCenter())
+                .isDeleted(accountCatalogueEntity.getIsDeleted())
                 .parent(auxParent(
                         accountCatalogueEntity.getParent() == null ? null : accountCatalogueEntity.getParent()))
                 .build();
@@ -64,6 +65,7 @@ public interface IItemAccountCatalogueSearchMapper {
                 .classification(accountCatalogueEntity.getClassification())
                 .crossing(accountCatalogueEntity.getCrossing())
                 .costCenter(accountCatalogueEntity.getCostCenter())
+                .isDeleted(accountCatalogueEntity.getIsDeleted())
                 .parent(auxParent(
                         accountCatalogueEntity.getParent() == null ? null : accountCatalogueEntity.getParent()))
                 .build();

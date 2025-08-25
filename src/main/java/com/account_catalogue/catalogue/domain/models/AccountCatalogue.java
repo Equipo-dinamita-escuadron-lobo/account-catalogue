@@ -34,4 +34,5 @@ public class AccountCatalogue {
     private List<TaxEntity>  refundAccounts;
     private Boolean crossing;
     private Boolean costCenter;
+    private Boolean isDeleted;
 }

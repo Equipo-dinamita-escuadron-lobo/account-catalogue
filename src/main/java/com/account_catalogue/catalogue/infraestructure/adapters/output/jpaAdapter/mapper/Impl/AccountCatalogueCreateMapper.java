@@ -28,6 +28,7 @@ public class AccountCatalogueCreateMapper implements IAccountCatalogueCreateMapp
                 .classification(accountCatalogue.getClassification())
                 .crossing(accountCatalogue.getCrossing())
                 .costCenter(accountCatalogue.getCostCenter())
+                .isDeleted(false)
                 .parent(parent)
                 .build();
 
@@ -65,6 +66,7 @@ public class AccountCatalogueCreateMapper implements IAccountCatalogueCreateMapp
                 .classification(accountCatalogueEntity.getClassification())
                 .crossing(accountCatalogueEntity.getCrossing())
                 .costCenter(accountCatalogueEntity.getCostCenter())
+                .isDeleted(accountCatalogueEntity.getIsDeleted())
                 .parent(auxParent(accountCatalogueEntity.getParent() == null ? null : accountCatalogueEntity.getParent()))
                 .build();
 

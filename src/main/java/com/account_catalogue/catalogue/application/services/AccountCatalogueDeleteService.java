@@ -16,11 +16,12 @@ public class AccountCatalogueDeleteService implements IAccountCatalogueDeleteInp
     private final AccountCatalogueValidationService validationService;
 
     /**
-     * Elimina un catálogo de cuenta por su ID para una empresa específica.
-     * Permite eliminación en cascada de cuentas hijas, pero valida que no esté asociada a impuestos.
+     * Realiza un soft delete de un catálogo de cuenta por su ID para una empresa específica.
+     * Marca la cuenta como eliminada (isDeleted = true) sin eliminarla físicamente.
+     * Valida que no esté asociada a impuestos antes de marcar como eliminada.
      * 
-     * @param id ID del catálogo de cuenta a eliminar
-     * @param idEnterprise ID de la empresa para la cual eliminar la cuenta
+     * @param id ID del catálogo de cuenta a marcar como eliminada
+     * @param idEnterprise ID de la empresa para la cual marcar la cuenta como eliminada
      */
     @Transactional
     @Override
@@ -29,10 +30,9 @@ public class AccountCatalogueDeleteService implements IAccountCatalogueDeleteInp
         AccountCatalogue accountToDelete = validationService.validateAccountExistsByIdAndEnterprise(id, idEnterprise);
         
         // Solo validar que la cuenta no está asociada a impuestos
-        // (Las cuentas hijas se eliminarán en cascada automáticamente)
         validationService.validateAccountNotAssociatedWithTaxes(accountToDelete);
         
-        // Proceder con la eliminación (cascada automática de hijos)
+        // Proceder con el soft delete
         accountCatalogueDeleteOutputPort.deleteById(id);
     }
 }

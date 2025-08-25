@@ -16,12 +16,19 @@ import lombok.NoArgsConstructor;
 
 
 @Entity
-
 @Builder
 @AllArgsConstructor
 @Data
 @NoArgsConstructor
-@Table(name="Account")
+@Table(
+    name="Account",
+    indexes = {
+        @Index(name = "idx_account_id_enterprise", columnList = "idEnterprise"),
+        @Index(name = "idx_account_code", columnList = "code"),
+        @Index(name = "idx_account_is_deleted", columnList = "is_deleted"),
+        @Index(name = "idx_account_enterprise_deleted", columnList = "idEnterprise, is_deleted")
+    }
+)
 public class AccountCatalogueEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -58,5 +65,9 @@ public class AccountCatalogueEntity {
 
     private Boolean crossing;
     private Boolean costCenter;
+
+    @Column(name = "is_deleted", nullable = false)
+    @Builder.Default
+    private Boolean isDeleted = false;
 
 }

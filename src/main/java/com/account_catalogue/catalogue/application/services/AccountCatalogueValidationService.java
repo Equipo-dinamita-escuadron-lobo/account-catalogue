@@ -106,9 +106,9 @@ public class AccountCatalogueValidationService {
      */
     public AccountCatalogue validateAccountExistsById(Long id) {
         AccountCatalogue account = accountCatalogueSearchOutputPort.getAccountCatalogueById(id);
-        if (account == null) {
+        if (account == null || (account.getIsDeleted() != null && account.getIsDeleted())) {
             throw new AccountCatalogueNotFoundException(
-                "No se encontró una cuenta con el ID '" + id + "'"
+                "No se encontró una cuenta con el ID '" + id + "' o la cuenta ha sido eliminada"
             );
         }
         return account;

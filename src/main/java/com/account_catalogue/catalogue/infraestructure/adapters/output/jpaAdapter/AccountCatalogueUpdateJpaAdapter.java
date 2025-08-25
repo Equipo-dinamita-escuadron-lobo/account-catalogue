@@ -28,7 +28,7 @@ public class AccountCatalogueUpdateJpaAdapter implements IAccountCatalogueUpdate
      *         actualizados del catálogo de cuentas, o null si el catálogo de
      *         cuentas no existe.
      */
-    @Override
+        @Override
     public AccountCatalogue updateAccountCatalogue(long id, AccountCatalogue accountCatalogue) {
         AccountCatalogueEntity accountCatalogueEntity = accountCatalogueRepository.findById(id);
 
@@ -41,6 +41,8 @@ public class AccountCatalogueUpdateJpaAdapter implements IAccountCatalogueUpdate
         accountCatalogueEntity.setClassification(accountCatalogue.getClassification());
         accountCatalogueEntity.setFinancialStatus(accountCatalogue.getFinancialStatus());
         accountCatalogueEntity.setNature(accountCatalogue.getNature());
+        accountCatalogueEntity.setCrossing(accountCatalogue.getCrossing());
+        accountCatalogueEntity.setCostCenter(accountCatalogue.getCostCenter());
            
         accountCatalogueEntity = accountCatalogueRepository.save(accountCatalogueEntity);
         return accountCatalogueUpdateMapper.toAccountCatalogue(accountCatalogueEntity);

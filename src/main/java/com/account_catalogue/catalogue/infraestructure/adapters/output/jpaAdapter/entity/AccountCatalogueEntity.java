@@ -56,5 +56,7 @@ public class AccountCatalogueEntity {
     @TenantId
     String tenantId;
 
+    private Boolean crossing;
+    private Boolean costCenter;
 
 }

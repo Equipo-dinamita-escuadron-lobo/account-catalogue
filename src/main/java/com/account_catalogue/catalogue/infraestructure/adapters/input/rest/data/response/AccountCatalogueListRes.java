@@ -22,6 +22,8 @@ public class AccountCatalogueListRes {
     String financialStatus;
     String classification;
     String parent;
+    Boolean crossing;
+    Boolean costCenter;
     
     List<AccountCatalogueListRes> children;
 }

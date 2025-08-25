@@ -32,4 +32,6 @@ public class AccountCatalogue {
     private List<AccountCatalogue> children;
     private List<TaxEntity> depositAccounts;
     private List<TaxEntity>  refundAccounts;
+    private Boolean crossing;
+    private Boolean costCenter;
 }

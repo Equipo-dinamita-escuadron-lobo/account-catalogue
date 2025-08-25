@@ -208,4 +208,35 @@ public class AccountCatalogueValidationService {
             );
         }
     }
+    
+    /**
+     * Valida que los campos crossing y costCenter solo puedan ser establecidos en cuentas auxiliares (8 dígitos).
+     * Estos campos pueden ser nulos en cualquier tipo de cuenta.
+     * 
+     * @param accountCatalogue la cuenta a validar
+     * @throws InvalidAccountCodeException si se intenta establecer crossing o costCenter en una cuenta que no es auxiliar
+     */
+    public void validateCrossingAndCostCenterOnlyForAuxiliaryAccounts(AccountCatalogue accountCatalogue) {
+        boolean hasCrossing = accountCatalogue.getCrossing() != null && accountCatalogue.getCrossing();
+        boolean hasCostCenter = accountCatalogue.getCostCenter() != null && accountCatalogue.getCostCenter();
+        
+        if (hasCrossing || hasCostCenter) {
+            String code = accountCatalogue.getCode();
+            if (code == null || code.trim().length() != 8) {
+                String invalidFields = "";
+                if (hasCrossing && hasCostCenter) {
+                    invalidFields = "crossing y costCenter";
+                } else if (hasCrossing) {
+                    invalidFields = "crossing";
+                } else {
+                    invalidFields = "costCenter";
+                }
+                
+                throw new InvalidAccountCodeException(
+                    "Los campos " + invalidFields + " solo pueden ser establecidos en cuentas auxiliares (8 dígitos exactamente). " +
+                    "Código actual: '" + code + "' tiene " + (code != null ? code.trim().length() : 0) + " dígitos."
+                );
+            }
+        }
+    }
 }

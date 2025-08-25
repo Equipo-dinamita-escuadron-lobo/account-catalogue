@@ -32,6 +32,8 @@ public interface IItemAccountCatalogueSearchMapper {
                 .nature(accountCatalogueEntity.getNature())
                 .financialStatus(accountCatalogueEntity.getFinancialStatus())
                 .classification(accountCatalogueEntity.getClassification())
+                .crossing(accountCatalogueEntity.getCrossing())
+                .costCenter(accountCatalogueEntity.getCostCenter())
                 .parent(auxParent(
                         accountCatalogueEntity.getParent() == null ? null : accountCatalogueEntity.getParent()))
                 .build();
@@ -60,6 +62,8 @@ public interface IItemAccountCatalogueSearchMapper {
                 .nature(accountCatalogueEntity.getNature())
                 .financialStatus(accountCatalogueEntity.getFinancialStatus())
                 .classification(accountCatalogueEntity.getClassification())
+                .crossing(accountCatalogueEntity.getCrossing())
+                .costCenter(accountCatalogueEntity.getCostCenter())
                 .parent(auxParent(
                         accountCatalogueEntity.getParent() == null ? null : accountCatalogueEntity.getParent()))
                 .build();

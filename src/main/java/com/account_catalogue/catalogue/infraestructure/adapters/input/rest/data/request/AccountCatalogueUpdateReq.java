@@ -14,4 +14,6 @@ public class AccountCatalogueUpdateReq {
     private String nature;
     private String financialStatus;
     private String classification;
+    private Boolean crossing;
+    private Boolean costCenter;
 }

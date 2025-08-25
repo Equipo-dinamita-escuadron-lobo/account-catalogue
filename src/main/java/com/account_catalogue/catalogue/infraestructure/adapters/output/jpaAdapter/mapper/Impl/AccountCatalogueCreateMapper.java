@@ -26,6 +26,8 @@ public class AccountCatalogueCreateMapper implements IAccountCatalogueCreateMapp
                 .nature(accountCatalogue.getNature())
                 .financialStatus(accountCatalogue.getFinancialStatus())
                 .classification(accountCatalogue.getClassification())
+                .crossing(accountCatalogue.getCrossing())
+                .costCenter(accountCatalogue.getCostCenter())
                 .parent(parent)
                 .build();
 
@@ -61,6 +63,8 @@ public class AccountCatalogueCreateMapper implements IAccountCatalogueCreateMapp
                 .nature(accountCatalogueEntity.getNature())
                 .financialStatus(accountCatalogueEntity.getFinancialStatus())
                 .classification(accountCatalogueEntity.getClassification())
+                .crossing(accountCatalogueEntity.getCrossing())
+                .costCenter(accountCatalogueEntity.getCostCenter())
                 .parent(auxParent(accountCatalogueEntity.getParent() == null ? null : accountCatalogueEntity.getParent()))
                 .build();
 

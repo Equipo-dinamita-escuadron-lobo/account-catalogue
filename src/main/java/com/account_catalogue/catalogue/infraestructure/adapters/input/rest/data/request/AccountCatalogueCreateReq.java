@@ -43,4 +43,7 @@ public class AccountCatalogueCreateReq {
     private Long parent;
 
     private List<AccountCatalogueCreateReq> children;
+    
+    private Boolean crossing;
+    private Boolean costCenter;
 }

@@ -15,4 +15,6 @@ public class ItemAccountCatalogueSearchRes {
     private String financialStatus;
     private String classification;
     private String parent;
+    private Boolean crossing;
+    private Boolean costCenter;
 }

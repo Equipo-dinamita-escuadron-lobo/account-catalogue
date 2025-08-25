@@ -25,6 +25,8 @@ public class AccountUpdateRestMapper implements IAccountUpdateRestMapper {
                 .financialStatus(adjustEnum.adjustFinancialStatusEnum(accountCatalogueUpdateReq.getFinancialStatus()))
                 .nature(adjustEnum.adjustNatureEnum(accountCatalogueUpdateReq.getNature()))
                 .classification(adjustEnum.adjustClassificationEnum(accountCatalogueUpdateReq.getClassification()))
+                .crossing(accountCatalogueUpdateReq.getCrossing())
+                .costCenter(accountCatalogueUpdateReq.getCostCenter())
                 .build();
     }
 
@@ -41,6 +43,8 @@ public class AccountUpdateRestMapper implements IAccountUpdateRestMapper {
                 .financialStatus(accountCatalogue.getFinancialStatus().getState())
                 .nature(accountCatalogue.getNature().getState())
                 .classification(accountCatalogue.getClassification().getState())
+                .crossing(accountCatalogue.getCrossing())
+                .costCenter(accountCatalogue.getCostCenter())
                 .parent(accountCatalogue.getParent().getCode() == null ? null : accountCatalogue.getParent().getCode())
                 .build();
     }

@@ -45,6 +45,9 @@ public class AccountCatalogueCreateService implements IAccountCatalogueCreateInp
             validationService.validateAccountExistsById(accountCatalogue.getParent().getId());
         }
         
+        // Validar que crossing y costCenter solo se puedan establecer en cuentas auxiliares (8 dígitos)
+        validationService.validateCrossingAndCostCenterOnlyForAuxiliaryAccounts(accountCatalogue);
+        
         return accountCatalogueCreateOutputPort.createAccountCatalogue(accountCatalogue);
     }
 }

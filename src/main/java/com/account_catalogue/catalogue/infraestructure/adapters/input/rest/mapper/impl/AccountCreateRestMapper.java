@@ -39,6 +39,8 @@ public class AccountCreateRestMapper implements IAccountCreateRestMapper {
                 .financialStatus(accountCatalogueRes.getFinancialStatus().getState())
                 .nature(accountCatalogueRes.getNature().getState())
                 .classification(accountCatalogueRes.getClassification().getState())
+                .crossing(accountCatalogueRes.getCrossing())
+                .costCenter(accountCatalogueRes.getCostCenter())
                 .parent(accountCatalogueRes.getParent().getCode() == null ? null
                         : accountCatalogueRes.getParent().getCode())
                 .build();
@@ -75,6 +77,8 @@ public class AccountCreateRestMapper implements IAccountCreateRestMapper {
                 .financialStatus(adjustEnum.adjustFinancialStatusEnum(accountCatalogueCreateReq.getFinancialStatus()))
                 .nature(adjustEnum.adjustNatureEnum(accountCatalogueCreateReq.getNature()))
                 .classification(adjustEnum.adjustClassificationEnum(accountCatalogueCreateReq.getClassification()))
+                .crossing(accountCatalogueCreateReq.getCrossing())
+                .costCenter(accountCatalogueCreateReq.getCostCenter())
                 .parent(padre)
                 .build();
 

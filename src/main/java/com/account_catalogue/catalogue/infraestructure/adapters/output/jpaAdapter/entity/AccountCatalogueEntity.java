@@ -25,8 +25,10 @@ import lombok.NoArgsConstructor;
     indexes = {
         @Index(name = "idx_account_id_enterprise", columnList = "idEnterprise"),
         @Index(name = "idx_account_code", columnList = "code"),
+        @Index(name = "idx_account_status", columnList = "status"),
         @Index(name = "idx_account_is_deleted", columnList = "is_deleted"),
-        @Index(name = "idx_account_enterprise_deleted", columnList = "idEnterprise, is_deleted")
+        @Index(name = "idx_account_enterprise_deleted", columnList = "idEnterprise, is_deleted"),
+        @Index(name = "idx_account_enterprise_status", columnList = "idEnterprise, status")
     }
 )
 public class AccountCatalogueEntity {
@@ -55,9 +57,6 @@ public class AccountCatalogueEntity {
    @OneToMany(mappedBy = "refundAccount", fetch = FetchType.EAGER)
    private List<TaxEntity>  refundAccounts;
 
-
-
-
     private String idEnterprise;
 
     @TenantId
@@ -65,6 +64,10 @@ public class AccountCatalogueEntity {
 
     private Boolean crossing;
     private Boolean costCenter;
+
+    @Column(name = "status", nullable = false)
+    @Builder.Default
+    private Boolean status = true;
 
     @Column(name = "is_deleted", nullable = false)
     @Builder.Default

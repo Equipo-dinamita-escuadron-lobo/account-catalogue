@@ -45,6 +45,7 @@ public class AccountUpdateRestMapper implements IAccountUpdateRestMapper {
                 .classification(accountCatalogue.getClassification().getState())
                 .crossing(accountCatalogue.getCrossing())
                 .costCenter(accountCatalogue.getCostCenter())
+                .status(accountCatalogue.getStatus())
                 .parent(accountCatalogue.getParent().getCode() == null ? null : accountCatalogue.getParent().getCode())
                 .build();
     }

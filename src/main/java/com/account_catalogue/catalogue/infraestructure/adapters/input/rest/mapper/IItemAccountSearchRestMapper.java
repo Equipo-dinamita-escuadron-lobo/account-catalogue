@@ -30,6 +30,7 @@ public interface IItemAccountSearchRestMapper {
                .classification(accountCatalogue.getClassification().getState())
                .crossing(accountCatalogue.getCrossing())
                .costCenter(accountCatalogue.getCostCenter())
+               .status(accountCatalogue.getStatus())
                .parent(accountCatalogue.getParent().getCode() == null ? null : accountCatalogue.getParent().getCode())
                .build();
    }

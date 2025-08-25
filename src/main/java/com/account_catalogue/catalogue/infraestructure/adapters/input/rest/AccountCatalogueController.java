@@ -8,30 +8,34 @@ import org.springframework.http.ResponseEntity;
 //import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.account_catalogue.catalogue.application.input.IAccountCatalogueChangeStateInputPort;
 import com.account_catalogue.catalogue.application.input.IAccountCatalogueCreateInputPort;
 import com.account_catalogue.catalogue.application.input.IAccountCatalogueDeleteInputPort;
 import com.account_catalogue.catalogue.application.input.IAccountCatalogueSearchInputPort;
 import com.account_catalogue.catalogue.application.input.IAccountCatalogueUpdateInputPort;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
+
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.request.AccountCatalogueCreateReq;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.request.AccountCatalogueUpdateReq;
+import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.response.AccountCatalogueChangeStateRes;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.response.AccountCatalogueCreateRes;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.response.AccountCatalogueListRes;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.response.AccountCatalogueUpdateRes;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.response.ItemAccountCatalogueSearchRes;
+import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.mapper.IAccountChangeStateRestMapper;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.mapper.IAccountCreateRestMapper;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.mapper.IAccountSearchRestMapper;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.mapper.IAccountUpdateRestMapper;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.mapper.IItemAccountSearchRestMapper;
-
-
 
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -49,6 +53,8 @@ public class AccountCatalogueController {
     private final IAccountUpdateRestMapper accountUpdateRestMapper;
     private final IAccountCatalogueDeleteInputPort accountCatalogueDeleteInputPort;
     private final IAccountCatalogueUpdateInputPort accountCatalogueUpdateInputPort;
+    private final IAccountCatalogueChangeStateInputPort accountCatalogueChangeStateInputPort;
+    private final IAccountChangeStateRestMapper accountChangeStateRestMapper;
 
 
     @PostMapping("/")
@@ -108,6 +114,32 @@ public class AccountCatalogueController {
             }
         }
         return ResponseEntity.ok(accountCatalogueListRes);
+    }
+
+    /**
+     * Cambia el estado (activo/inactivo) de una cuenta del catálogo.
+     * 
+     * @param id el ID de la cuenta
+     * @param enterpriseId el ID de la empresa
+     * @param status el nuevo estado (true = activo, false = inactivo)
+     * @return respuesta con el estado actualizado
+     */
+    @PatchMapping("/changeState/{id}/{enterpriseId}")
+    public ResponseEntity<AccountCatalogueChangeStateRes> changeState(
+            @PathVariable("id") Long id,
+            @PathVariable("enterpriseId") String enterpriseId,
+            @RequestParam("status") Boolean status) {
+        
+        // Validación manual del parámetro status
+        if (status == null) {
+            throw new IllegalArgumentException("El parámetro 'status' es requerido");
+        }
+        
+        AccountCatalogue updatedAccount = accountCatalogueChangeStateInputPort.changeState(
+                id, enterpriseId, status);
+        
+        AccountCatalogueChangeStateRes response = accountChangeStateRestMapper.toChangeStateResponse(updatedAccount);
+        return ResponseEntity.ok(response);
     }
 
 }

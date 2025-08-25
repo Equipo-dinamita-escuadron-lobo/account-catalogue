@@ -50,6 +50,7 @@ public interface IAccountSearchRestMapper {
                 .classification(accountCatalogue.getClassification().getState())
                 .crossing(accountCatalogue.getCrossing())
                 .costCenter(accountCatalogue.getCostCenter())
+                .status(accountCatalogue.getStatus())
                 .children(children)
                 .parent(accountCatalogue.getParent().getCode() == null ? null : accountCatalogue.getParent().getCode())
                 .build();

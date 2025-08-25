@@ -41,6 +41,7 @@ public class AccountCreateRestMapper implements IAccountCreateRestMapper {
                 .classification(accountCatalogueRes.getClassification().getState())
                 .crossing(accountCatalogueRes.getCrossing())
                 .costCenter(accountCatalogueRes.getCostCenter())
+                .status(accountCatalogueRes.getStatus())
                 .parent(accountCatalogueRes.getParent().getCode() == null ? null
                         : accountCatalogueRes.getParent().getCode())
                 .build();

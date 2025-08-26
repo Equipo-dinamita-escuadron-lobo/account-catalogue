@@ -16,14 +16,14 @@ import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapte
 @Data
 @NoArgsConstructor
 @Table(name="Tax", 
-    uniqueConstraints = @UniqueConstraint(columnNames = {"code", "idEnterprise"}),
     indexes = {
         @Index(name = "idx_tax_id_enterprise", columnList = "idEnterprise"),
         @Index(name = "idx_tax_code", columnList = "code"),
         @Index(name = "idx_tax_status", columnList = "status"),
         @Index(name = "idx_tax_is_deleted", columnList = "is_deleted"),
         @Index(name = "idx_tax_enterprise_deleted", columnList = "idEnterprise, is_deleted"),
-        @Index(name = "idx_tax_enterprise_status", columnList = "idEnterprise, status")
+        @Index(name = "idx_tax_enterprise_status", columnList = "idEnterprise, status"),
+        @Index(name = "idx_tax_unique_active", columnList = "code, idEnterprise, is_deleted")
     })
 public class TaxEntity {
     @Id

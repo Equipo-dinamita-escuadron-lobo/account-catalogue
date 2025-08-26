@@ -15,4 +15,5 @@ public class TaxUpdateRes {
     private float interest;
     private String refundAccount;
     private String depositAccount;
+    private Boolean status;
 }

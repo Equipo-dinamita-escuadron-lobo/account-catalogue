@@ -1,7 +1,7 @@
 package com.account_catalogue.taxes.infraestructure.adapters.output.jpaAdapters;
 
-
 import com.account_catalogue.taxes.application.output.ITaxDeleteOutputPort;
+import com.account_catalogue.taxes.infraestructure.adapters.output.jpaAdapters.entity.TaxEntity;
 import com.account_catalogue.taxes.infraestructure.adapters.output.jpaAdapters.repository.ITaxRepository;
 
 import jakarta.transaction.Transactional;
@@ -12,19 +12,22 @@ import org.springframework.stereotype.Component;
 @Data
 public class TaxDeleteJpaAdapter implements ITaxDeleteOutputPort {
 
-
     private final ITaxRepository taxRepository;
+
     /**
-     * Elimina un impuesto por su ID.
+     * Realiza soft delete de un impuesto por su ID.
+     * Marca el impuesto como eliminado (isDeleted = true).
      *
      * @param id El ID del impuesto a eliminar.
-     * @return true si se elimin con xito, false de lo contrario.
+     * @return true si se marcó como eliminado con éxito, false de lo contrario.
      */
     @Override
     @Transactional
     public boolean deleteByCode(long id) {
-        if(taxRepository.existsById(id)){
-            taxRepository.deleteById(id);
+        TaxEntity taxEntity = taxRepository.findByIdActive(id);
+        if (taxEntity != null) {
+            taxEntity.setIsDeleted(true);
+            taxRepository.save(taxEntity);
             return true;
         }
         return false;

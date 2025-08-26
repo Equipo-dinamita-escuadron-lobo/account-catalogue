@@ -50,6 +50,7 @@ public interface ITaxCreateRestMapper {
                 .interest(tax.getInterest())
                 .refundAccount(tax.getRefundAccount().getCode())
                 .depositAccount(tax.getDepositAccount().getCode())
+                .status(tax.getStatus())
                 .build();
     }
 }

@@ -1,5 +1,6 @@
 package com.account_catalogue.taxes.infraestructure.adapters.input.rest;
 
+import com.account_catalogue.taxes.application.input.ITaxChangeStateInputPort;
 import com.account_catalogue.taxes.application.input.ITaxCreateInputPort;
 import com.account_catalogue.taxes.application.input.ITaxDeleteInputPort;
 import com.account_catalogue.taxes.application.input.ITaxSearchInputPort;
@@ -8,8 +9,10 @@ import com.account_catalogue.taxes.domain.DTO.TaxDTO;
 import com.account_catalogue.taxes.domain.models.Tax;
 import com.account_catalogue.taxes.infraestructure.adapters.input.rest.data.request.TaxCreateReq;
 import com.account_catalogue.taxes.infraestructure.adapters.input.rest.data.request.TaxUpdateReq;
+import com.account_catalogue.taxes.infraestructure.adapters.input.rest.data.response.TaxChangeStateRes;
 import com.account_catalogue.taxes.infraestructure.adapters.input.rest.data.response.TaxCreateRes;
 import com.account_catalogue.taxes.infraestructure.adapters.input.rest.data.response.TaxSearchRes;
+import com.account_catalogue.taxes.infraestructure.adapters.input.rest.mapper.ITaxChangeStateRestMapper;
 import com.account_catalogue.taxes.infraestructure.adapters.input.rest.mapper.ITaxCreateRestMapper;
 import com.account_catalogue.taxes.infraestructure.adapters.input.rest.mapper.ITaxSearchRestMapper;
 import com.account_catalogue.taxes.infraestructure.adapters.input.rest.mapper.ITaxUpdateRestMapper;
@@ -35,6 +38,8 @@ public class TaxController {
     private final ITaxSearchInputPort taxSearchInputPort;
     private final ITaxUpdateRestMapper taxUpdateRestMapper;
     private final ITaxDeleteInputPort taxDeleteInputPort;
+    private final ITaxChangeStateInputPort taxChangeStateInputPort;
+    private final ITaxChangeStateRestMapper taxChangeStateRestMapper;
 
     @PostMapping("/")
     ResponseEntity<?> createTax(@RequestBody TaxCreateReq taxCreateReq) {
@@ -99,8 +104,32 @@ public class TaxController {
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("An error occurred while deleting the tax.");
+                    .body("Ha ocurrido un error al eliminar el impuesto.");
         }
+    }
+
+    /**
+     * Cambia el estado (activo/inactivo) de un impuesto.
+     * 
+     * @param id el ID del impuesto
+     * @param enterpriseId el ID de la empresa
+     * @param status el nuevo estado (true = activo, false = inactivo)
+     * @return respuesta con el estado actualizado
+     */
+    @PatchMapping("/changeState/{id}/{enterpriseId}")
+    ResponseEntity<TaxChangeStateRes> changeState(
+            @PathVariable("id") Long id,
+            @PathVariable("enterpriseId") String enterpriseId,
+            @RequestParam("status") Boolean status) {
+        
+        // Validación manual del parámetro status
+        if (status == null) {
+            throw new IllegalArgumentException("El parámetro 'status' es requerido");
+        }
+        
+        Tax updatedTax = taxChangeStateInputPort.changeState(id, enterpriseId, status);
+        TaxChangeStateRes response = taxChangeStateRestMapper.toChangeStateResponse(updatedTax);
+        return ResponseEntity.ok(response);
     }
 
 }

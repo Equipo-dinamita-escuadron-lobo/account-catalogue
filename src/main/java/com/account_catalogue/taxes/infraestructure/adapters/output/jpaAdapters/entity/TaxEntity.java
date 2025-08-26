@@ -15,7 +15,16 @@ import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapte
 @AllArgsConstructor
 @Data
 @NoArgsConstructor
-@Table(name="Tax", uniqueConstraints = @UniqueConstraint(columnNames = {"code", "idEnterprise"}))
+@Table(name="Tax", 
+    uniqueConstraints = @UniqueConstraint(columnNames = {"code", "idEnterprise"}),
+    indexes = {
+        @Index(name = "idx_tax_id_enterprise", columnList = "idEnterprise"),
+        @Index(name = "idx_tax_code", columnList = "code"),
+        @Index(name = "idx_tax_status", columnList = "status"),
+        @Index(name = "idx_tax_is_deleted", columnList = "is_deleted"),
+        @Index(name = "idx_tax_enterprise_deleted", columnList = "idEnterprise, is_deleted"),
+        @Index(name = "idx_tax_enterprise_status", columnList = "idEnterprise, status")
+    })
 public class TaxEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -36,6 +45,14 @@ public class TaxEntity {
     private AccountCatalogueEntity refundAccount;
 
     private String idEnterprise;
+
+    @Column(name = "status", nullable = false)
+    @Builder.Default
+    private Boolean status = true;
+
+    @Column(name = "is_deleted", nullable = false)
+    @Builder.Default
+    private Boolean isDeleted = false;
 
     @TenantId
     String tenantId;

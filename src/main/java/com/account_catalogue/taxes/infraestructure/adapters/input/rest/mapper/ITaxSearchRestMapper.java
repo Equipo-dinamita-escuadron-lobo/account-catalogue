@@ -28,6 +28,7 @@ public interface ITaxSearchRestMapper {
                 .interest(tax.getInterest())
                 .refundAccount(tax.getRefundAccount().getCode())
                 .depositAccount(tax.getDepositAccount().getCode())
+                .status(tax.getStatus())
                 .build();
     }
 
@@ -53,6 +54,7 @@ public interface ITaxSearchRestMapper {
                             .interest(tax.getInterest())
                             .depositAccount(tax.getDepositAccount().getCode())
                             .refundAccount(tax.getRefundAccount().getCode())
+                            .status(tax.getStatus())
                             .build();
                     return taxSearchRes;
 

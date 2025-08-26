@@ -17,4 +17,6 @@ public class Tax {
     private float interest;
     private AccountCatalogueEntity depositAccount;
     private  AccountCatalogueEntity refundAccount;
+    private Boolean status;
+    private Boolean isDeleted;
 }

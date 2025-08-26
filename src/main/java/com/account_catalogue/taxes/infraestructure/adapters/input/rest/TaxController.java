@@ -1,5 +1,10 @@
 package com.account_catalogue.taxes.infraestructure.adapters.input.rest;
 
+import com.account_catalogue.commons.exceptions.taxes.InvalidAccountDigitsException;
+import com.account_catalogue.commons.exceptions.taxes.InvalidDepositAccountException;
+import com.account_catalogue.commons.exceptions.taxes.InvalidRefundAccountException;
+import com.account_catalogue.commons.exceptions.taxes.TaxAlreadyExistsException;
+import com.account_catalogue.commons.exceptions.taxes.TaxNotFoundException;
 import com.account_catalogue.taxes.application.input.ITaxChangeStateInputPort;
 import com.account_catalogue.taxes.application.input.ITaxCreateInputPort;
 import com.account_catalogue.taxes.application.input.ITaxDeleteInputPort;
@@ -10,7 +15,6 @@ import com.account_catalogue.taxes.domain.models.Tax;
 import com.account_catalogue.taxes.infraestructure.adapters.input.rest.data.request.TaxCreateReq;
 import com.account_catalogue.taxes.infraestructure.adapters.input.rest.data.request.TaxUpdateReq;
 import com.account_catalogue.taxes.infraestructure.adapters.input.rest.data.response.TaxChangeStateRes;
-import com.account_catalogue.taxes.infraestructure.adapters.input.rest.data.response.TaxCreateRes;
 import com.account_catalogue.taxes.infraestructure.adapters.input.rest.data.response.TaxSearchRes;
 import com.account_catalogue.taxes.infraestructure.adapters.input.rest.mapper.ITaxChangeStateRestMapper;
 import com.account_catalogue.taxes.infraestructure.adapters.input.rest.mapper.ITaxCreateRestMapper;
@@ -48,7 +52,7 @@ public class TaxController {
             Tax tax = taxCreateInputPort.createTax(taxDTO);
             return ResponseEntity.ok(taxCreateRestMapper.toCreateResponse(tax));
 
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | TaxAlreadyExistsException | InvalidDepositAccountException | InvalidRefundAccountException | InvalidAccountDigitsException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
@@ -57,15 +61,16 @@ public class TaxController {
     }
 
     @GetMapping("/{code}/{idEnterprise}")
-    ResponseEntity<TaxSearchRes> getTax(@PathVariable("code") String code, @PathVariable String idEnterprise) {
+    ResponseEntity<?> getTax(@PathVariable("code") String code, @PathVariable String idEnterprise) {
         try {
             Tax tax = taxSearchInputPort.getTax(code, idEnterprise);
             return ResponseEntity.ok(taxSearchRestMapper.toSearchResponse(tax));
+        } catch (TaxNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error interno del servidor");
         }
-
     }
 
     @GetMapping("/taxes/{idEnterprise}")
@@ -85,7 +90,7 @@ public class TaxController {
             TaxDTO taxDTO = taxUpdateRestMapper.toDomain(taxUpdateReq);
             Tax tax = taxUpdateInputPort.update(taxDTO, id);
             return ResponseEntity.ok(taxUpdateRestMapper.toCreateResponse(tax));
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | TaxAlreadyExistsException | InvalidDepositAccountException | InvalidRefundAccountException | InvalidAccountDigitsException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();

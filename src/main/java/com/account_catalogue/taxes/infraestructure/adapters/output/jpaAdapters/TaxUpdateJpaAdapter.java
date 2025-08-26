@@ -2,6 +2,9 @@ package com.account_catalogue.taxes.infraestructure.adapters.output.jpaAdapters;
 
 import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.entity.AccountCatalogueEntity;
 import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.repository.IAccountCatalogueRepository;
+import com.account_catalogue.commons.exceptions.taxes.InvalidDepositAccountException;
+import com.account_catalogue.commons.exceptions.taxes.InvalidRefundAccountException;
+import com.account_catalogue.commons.exceptions.taxes.TaxAlreadyExistsException;
 import com.account_catalogue.taxes.application.output.ITaxUpdateOutputPort;
 import com.account_catalogue.taxes.domain.DTO.TaxDTO;
 import com.account_catalogue.taxes.domain.models.Tax;
@@ -29,7 +32,7 @@ public class TaxUpdateJpaAdapter implements ITaxUpdateOutputPort {
      *               actualizar.
      * @param id     el identificador del impuesto a actualizar.
      * @return el objeto Tax actualizado.
-     * @throws IllegalArgumentException si el impuesto con el código especificado
+     * @throws TaxAlreadyExistsException si el impuesto con el código especificado
      *                                  ya existe, o si las cuentas de depósito o
      *                                  reembolso no existen.
      */
@@ -47,7 +50,7 @@ public class TaxUpdateJpaAdapter implements ITaxUpdateOutputPort {
             depositAccount = accountCatalogueRepository.findByCode(taxDTO.getDepositAccount(),
                     taxDTO.getIdEnterprise());
             if (depositAccount == null) {
-                throw new IllegalArgumentException("No existe la cuenta de depósito que seleccionaste.");
+                throw new InvalidDepositAccountException("No existe la cuenta que seleccionaste.");
             } else {
                 taxEntity.setDepositAccount(depositAccount);
             }
@@ -56,7 +59,7 @@ public class TaxUpdateJpaAdapter implements ITaxUpdateOutputPort {
         if (!taxEntity.getRefundAccount().getCode().equals(taxDTO.getRefundAccount())) {
             refundAccount = accountCatalogueRepository.findByCode(taxDTO.getRefundAccount(), taxDTO.getIdEnterprise());
             if (refundAccount == null) {
-                throw new IllegalArgumentException("No existe la cuenta de devolución que seleccionaste.");
+                throw new InvalidRefundAccountException("No existe la cuenta de devolución que seleccionaste.");
             } else {
                 taxEntity.setRefundAccount(refundAccount);
             }
@@ -65,7 +68,7 @@ public class TaxUpdateJpaAdapter implements ITaxUpdateOutputPort {
 
         if (!taxEntity.getCode().equals(taxDTO.getCode())) {
             if (taxRepository.existsByCode(taxDTO.getCode())) {
-                throw new IllegalArgumentException("El impuesto con ese código ya existe.");
+                throw new TaxAlreadyExistsException("El impuesto con ese código ya existe.");
             } else {
                 taxEntity.setCode(taxDTO.getCode());
             }

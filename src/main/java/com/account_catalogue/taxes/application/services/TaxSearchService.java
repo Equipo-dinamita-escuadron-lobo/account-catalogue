@@ -13,6 +13,7 @@ import java.util.List;
 @AllArgsConstructor
 public class TaxSearchService implements ITaxSearchInputPort {
     private final ITaxSearchOutputPort taxSearchOutputPort;
+    private final TaxValidationService taxValidationService;
 
     /**
      * Obtiene la información del impuesto basada en el código y el ID de empresa
@@ -21,9 +22,14 @@ public class TaxSearchService implements ITaxSearchInputPort {
      * @param code         el código del impuesto
      * @param idEnterprise el ID de la empresa
      * @return el impuesto correspondiente al código y ID de empresa proporcionados
+     * @throws TaxNotFoundException si el impuesto no existe
      */
     @Override
     public Tax getTax(String code, String idEnterprise) {
+        // Validar que el impuesto existe
+        taxValidationService.validateTaxExists(code, idEnterprise);
+        
+        // Si existe, obtenerlo y devolverlo
         return taxSearchOutputPort.getTax(code, idEnterprise);
     }
 

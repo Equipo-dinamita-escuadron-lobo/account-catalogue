@@ -14,8 +14,8 @@ public enum TaxesErrorCode implements ErrorCodeDefinition {
     TAX_ALREADY_EXISTS("TAX_ALREADY_EXISTS", "El impuesto ya existe"),
     INVALID_TAX_CODE("INVALID_TAX_CODE", "Código de impuesto inválido"),
     TAX_DESCRIPTION_ALREADY_EXISTS("TAX_DESCRIPTION_ALREADY_EXISTS", "La descripción del impuesto ya existe"),
-    INVALID_DEPOSIT_ACCOUNT("INVALID_DEPOSIT_ACCOUNT", "Cuenta de depósito inválida"),
-    INVALID_REFUND_ACCOUNT("INVALID_REFUND_ACCOUNT", "Cuenta inválida"),
+    INVALID_DEPOSIT_ACCOUNT("INVALID_DEPOSIT_ACCOUNT", "Cuenta inválida"),
+    INVALID_REFUND_ACCOUNT("INVALID_REFUND_ACCOUNT", "Cuenta de devolución inválida"),
     INVALID_ACCOUNT_DIGITS("INVALID_ACCOUNT_DIGITS", "Las cuentas deben tener exactamente 4 dígitos");
 
     private final String code;

@@ -98,14 +98,16 @@ public class TaxController {
         }
     }
 
-    @DeleteMapping("/{id}")
-    ResponseEntity<?> deleteByCode(@PathVariable("id") long id) {
+    @DeleteMapping("/{id}/{enterpriseId}")
+    ResponseEntity<?> deleteByCode(@PathVariable("id") long id, @PathVariable("enterpriseId") String enterpriseId) {
         try {
-            if (taxDeleteInputPort.deleteByCode(id)) {
+            if (taxDeleteInputPort.deleteByCode(id, enterpriseId)) {
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
             } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Id No Encontrado");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Impuesto no encontrado para la empresa especificada");
             }
+        } catch (TaxNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

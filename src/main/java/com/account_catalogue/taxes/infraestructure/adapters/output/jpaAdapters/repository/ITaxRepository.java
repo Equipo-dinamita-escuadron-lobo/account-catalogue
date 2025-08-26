@@ -29,6 +29,17 @@ public interface ITaxRepository extends JpaRepository<TaxEntity, Long> {
     @Query("SELECT a FROM TaxEntity a WHERE a.id=?1 AND a.isDeleted=false")
     TaxEntity findByIdActive(Long id);
 
+    /**
+     * Encuentra un TaxEntity por ID y empresa (solo activos, no eliminados).
+     * Este método es más eficiente para operaciones que requieren validar empresa.
+     * 
+     * @param id el ID del impuesto.
+     * @param idEnterprise el ID de la empresa.
+     * @return el TaxEntity con el ID y empresa dados. Si no se encuentra, se devuelve null.
+     */
+    @Query("SELECT a FROM TaxEntity a WHERE a.id=?1 AND a.idEnterprise=?2 AND a.isDeleted=false")
+    TaxEntity findByIdAndEnterpriseActive(Long id, String idEnterprise);
+
 
     boolean existsByCode(String code);
 

@@ -56,4 +56,18 @@ public class TaxSearchJpaAdapter implements ITaxSearchOutputPort {
         TaxEntity taxEntity = taxRepository.findByIdActive(id);
         return taxSearchMapper.toDomain(taxEntity);
     }
+
+    /**
+     * Obtiene un impuesto por ID y empresa.
+     * Método optimizado que valida que el impuesto pertenece a la empresa especificada.
+     * 
+     * @param id el ID del impuesto
+     * @param idEnterprise el ID de la empresa
+     * @return el impuesto encontrado o null si no existe
+     */
+    @Override
+    public Tax getTaxByIdAndEnterprise(Long id, String idEnterprise) {
+        TaxEntity taxEntity = taxRepository.findByIdAndEnterpriseActive(id, idEnterprise);
+        return taxSearchMapper.toDomain(taxEntity);
+    }
 }

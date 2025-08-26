@@ -83,4 +83,21 @@ public class TaxValidationService {
             );
         }
     }
+
+    /**
+     * Valida que exista un impuesto con el ID e idEnterprise especificados.
+     * Método optimizado para operaciones que requieren validar empresa.
+     * 
+     * @param id ID del impuesto
+     * @param idEnterprise ID de la empresa
+     * @throws TaxNotFoundException si el impuesto no existe
+     */
+    public void validateTaxExists(Long id, String idEnterprise) {
+        Tax tax = taxSearchOutputPort.getTaxByIdAndEnterprise(id, idEnterprise);
+        if (tax == null) {
+            throw new TaxNotFoundException(
+                "No se encontró un impuesto con ID '" + id + "' para la empresa '" + idEnterprise + "'"
+            );
+        }
+    }
 }

@@ -75,7 +75,6 @@ public class PaymentMethodServiceImpl implements IPaymentMethodService {
 
         current.setName(standardizedName);
         // No se modifica la cuenta contable - es inmutable después de la creación
-        current.setStatus(request.getStatus());
 
         PaymentMethodEntity saved = repository.save(current);
         return dataMapper.toDomain(saved);

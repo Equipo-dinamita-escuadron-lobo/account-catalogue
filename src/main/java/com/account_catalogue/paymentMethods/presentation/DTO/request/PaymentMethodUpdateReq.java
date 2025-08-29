@@ -27,7 +27,4 @@ public class PaymentMethodUpdateReq {
      */
     @NotBlank(message = "La cuenta contable asociada es obligatoria")
     private String accountingAccount;
-
-    @NotNull(message = "El estado es obligatorio")
-    private Boolean status;
 }

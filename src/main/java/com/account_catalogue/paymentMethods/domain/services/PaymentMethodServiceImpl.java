@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -87,14 +88,16 @@ public class PaymentMethodServiceImpl implements IPaymentMethodService {
     }
 
     @Transactional(readOnly = true)
-    public Page<PaymentMethod> findAllByEnterprise(String idEnterprise, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
+    public Page<PaymentMethod> findAllByEnterprise(String idEnterprise, int page, int size, String sortField, String sortOrder) {
+        Sort sort = Sort.by(sortOrder.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC, sortField);
+        Pageable pageable = PageRequest.of(page, size, sort);
         return repository.findAllByIdEnterpriseAndIsDeletedFalse(idEnterprise, pageable).map(dataMapper::toDomain);
     }
 
     @Transactional(readOnly = true)
-    public Page<PaymentMethod> findAllByEnterpriseAndStatus(String idEnterprise, Boolean status, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
+    public Page<PaymentMethod> findAllByEnterpriseAndStatus(String idEnterprise, Boolean status, int page, int size, String sortField, String sortOrder) {
+        Sort sort = Sort.by(sortOrder.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC, sortField);
+        Pageable pageable = PageRequest.of(page, size, sort);
         return repository.findAllByIdEnterpriseAndStatusAndIsDeletedFalse(idEnterprise, status, pageable)
                 .map(dataMapper::toDomain);
     }

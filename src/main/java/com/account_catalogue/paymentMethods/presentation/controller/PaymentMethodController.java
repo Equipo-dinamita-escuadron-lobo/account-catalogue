@@ -40,8 +40,10 @@ public class PaymentMethodController {
     public ResponseEntity<?> list(
             @PathVariable("enterpriseId") String enterpriseId,
             @RequestParam(defaultValue = "0") Integer page,
-            @RequestParam(defaultValue = "10") Integer size) {
-        return ResponseEntity.ok(service.findAllByEnterprise(enterpriseId, page, size)
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(defaultValue = "name") String sortField,
+            @RequestParam(defaultValue = "asc") String sortOrder) {
+        return ResponseEntity.ok(service.findAllByEnterprise(enterpriseId, page, size, sortField, sortOrder)
                 .map(mapper::toRes));
     }
 
@@ -50,8 +52,10 @@ public class PaymentMethodController {
             @PathVariable("enterpriseId") String enterpriseId,
             @RequestParam Boolean status,
             @RequestParam(defaultValue = "0") Integer page,
-            @RequestParam(defaultValue = "10") Integer size) {
-        return ResponseEntity.ok(service.findAllByEnterpriseAndStatus(enterpriseId, status, page, size)
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(defaultValue = "name") String sortField,
+            @RequestParam(defaultValue = "asc") String sortOrder) {
+        return ResponseEntity.ok(service.findAllByEnterpriseAndStatus(enterpriseId, status, page, size, sortField, sortOrder)
                 .map(mapper::toRes));
     }
 

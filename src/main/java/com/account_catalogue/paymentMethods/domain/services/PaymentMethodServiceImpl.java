@@ -6,6 +6,8 @@ import com.account_catalogue.commons.exceptions.paymentMethods.InvalidAccounting
 import com.account_catalogue.commons.exceptions.paymentMethods.AccountingAccountImmutableException;
 import com.account_catalogue.catalogue.application.services.AccountCatalogueValidationService;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
+import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.entity.AccountCatalogueEntity;
+
 import com.account_catalogue.paymentMethods.dataAccess.entity.PaymentMethodEntity;
 import com.account_catalogue.paymentMethods.dataAccess.mapper.PaymentMethodDataMapper;
 import com.account_catalogue.paymentMethods.dataAccess.repository.PaymentMethodRepository;
@@ -32,13 +34,18 @@ public class PaymentMethodServiceImpl implements IPaymentMethodService {
     private final PaymentMethodDomainMapper domainMapper;
     private final AccountCatalogueValidationService accountCatalogueValidationService;
 
+
     @Transactional
     public PaymentMethod create(PaymentMethodCreateReq request) {
         // Estandarización de nombre
         String standardizedName = standardizeName(request.getName());
 
-        // Validar que la cuenta contable existe y es auxiliar
-        validateAccountingAccount(request.getAccountingAccount(), request.getIdEnterprise());
+        // Validar que la cuenta contable existe por ID y empresa
+        AccountCatalogue account = accountCatalogueValidationService.validateAccountExistsByIdAndEnterprise(
+            request.getAccountingAccountId(), request.getIdEnterprise());
+
+        // Validar que la cuenta contable es auxiliar
+        validateAccountingAccount(account.getCode(), request.getIdEnterprise());
 
         // Validar unicidad por empresa (solo entre registros no eliminados)
         if (repository.existsByNameAndIdEnterpriseAndIsDeletedFalse(standardizedName, request.getIdEnterprise())) {
@@ -47,7 +54,18 @@ public class PaymentMethodServiceImpl implements IPaymentMethodService {
 
         PaymentMethod domain = domainMapper.toDomain(request);
         domain.setName(standardizedName);
+
+        // Crear el dominio con la entidad de cuenta
+        domain.setAccountingAccountEntity(account);
+
+        // Crear la entidad con la relación usando la entidad completa
         PaymentMethodEntity toSave = dataMapper.toEntity(domain);
+        // Crear la entidad AccountCatalogueEntity completa con todos los campos
+        AccountCatalogueEntity accountEntity = new AccountCatalogueEntity();
+        accountEntity.setId(account.getId());
+        accountEntity.setCode(account.getCode());
+        accountEntity.setDescription(account.getDescription());
+        toSave.setAccountingAccount(accountEntity);
 
         PaymentMethodEntity saved = repository.save(toSave);
         return dataMapper.toDomain(saved);
@@ -61,15 +79,16 @@ public class PaymentMethodServiceImpl implements IPaymentMethodService {
         String standardizedName = standardizeName(request.getName());
 
         // Validar que no se esté intentando cambiar la cuenta contable
-        if (!current.getAccountingAccount().equals(request.getAccountingAccount())) {
+        Long currentAccountId = current.getAccountingAccount() != null ? current.getAccountingAccount().getId() : null;
+        if (currentAccountId != null && !request.getAccountingAccountId().equals(currentAccountId)) {
             throw new AccountingAccountImmutableException(
-                "No se puede modificar la cuenta contable. Cuenta actual: '" + current.getAccountingAccount() + 
-                "', cuenta solicitada: '" + request.getAccountingAccount() + "'"
+                "No se puede modificar la cuenta contable. ID actual: '" + currentAccountId +
+                "', ID solicitado: '" + request.getAccountingAccountId() + "'"
             );
         }
 
         // Validar unicidad si el nombre cambió (solo entre registros no eliminados)
-        if (!standardizedName.equals(current.getName()) && 
+        if (!standardizedName.equals(current.getName()) &&
             repository.existsByNameAndIdEnterpriseAndIdNotAndIsDeletedFalse(standardizedName, request.getIdEnterprise(), current.getId())) {
             throw new PaymentMethodsAlreadyExistsException("nombre", standardizedName, request.getIdEnterprise());
         }

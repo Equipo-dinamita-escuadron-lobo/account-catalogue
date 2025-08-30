@@ -9,13 +9,22 @@ import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface PaymentMethodDomainMapper {
-    
+
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "isDeleted", ignore = true)
+    @Mapping(target = "accountingAccountEntity", ignore = true)
+    @Mapping(target = "accountingAccount", expression = "java(\"\" + request.getAccountingAccountId())") // Convertir ID a String para compatibilidad
     PaymentMethod toDomain(PaymentMethodCreateReq request);
-    
+
     @Mapping(target = "isDeleted", ignore = true)
+    @Mapping(target = "accountingAccountEntity", ignore = true)
+    @Mapping(target = "status", ignore = true)
+    @Mapping(target = "accountingAccount", expression = "java(\"\" + request.getAccountingAccountId())") // Convertir ID a String para compatibilidad
     PaymentMethod toDomain(PaymentMethodUpdateReq request);
-    
+
+    @Mapping(target = "accountingAccount", source = "accountingAccount")
+    @Mapping(target = "accountingAccountId", expression = "java(domain.getAccountingAccountEntity() != null ? domain.getAccountingAccountEntity().getId() : null)")
     PaymentMethodRes toRes(PaymentMethod domain);
+
+
 }

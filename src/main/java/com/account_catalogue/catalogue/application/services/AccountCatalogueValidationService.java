@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import com.account_catalogue.catalogue.application.output.IAccountCatalogueSearchOutputPort;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
+import com.account_catalogue.catalogue.domain.enums.FinancialStatusEnum;
 import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueAlreadyExistsException;
 import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueAssociatedWithTaxException;
 import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueDescriptionAlreadyExistsException;
@@ -258,6 +259,33 @@ public class AccountCatalogueValidationService {
                     "Los campos " + invalidFields + " solo pueden ser establecidos en cuentas auxiliares (8 dígitos exactamente). " +
                     "Código actual: '" + code + "' tiene " + (code != null ? code.trim().length() : 0) + " dígitos."
                 );
+            }
+        }
+    }
+    
+    /**
+     * Valida que el campo costCenter solo pueda ser true cuando el financialStatus sea Estado de Resultados.
+     * Esta validación se aplica únicamente a cuentas auxiliares (8 dígitos).
+     * 
+     * @param accountCatalogue la cuenta a validar
+     * @throws InvalidAccountCodeException si se intenta establecer costCenter como true sin el estado financiero correcto
+     */
+    public void validateCostCenterRequiresIncomeStatement(AccountCatalogue accountCatalogue) {
+        boolean hasCostCenter = accountCatalogue.getCostCenter() != null && accountCatalogue.getCostCenter();
+        
+        if (hasCostCenter) {
+            String code = accountCatalogue.getCode();
+            // Solo aplicar esta validación a cuentas auxiliares (8 dígitos)
+            if (code != null && code.trim().length() == 8) {
+                FinancialStatusEnum financialStatus = accountCatalogue.getFinancialStatus();
+                
+                if (financialStatus == null || financialStatus != FinancialStatusEnum.INCOMESTATEMENT) {
+                    throw new InvalidAccountCodeException(
+                        "El centro de costo solo puede ser establecido cuando el estado financiero " +
+                        "sea 'Estado de Resultados'. Estado financiero actual: " + 
+                        (financialStatus != null ? financialStatus.getState() : "No definido")
+                    );
+                }
             }
         }
     }

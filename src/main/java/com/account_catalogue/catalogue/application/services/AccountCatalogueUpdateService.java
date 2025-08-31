@@ -59,6 +59,9 @@ public class AccountCatalogueUpdateService implements IAccountCatalogueUpdateInp
         // Validar que crossing y costCenter solo se puedan establecer en cuentas auxiliares (8 dígitos)
         validationService.validateCrossingAndCostCenterOnlyForAuxiliaryAccounts(accountCatalogue);
         
+        // Validar que costCenter solo pueda ser true cuando financialStatus sea Estado de Resultados
+        validationService.validateCostCenterRequiresIncomeStatement(accountCatalogue);
+        
         return accountCatalogueUpdateOutputport.updateAccountCatalogue(id, accountCatalogue);
     }
 }

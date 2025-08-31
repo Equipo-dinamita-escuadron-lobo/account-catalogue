@@ -42,12 +42,15 @@ public class AccountCatalogueCreateService implements IAccountCatalogueCreateInp
         
         // Si tiene padre, validar que el padre existe y no está eliminado
         if (accountCatalogue.getParent() != null && accountCatalogue.getParent().getId() != null) {
-            AccountCatalogue parent = validationService.validateAccountExistsById(accountCatalogue.getParent().getId());
+            validationService.validateAccountExistsById(accountCatalogue.getParent().getId());
             // El método validateAccountExistsById ya valida que no esté eliminada
         }
         
         // Validar que crossing y costCenter solo se puedan establecer en cuentas auxiliares (8 dígitos)
         validationService.validateCrossingAndCostCenterOnlyForAuxiliaryAccounts(accountCatalogue);
+        
+        // Validar que costCenter solo pueda ser true cuando financialStatus sea Estado de Resultados
+        validationService.validateCostCenterRequiresIncomeStatement(accountCatalogue);
         
         return accountCatalogueCreateOutputPort.createAccountCatalogue(accountCatalogue);
     }

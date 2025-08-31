@@ -78,9 +78,12 @@ public interface IItemAccountCatalogueSearchMapper {
 
         List<AccountCatalogue> children = new ArrayList<>();
         for (AccountCatalogueEntity child : accountCatalogueEntity.getChildren()) {
-            AccountCatalogue childAccountCatalogue = toDomainTree(child);
-            if (childAccountCatalogue != null) {
-                children.add(childAccountCatalogue);
+            // Solo procesar cuentas hijas que no estén eliminadas
+            if (child.getIsDeleted() == null || !child.getIsDeleted()) {
+                AccountCatalogue childAccountCatalogue = toDomainTree(child);
+                if (childAccountCatalogue != null) {
+                    children.add(childAccountCatalogue);
+                }
             }
         }
         accountCatalogue.setChildren(children);

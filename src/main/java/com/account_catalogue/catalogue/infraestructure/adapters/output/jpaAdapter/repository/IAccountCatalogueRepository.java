@@ -21,6 +21,9 @@ public interface IAccountCatalogueRepository extends JpaRepository<AccountCatalo
     @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.id = ?1 AND a.isDeleted = false")
     AccountCatalogueEntity findById(long id);
 
+    @Query("SELECT a FROM AccountCatalogueEntity a LEFT JOIN FETCH a.children WHERE a.id = ?1 AND a.isDeleted = false")
+    AccountCatalogueEntity findByIdWithChildren(long id);
+
     /**
      * Encuentra un AccountCatalogueEntity por ID y id de empresa (no eliminado).
      * 

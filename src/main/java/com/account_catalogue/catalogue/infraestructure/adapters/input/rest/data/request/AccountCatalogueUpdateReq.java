@@ -16,4 +16,5 @@ public class AccountCatalogueUpdateReq {
     private String classification;
     private Boolean crossing;
     private Boolean costCenter;
+    private Boolean status;
 }

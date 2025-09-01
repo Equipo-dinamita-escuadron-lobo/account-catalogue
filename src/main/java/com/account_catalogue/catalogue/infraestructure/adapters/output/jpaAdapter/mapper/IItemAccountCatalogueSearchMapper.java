@@ -27,6 +27,7 @@ public interface IItemAccountCatalogueSearchMapper {
         }
         return AccountCatalogue.builder()
                 .id(accountCatalogueEntity.getId())
+                .idEnterprise(accountCatalogueEntity.getIdEnterprise()) 
                 .code(accountCatalogueEntity.getCode())
                 .description(accountCatalogueEntity.getDescription())
                 .nature(accountCatalogueEntity.getNature())
@@ -61,6 +62,7 @@ public interface IItemAccountCatalogueSearchMapper {
 
         AccountCatalogue accountCatalogue = AccountCatalogue.builder()
                 .id(accountCatalogueEntity.getId())
+                .idEnterprise(accountCatalogueEntity.getIdEnterprise()) 
                 .code(accountCatalogueEntity.getCode())
                 .description(accountCatalogueEntity.getDescription())
                 .nature(accountCatalogueEntity.getNature())

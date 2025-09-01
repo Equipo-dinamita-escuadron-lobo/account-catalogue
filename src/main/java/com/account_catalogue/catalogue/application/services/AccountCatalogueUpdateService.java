@@ -27,10 +27,29 @@ public class AccountCatalogueUpdateService implements IAccountCatalogueUpdateInp
         // Validar que la cuenta a actualizar existe
         AccountCatalogue existingAccount = validationService.validateAccountExistsById(id);
         
-        // Validar el código de cuenta
+        // Verificar que el idEnterprise esté establecido
+        if (accountCatalogue.getIdEnterprise() == null || accountCatalogue.getIdEnterprise().trim().isEmpty()) {
+            throw new IllegalArgumentException("El ID de empresa es requerido para la actualización");
+        }
+        
+        // Validar que el idEnterprise coincida con el de la cuenta existente (seguridad)
+        if (!accountCatalogue.getIdEnterprise().equals(existingAccount.getIdEnterprise())) {
+            throw new IllegalArgumentException(
+                "El ID de empresa no coincide. Esperado: " + existingAccount.getIdEnterprise() + 
+                ", Recibido: " + accountCatalogue.getIdEnterprise()
+            );
+        }
+        
+        // Normalizar y validar el código de cuenta
+        if (accountCatalogue.getCode() != null) {
+            accountCatalogue.setCode(accountCatalogue.getCode().trim());
+        }
         validationService.validateAccountCode(accountCatalogue.getCode());
         
-        // Validar la descripción de la cuenta
+        // Normalizar y validar la descripción de la cuenta
+        if (accountCatalogue.getDescription() != null) {
+            accountCatalogue.setDescription(accountCatalogue.getDescription().trim());
+        }
         validationService.validateAccountDescription(accountCatalogue.getDescription());
         
         // Validar que no existe otra cuenta con el mismo código (excluyendo la actual)
@@ -40,7 +59,7 @@ public class AccountCatalogueUpdateService implements IAccountCatalogueUpdateInp
             id
         );
         
-        // Validar que no existe otra cuenta con la misma descripción (excluyendo la actual)
+        // Validar que no existe otra cuenta con la misma descripción (excluyendo la actual) - case-insensitive
         validationService.validateAccountDescriptionDoesNotExistExcluding(
             accountCatalogue.getDescription(), 
             accountCatalogue.getIdEnterprise(), 

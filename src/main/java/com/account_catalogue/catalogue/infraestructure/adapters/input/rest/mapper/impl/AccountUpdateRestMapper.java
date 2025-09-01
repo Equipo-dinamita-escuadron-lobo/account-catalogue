@@ -19,15 +19,25 @@ public class AccountUpdateRestMapper implements IAccountUpdateRestMapper {
             return null;
         }
 
-        return AccountCatalogue.builder()
+        AccountCatalogue.AccountCatalogueBuilder builder = AccountCatalogue.builder()
+                .idEnterprise(accountCatalogueUpdateReq.getIdEnterprise())
                 .code(accountCatalogueUpdateReq.getCode())
                 .description(accountCatalogueUpdateReq.getDescription())
                 .financialStatus(adjustEnum.adjustFinancialStatusEnum(accountCatalogueUpdateReq.getFinancialStatus()))
                 .nature(adjustEnum.adjustNatureEnum(accountCatalogueUpdateReq.getNature()))
                 .classification(adjustEnum.adjustClassificationEnum(accountCatalogueUpdateReq.getClassification()))
                 .crossing(accountCatalogueUpdateReq.getCrossing())
-                .costCenter(accountCatalogueUpdateReq.getCostCenter())
-                .build();
+                .costCenter(accountCatalogueUpdateReq.getCostCenter());
+
+        // Manejar el parent si se proporciona
+        if (accountCatalogueUpdateReq.getParent() != null) {
+            AccountCatalogue parent = AccountCatalogue.builder()
+                    .id(accountCatalogueUpdateReq.getParent())
+                    .build();
+            builder.parent(parent);
+        }
+
+        return builder.build();
     }
 
     @Override

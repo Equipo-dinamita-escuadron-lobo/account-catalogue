@@ -35,18 +35,18 @@ public interface IAccountCatalogueRepository extends JpaRepository<AccountCatalo
     @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.id = ?1 AND a.idEnterprise = ?2 AND a.isDeleted = false")
     AccountCatalogueEntity findByIdAndIdEnterprise(Long id, String idEnterprise);
 
+    @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.code = ?1 AND a.isDeleted = false")
+    AccountCatalogueEntity findByCode(String code);
+
     /**
-     * Encuentra un AccountCatalogueEntity por descripción y id de empresa (no eliminado).
+     * Encuentra un AccountCatalogueEntity por descripción (case-insensitive) y id de empresa (no eliminado).
      * 
-     * @param description  la descripción de la cuenta.
+     * @param description  la descripción de la cuenta (case-insensitive).
      * @param idEnterprise el id de la empresa.
      * @return el AccountCatalogueEntity con la descripción y id de empresa dados. Si no
      *         se encuentra, se devuelve null.
      */
-    @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.description = ?1 AND a.idEnterprise = ?2 AND a.isDeleted = false")
-    AccountCatalogueEntity findByDescriptionAndIdEnterprise(String description, String idEnterprise);
-
-    @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.code = ?1 AND a.isDeleted = false")
-    AccountCatalogueEntity findByCode(String code);
+    @Query("SELECT a FROM AccountCatalogueEntity a WHERE UPPER(a.description) = UPPER(?1) AND a.idEnterprise = ?2 AND a.isDeleted = false")
+    AccountCatalogueEntity findByDescriptionIgnoreCaseAndIdEnterprise(String description, String idEnterprise);
 
 }

@@ -22,10 +22,16 @@ public class AccountCatalogueCreateService implements IAccountCatalogueCreateInp
      */
     @Override
     public AccountCatalogue createAccountCatalogue(AccountCatalogue accountCatalogue) {
-        // Validar el código de cuenta
+        // Normalizar y validar el código de cuenta
+        if (accountCatalogue.getCode() != null) {
+            accountCatalogue.setCode(accountCatalogue.getCode().trim());
+        }
         validationService.validateAccountCode(accountCatalogue.getCode());
         
-        // Validar la descripción de la cuenta
+        // Normalizar y validar la descripción de la cuenta
+        if (accountCatalogue.getDescription() != null) {
+            accountCatalogue.setDescription(accountCatalogue.getDescription().trim());
+        }
         validationService.validateAccountDescription(accountCatalogue.getDescription());
         
         // Validar que la cuenta no exista ya por código
@@ -34,7 +40,7 @@ public class AccountCatalogueCreateService implements IAccountCatalogueCreateInp
             accountCatalogue.getIdEnterprise()
         );
         
-        // Validar que no exista ya una cuenta con la misma descripción
+        // Validar que no exista ya una cuenta con la misma descripción (case-insensitive)
         validationService.validateAccountDescriptionDoesNotExist(
             accountCatalogue.getDescription(), 
             accountCatalogue.getIdEnterprise()

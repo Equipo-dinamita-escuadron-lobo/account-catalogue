@@ -13,6 +13,6 @@ public interface IAccountCatalogueSearchOutputPort {
     AccountCatalogue getAccountCatalogueByIdAndIdEnterprise(Long id, String idEnterprise);
 
     AccountCatalogue getAccountCatalogueTreeByIdAndIdEnterprise(Long id, String idEnterprise);
-
-    AccountCatalogue getAccountCatalogueByDescriptionAndIdEnterprise(String description, String idEnterprise);
+    
+    AccountCatalogue getAccountCatalogueByDescriptionIgnoreCaseAndIdEnterprise(String description, String idEnterprise);
 }

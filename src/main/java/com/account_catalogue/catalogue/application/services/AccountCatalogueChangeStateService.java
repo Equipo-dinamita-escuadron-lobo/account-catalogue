@@ -17,9 +17,9 @@ public class AccountCatalogueChangeStateService implements IAccountCatalogueChan
     private final AccountCatalogueValidationService validationService;
 
     /**
-     * Cambia el estado (activo/inactivo) de una cuenta del catálogo.
+     * Cambia el estado (activo/inactivo) de una cuenta del catálogo y todos sus descendientes.
      * Valida que la cuenta exista antes de cambiar su estado.
-     * 
+     *
      * @param id el ID de la cuenta
      * @param idEnterprise el ID de la empresa
      * @param status el nuevo estado (true = activo, false = inactivo)
@@ -30,8 +30,8 @@ public class AccountCatalogueChangeStateService implements IAccountCatalogueChan
     public AccountCatalogue changeState(Long id, String idEnterprise, Boolean status) {
         // Validar que la cuenta existe para la empresa específica
         validationService.validateAccountExistsByIdAndEnterprise(id, idEnterprise);
-        
-        // Cambiar el estado
+
+        // Cambiar el estado de la cuenta y todos sus descendientes
         return accountCatalogueChangeStateOutputPort.changeState(id, status);
     }
 }

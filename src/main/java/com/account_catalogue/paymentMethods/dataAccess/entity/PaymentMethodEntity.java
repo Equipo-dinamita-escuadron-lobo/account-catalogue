@@ -1,5 +1,6 @@
 package com.account_catalogue.paymentMethods.dataAccess.entity;
 
+import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.entity.AccountCatalogueEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.TenantId;
@@ -29,8 +30,9 @@ public class PaymentMethodEntity {
     @Column(name = "name", nullable = false)
     private String name;
 
-    @Column(name = "accounting_account", nullable = false)
-    private String accountingAccount;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "accounting_account_id", referencedColumnName = "id")
+    private AccountCatalogueEntity accountingAccount;
 
     @Column(name = "status", nullable = false)
     private Boolean status;

@@ -1,5 +1,6 @@
 package com.account_catalogue.paymentMethods.domain.model;
 
+import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
 import lombok.*;
 
 @Getter
@@ -11,6 +12,7 @@ public class PaymentMethod {
     private Long id;
     private String name;
     private String accountingAccount;
+    private AccountCatalogue accountingAccountEntity;
     private Boolean status;
     @Builder.Default
     private Boolean isDeleted = false;

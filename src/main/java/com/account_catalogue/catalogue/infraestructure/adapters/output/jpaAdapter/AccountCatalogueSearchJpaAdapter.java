@@ -86,15 +86,15 @@ public class AccountCatalogueSearchJpaAdapter implements IAccountCatalogueSearch
     }
 
     /**
-     * Obtiene el catálogo de cuentas por descripción y id de empresa.
+     * Obtiene el catálogo de cuentas por descripción (case-insensitive) y id de empresa.
      * 
-     * @param description  la descripción del catálogo de cuentas
+     * @param description  la descripción del catálogo de cuentas (case-insensitive)
      * @param idEnterprise el id de la empresa
      * @return el catálogo de cuentas si existe, null en caso contrario
      */
     @Override
-    public AccountCatalogue getAccountCatalogueByDescriptionAndIdEnterprise(String description, String idEnterprise) {
-        AccountCatalogueEntity accountCatalogue = accountCatalogueRepository.findByDescriptionAndIdEnterprise(description, idEnterprise);
+    public AccountCatalogue getAccountCatalogueByDescriptionIgnoreCaseAndIdEnterprise(String description, String idEnterprise) {
+        AccountCatalogueEntity accountCatalogue = accountCatalogueRepository.findByDescriptionIgnoreCaseAndIdEnterprise(description, idEnterprise);
         return itemAccountCatalogueSearchMapper.toDomain(accountCatalogue);
     }
 }

@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import com.account_catalogue.catalogue.application.output.IAccountCatalogueSearchOutputPort;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
+import com.account_catalogue.catalogue.domain.enums.FinancialStatusEnum;
 import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueAlreadyExistsException;
 import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueAssociatedWithTaxException;
 import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueDescriptionAlreadyExistsException;
@@ -71,10 +72,24 @@ public class AccountCatalogueValidationService {
      * @throws AccountCatalogueAlreadyExistsException si la cuenta ya existe
      */
     public void validateAccountDoesNotExistExcluding(String code, String idEnterprise, Long excludeId) {
-        AccountCatalogue existingAccount = accountCatalogueSearchOutputPort.getAccountCatalogueByCode(code, idEnterprise);
+        if (code == null || code.trim().isEmpty()) {
+            return; // La validación de código vacío se maneja en validateAccountCode
+        }
+        
+        if (idEnterprise == null || idEnterprise.trim().isEmpty()) {
+            throw new IllegalArgumentException("El ID de empresa no puede estar vacío para validación de duplicados");
+        }
+        
+        if (excludeId == null) {
+            throw new IllegalArgumentException("El ID a excluir no puede ser null para validación de duplicados");
+        }
+        
+        AccountCatalogue existingAccount = accountCatalogueSearchOutputPort.getAccountCatalogueByCode(code.trim(), idEnterprise);
         if (existingAccount != null && !existingAccount.getId().equals(excludeId)) {
             throw new AccountCatalogueAlreadyExistsException(
-                "Ya existe otra cuenta con el código '" + code + "' para la empresa '" + idEnterprise + "'"
+                "Ya existe otra cuenta con el código '" + code.trim() + "' para la empresa '" + idEnterprise + 
+                "'. Cuenta existente: ID=" + existingAccount.getId() + ", Código=" + existingAccount.getCode() + 
+                ". Cuenta a actualizar: ID=" + excludeId
             );
         }
     }
@@ -108,7 +123,7 @@ public class AccountCatalogueValidationService {
         AccountCatalogue account = accountCatalogueSearchOutputPort.getAccountCatalogueById(id);
         if (account == null || (account.getIsDeleted() != null && account.getIsDeleted())) {
             throw new AccountCatalogueNotFoundException(
-                "No se encontró una cuenta con el ID '" + id + "' o la cuenta ha sido eliminada"
+                "No se encontró una cuenta con el ID '" + id + "'"
             );
         }
         return account;
@@ -179,6 +194,7 @@ public class AccountCatalogueValidationService {
     /**
      * Valida el nombre/descripción de la cuenta.
      * Permite caracteres alfanuméricos y algunos especiales.
+     * Normaliza la descripción eliminando espacios extra y validando formato.
      * 
      * @param description la descripción a validar
      * @throws InvalidAccountCodeException si la descripción no es válida
@@ -188,33 +204,55 @@ public class AccountCatalogueValidationService {
             throw new InvalidAccountCodeException("La descripción de la cuenta no puede estar vacía");
         }
         
+        String trimmedDescription = description.trim();
+        
+        // Validar que no tenga múltiples espacios consecutivos
+        if (trimmedDescription.contains("  ")) {
+            throw new InvalidAccountCodeException(
+                "La descripción de la cuenta no puede contener múltiples espacios consecutivos"
+            );
+        }
+        
         // Permitir alfanuméricos, espacios, guiones, puntos, comas, paréntesis
-        if (!Pattern.matches("^[a-zA-Z0-9\\s\\-.,()áéíóúÁÉÍÓÚñÑ]+$", description.trim())) {
+        if (!Pattern.matches("^[a-zA-Z0-9\\s\\-.,()áéíóúÁÉÍÓÚñÑ]+$", trimmedDescription)) {
             throw new InvalidAccountCodeException(
                 "La descripción de la cuenta contiene caracteres no válidos. " +
                 "Solo se permiten letras, números, espacios y los siguientes caracteres especiales: - . , ( )"
             );
         }
+        
+        // Validar longitud mínima y máxima
+        if (trimmedDescription.length() < 2) {
+            throw new InvalidAccountCodeException("La descripción de la cuenta debe tener al menos 2 caracteres");
+        }
+        
+        if (trimmedDescription.length() > 100) {
+            throw new InvalidAccountCodeException("La descripción de la cuenta no puede exceder 100 caracteres");
+        }
     }
     
     /**
-     * Valida que no exista ya una cuenta con la misma descripción para la misma empresa.
+     * Valida que no exista ya una cuenta con la misma descripción para la misma empresa (case-insensitive).
      * 
      * @param description la descripción de la cuenta
      * @param idEnterprise el ID de la empresa
      * @throws AccountCatalogueDescriptionAlreadyExistsException si ya existe una cuenta con esta descripción
      */
     public void validateAccountDescriptionDoesNotExist(String description, String idEnterprise) {
-        AccountCatalogue existingAccount = accountCatalogueSearchOutputPort.getAccountCatalogueByDescriptionAndIdEnterprise(description, idEnterprise);
+        if (description == null || description.trim().isEmpty()) {
+            return; // La validación de descripción vacía se maneja en validateAccountDescription
+        }
+        
+        AccountCatalogue existingAccount = accountCatalogueSearchOutputPort.getAccountCatalogueByDescriptionIgnoreCaseAndIdEnterprise(description.trim(), idEnterprise);
         if (existingAccount != null) {
             throw new AccountCatalogueDescriptionAlreadyExistsException(
-                "Ya existe una cuenta con la descripción '" + description + "' para la empresa '" + idEnterprise + "'"
+                "Ya existe una cuenta con la descripción '" + description.trim() + "' para la empresa '" + idEnterprise + "'"
             );
         }
     }
     
     /**
-     * Valida que no exista ya otra cuenta con la misma descripción para la misma empresa, excluyendo una cuenta específica.
+     * Valida que no exista ya otra cuenta con la misma descripción para la misma empresa, excluyendo una cuenta específica (case-insensitive).
      * Útil para validaciones de actualización.
      * 
      * @param description la descripción de la cuenta
@@ -223,10 +261,24 @@ public class AccountCatalogueValidationService {
      * @throws AccountCatalogueDescriptionAlreadyExistsException si ya existe otra cuenta con esta descripción
      */
     public void validateAccountDescriptionDoesNotExistExcluding(String description, String idEnterprise, Long excludeId) {
-        AccountCatalogue existingAccount = accountCatalogueSearchOutputPort.getAccountCatalogueByDescriptionAndIdEnterprise(description, idEnterprise);
+        if (description == null || description.trim().isEmpty()) {
+            return; // La validación de descripción vacía se maneja en validateAccountDescription
+        }
+        
+        if (idEnterprise == null || idEnterprise.trim().isEmpty()) {
+            throw new IllegalArgumentException("El ID de empresa no puede estar vacío para validación de descripción duplicada");
+        }
+        
+        if (excludeId == null) {
+            throw new IllegalArgumentException("El ID a excluir no puede ser null para validación de descripción duplicada");
+        }
+        
+        AccountCatalogue existingAccount = accountCatalogueSearchOutputPort.getAccountCatalogueByDescriptionIgnoreCaseAndIdEnterprise(description.trim(), idEnterprise);
         if (existingAccount != null && !existingAccount.getId().equals(excludeId)) {
             throw new AccountCatalogueDescriptionAlreadyExistsException(
-                "Ya existe otra cuenta con la descripción '" + description + "' para la empresa '" + idEnterprise + "'"
+                "Ya existe otra cuenta con la descripción '" + description.trim() + "' para la empresa '" + idEnterprise + 
+                "'. Cuenta existente: ID=" + existingAccount.getId() + ", Descripción=" + existingAccount.getDescription() + 
+                ". Cuenta a actualizar: ID=" + excludeId
             );
         }
     }
@@ -258,6 +310,33 @@ public class AccountCatalogueValidationService {
                     "Los campos " + invalidFields + " solo pueden ser establecidos en cuentas auxiliares (8 dígitos exactamente). " +
                     "Código actual: '" + code + "' tiene " + (code != null ? code.trim().length() : 0) + " dígitos."
                 );
+            }
+        }
+    }
+    
+    /**
+     * Valida que el campo costCenter solo pueda ser true cuando el financialStatus sea Estado de Resultados.
+     * Esta validación se aplica únicamente a cuentas auxiliares (8 dígitos).
+     * 
+     * @param accountCatalogue la cuenta a validar
+     * @throws InvalidAccountCodeException si se intenta establecer costCenter como true sin el estado financiero correcto
+     */
+    public void validateCostCenterRequiresIncomeStatement(AccountCatalogue accountCatalogue) {
+        boolean hasCostCenter = accountCatalogue.getCostCenter() != null && accountCatalogue.getCostCenter();
+        
+        if (hasCostCenter) {
+            String code = accountCatalogue.getCode();
+            // Solo aplicar esta validación a cuentas auxiliares (8 dígitos)
+            if (code != null && code.trim().length() == 8) {
+                FinancialStatusEnum financialStatus = accountCatalogue.getFinancialStatus();
+                
+                if (financialStatus == null || financialStatus != FinancialStatusEnum.INCOMESTATEMENT) {
+                    throw new InvalidAccountCodeException(
+                        "El centro de costo solo puede ser establecido cuando el estado financiero " +
+                        "sea 'Estado de Resultados'. Estado financiero actual: " + 
+                        (financialStatus != null ? financialStatus.getState() : "No definido")
+                    );
+                }
             }
         }
     }

@@ -18,23 +18,54 @@ public class AccountCatalogueChangeStateJpaAdapter implements IAccountCatalogueC
     private final IAccountCatalogueUpdateMapper accountCatalogueUpdateMapper;
 
     /**
-     * Cambia el estado de una cuenta en la base de datos.
-     * 
+     * Cambia el estado de una cuenta en la base de datos y todos sus descendientes.
+     *
      * @param id el ID de la cuenta
      * @param status el nuevo estado
      * @return la cuenta actualizada
      */
-    @Override
+        @Override
     public AccountCatalogue changeState(Long id, Boolean status) {
-        AccountCatalogueEntity accountCatalogueEntity = accountCatalogueRepository.findById(id.longValue());
-        
+        AccountCatalogueEntity accountCatalogueEntity = accountCatalogueRepository.findByIdWithChildren(id.longValue());
+
         if (accountCatalogueEntity == null) {
             return null;
         }
 
+        // Cambiar el estado de la cuenta padre
         accountCatalogueEntity.setStatus(status);
         accountCatalogueEntity = accountCatalogueRepository.save(accountCatalogueEntity);
-        
+
+        // Actualizar recursivamente el estado de todos los hijos
+        updateChildrenStatusRecursively(accountCatalogueEntity, status);
+
         return accountCatalogueUpdateMapper.toAccountCatalogue(accountCatalogueEntity);
+    }
+
+    /**
+     * Actualiza recursivamente el estado de todos los hijos de una cuenta.
+     *
+     * @param parent la cuenta padre
+     * @param status el nuevo estado a aplicar
+     */
+    private void updateChildrenStatusRecursively(AccountCatalogueEntity parent, Boolean status) {
+        if (parent.getChildren() != null && !parent.getChildren().isEmpty()) {
+            for (AccountCatalogueEntity child : parent.getChildren()) {
+                // Solo actualizar si el hijo no está eliminado
+                if (child.getIsDeleted() == null || !child.getIsDeleted()) {
+                    // Asegurarse de que los hijos del hijo estén cargados
+                    if (child.getChildren() == null) {
+                        child = accountCatalogueRepository.findByIdWithChildren(child.getId());
+                        if (child == null) continue;
+                    }
+
+                    child.setStatus(status);
+                    accountCatalogueRepository.save(child);
+
+                    // Actualizar recursivamente los hijos de este hijo
+                    updateChildrenStatusRecursively(child, status);
+                }
+            }
+        }
     }
 }

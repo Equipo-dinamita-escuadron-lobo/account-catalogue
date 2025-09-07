@@ -27,6 +27,7 @@ public interface IItemAccountCatalogueSearchMapper {
         }
         return AccountCatalogue.builder()
                 .id(accountCatalogueEntity.getId())
+                .idEnterprise(accountCatalogueEntity.getIdEnterprise()) 
                 .code(accountCatalogueEntity.getCode())
                 .description(accountCatalogueEntity.getDescription())
                 .nature(accountCatalogueEntity.getNature())
@@ -61,6 +62,7 @@ public interface IItemAccountCatalogueSearchMapper {
 
         AccountCatalogue accountCatalogue = AccountCatalogue.builder()
                 .id(accountCatalogueEntity.getId())
+                .idEnterprise(accountCatalogueEntity.getIdEnterprise()) 
                 .code(accountCatalogueEntity.getCode())
                 .description(accountCatalogueEntity.getDescription())
                 .nature(accountCatalogueEntity.getNature())
@@ -78,9 +80,12 @@ public interface IItemAccountCatalogueSearchMapper {
 
         List<AccountCatalogue> children = new ArrayList<>();
         for (AccountCatalogueEntity child : accountCatalogueEntity.getChildren()) {
-            AccountCatalogue childAccountCatalogue = toDomainTree(child);
-            if (childAccountCatalogue != null) {
-                children.add(childAccountCatalogue);
+            // Solo procesar cuentas hijas que no estén eliminadas
+            if (child.getIsDeleted() == null || !child.getIsDeleted()) {
+                AccountCatalogue childAccountCatalogue = toDomainTree(child);
+                if (childAccountCatalogue != null) {
+                    children.add(childAccountCatalogue);
+                }
             }
         }
         accountCatalogue.setChildren(children);

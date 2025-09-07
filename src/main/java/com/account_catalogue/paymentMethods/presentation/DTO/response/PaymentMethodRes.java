@@ -10,9 +10,8 @@ import lombok.*;
 public class PaymentMethodRes {
     private Long id;
     private String name;
-    private String accountingAccount;
+    private String accountingAccount; // Código completo (código - descripción)
+    private Long accountingAccountId; // Solo el ID de la cuenta contable
     private Boolean status;
-    @Builder.Default
-    private Boolean isDeleted = false;
     private String idEnterprise;
 }

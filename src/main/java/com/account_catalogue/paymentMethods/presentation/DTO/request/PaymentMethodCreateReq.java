@@ -17,8 +17,8 @@ public class PaymentMethodCreateReq {
     @Size(max = 100, message = "El nombre no debe exceder 100 caracteres")
     private String name;
 
-    @NotBlank(message = "La cuenta contable asociada es obligatoria")
-    private String accountingAccount;
+    @NotNull(message = "El ID de la cuenta contable es obligatorio")
+    private Long accountingAccountId;
 
     @Builder.Default
     private Boolean status = true;

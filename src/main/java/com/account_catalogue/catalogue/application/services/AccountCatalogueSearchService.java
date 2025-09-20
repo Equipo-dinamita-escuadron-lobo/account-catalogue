@@ -73,4 +73,20 @@ public class AccountCatalogueSearchService implements IAccountCatalogueSearchInp
         return accountCatalogueSearchOutputPort.getAuxiliaryAccountsByIdEnterprise(idEnterprise.trim());
     }
 
+    /**
+     * Obtiene todas las cuentas auxiliares (8 dígitos) activas que tienen el campo crossing activo para una empresa específica.
+     *
+     * @param idEnterprise el ID de la empresa
+     * @return lista de cuentas auxiliares con crossing activo
+     * @throws IllegalArgumentException si el idEnterprise es null o vacío
+     */
+    @Override
+    public List<AccountCatalogue> getAuxiliaryAccountsWithCrossing(String idEnterprise) {
+        if (idEnterprise == null || idEnterprise.trim().isEmpty()) {
+            throw new IllegalArgumentException("El ID de empresa es requerido para buscar cuentas auxiliares con crossing");
+        }
+        
+        return accountCatalogueSearchOutputPort.getAuxiliaryAccountsWithCrossingByIdEnterprise(idEnterprise.trim());
+    }
+
 }

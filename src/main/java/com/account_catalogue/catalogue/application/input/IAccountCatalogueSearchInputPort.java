@@ -14,4 +14,6 @@ public interface IAccountCatalogueSearchInputPort {
 
     List<AccountCatalogue> getAuxiliaryAccounts(String idEnterprise);
 
+    List<AccountCatalogue> getAuxiliaryAccountsWithCrossing(String idEnterprise);
+
 }

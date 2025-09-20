@@ -202,4 +202,20 @@ public class AccountCatalogueController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * Obtiene todas las cuentas auxiliares (8 dígitos) activas que tienen el campo crossing activo para una empresa específica.
+     * 
+     * @param idEnterprise el ID de la empresa
+     * @return lista de cuentas auxiliares con crossing activo ordenadas por código
+     */
+    @GetMapping("/auxiliary/crossing/{idEnterprise}")
+    public ResponseEntity<AuxiliaryAccountListRes> getAuxiliaryAccountsWithCrossing(
+            @PathVariable("idEnterprise") String idEnterprise) {
+        
+        List<AccountCatalogue> auxiliaryAccountsWithCrossing = accountCatalogueSearchInputPort.getAuxiliaryAccountsWithCrossing(idEnterprise);
+        AuxiliaryAccountListRes response = auxiliaryAccountRestMapper.toAuxiliaryAccountListRes(auxiliaryAccountsWithCrossing, idEnterprise);
+        
+        return ResponseEntity.ok(response);
+    }
+
 }

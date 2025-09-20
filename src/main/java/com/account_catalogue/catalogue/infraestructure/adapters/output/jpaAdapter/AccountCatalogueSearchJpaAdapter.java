@@ -115,4 +115,19 @@ public class AccountCatalogueSearchJpaAdapter implements IAccountCatalogueSearch
                 .map(itemAccountCatalogueSearchMapper::toDomain)
                 .collect(Collectors.toList());
     }
+
+    /**
+     * Obtiene todas las cuentas auxiliares (8 dígitos) activas que tienen el campo crossing activo para una empresa específica.
+     * 
+     * @param idEnterprise el id de la empresa
+     * @return lista de cuentas auxiliares con crossing activo ordenadas por código
+     */
+    @Override
+    public List<AccountCatalogue> getAuxiliaryAccountsWithCrossingByIdEnterprise(String idEnterprise) {
+        List<AccountCatalogueEntity> auxiliaryAccountsWithCrossingEntities = accountCatalogueRepository.findAuxiliaryAccountsWithCrossingByIdEnterprise(idEnterprise);
+        
+        return auxiliaryAccountsWithCrossingEntities.stream()
+                .map(itemAccountCatalogueSearchMapper::toDomain)
+                .collect(Collectors.toList());
+    }
 }

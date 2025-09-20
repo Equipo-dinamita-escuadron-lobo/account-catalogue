@@ -19,4 +19,6 @@ public interface IAccountCatalogueSearchOutputPort {
     AccountCatalogue getAccountCatalogueByDescriptionIgnoreCaseAndIdEnterprise(String description, String idEnterprise);
 
     List<AccountCatalogue> getAuxiliaryAccountsByIdEnterprise(String idEnterprise);
+
+    List<AccountCatalogue> getAuxiliaryAccountsWithCrossingByIdEnterprise(String idEnterprise);
 }

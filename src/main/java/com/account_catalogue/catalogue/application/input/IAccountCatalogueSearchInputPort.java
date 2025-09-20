@@ -1,5 +1,7 @@
 package com.account_catalogue.catalogue.application.input;
 
+import java.util.List;
+
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
 
 public interface IAccountCatalogueSearchInputPort {
@@ -9,5 +11,9 @@ public interface IAccountCatalogueSearchInputPort {
     AccountCatalogue getAccountCatalogueTree(String code, String idEnterprise);
 
     AccountCatalogue getAccountCatalogueById(Long id);
+
+    List<AccountCatalogue> getAuxiliaryAccounts(String idEnterprise);
+
+    List<AccountCatalogue> getAuxiliaryAccountsWithCrossing(String idEnterprise);
 
 }

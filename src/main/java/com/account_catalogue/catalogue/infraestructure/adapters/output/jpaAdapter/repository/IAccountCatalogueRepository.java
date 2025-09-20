@@ -1,5 +1,7 @@
 package com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.repository;
 
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -48,5 +50,14 @@ public interface IAccountCatalogueRepository extends JpaRepository<AccountCatalo
      */
     @Query("SELECT a FROM AccountCatalogueEntity a WHERE UPPER(a.description) = UPPER(?1) AND a.idEnterprise = ?2 AND a.isDeleted = false")
     AccountCatalogueEntity findByDescriptionIgnoreCaseAndIdEnterprise(String description, String idEnterprise);
+
+    /**
+     * Encuentra todas las cuentas auxiliares (8 dígitos) activas para una empresa específica.
+     * 
+     * @param idEnterprise el id de la empresa.
+     * @return lista de AccountCatalogueEntity con códigos de 8 dígitos para la empresa dada.
+     */
+    @Query("SELECT a FROM AccountCatalogueEntity a WHERE LENGTH(a.code) = 8 AND a.idEnterprise = ?1 AND a.isDeleted = false AND a.status = true ORDER BY a.code ASC")
+    List<AccountCatalogueEntity> findAuxiliaryAccountsByIdEnterprise(String idEnterprise);
 
 }

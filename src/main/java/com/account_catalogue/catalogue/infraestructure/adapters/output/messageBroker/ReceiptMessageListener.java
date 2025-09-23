@@ -1,14 +1,19 @@
 package com.account_catalogue.catalogue.infraestructure.adapters.output.messageBroker;
 
 import org.springframework.amqp.AmqpRejectAndDontRequeueException;
+import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.amqp.support.AmqpHeaders;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
 
 import com.account_catalogue.catalogue.application.input.IReceiptProcessInputPort;
+import com.account_catalogue.catalogue.domain.models.Receipt;
 import com.account_catalogue.catalogue.infraestructure.adapters.config.ReceiptRabbitConfig;
+import com.account_catalogue.catalogue.infraestructure.adapters.output.messageBroker.DTO.EventDTO;
 import com.account_catalogue.catalogue.infraestructure.adapters.output.messageBroker.DTO.ReceiptEventDTO;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.account_catalogue.catalogue.infraestructure.adapters.output.messageBroker.mapper.IReceiptEventMapper;
+import com.rabbitmq.client.Channel;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,23 +23,51 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ReceiptMessageListener {
     private final IReceiptProcessInputPort receiptProcessInputPort;
-    private final ObjectMapper objectMapper; // Para deserializar el JSON
+    private final IReceiptEventMapper receiptEventMapper;
 
+    /**
+     * Escucha en la cola de recibos. Spring AMQP, gracias al Jackson2JsonMessageConverter,
+     * deserializará automáticamente el cuerpo del mensaje JSON al objeto EventDTO<ReceiptEventDTO>.
+     * ¡No necesitamos usar ObjectMapper manualmente!
+     */
     @RabbitListener(queues = ReceiptRabbitConfig.RECEIPT_ACCOUNTING_QUEUE)
-    public void receiveReceiptEvent(String message) {
-        log.info("Received message from RabbitMQ queue '{}': {}", ReceiptRabbitConfig.RECEIPT_ACCOUNTING_QUEUE, message);
+    public void processReceiptEvent(EventDTO<ReceiptEventDTO> event, 
+        Message message, Channel channel,
+        @Header(AmqpHeaders.DELIVERY_TAG) long deliveryTag) {
+        String eventType = event.getType();
+        ReceiptEventDTO receiptDTO = event.getData();
+        
+        // Validamos que la data no sea nulo para evitar NullPointerException
+        if (receiptDTO == null) {
+            log.error("Evento recibido con data nula. Tipo de evento: {}. El mensaje será descartado.", eventType);
+            // No hacemos requeue porque el mensaje está malformado.
+            throw new AmqpRejectAndDontRequeueException("Data del evento es nula");
+        }
+        
+        log.info("Evento recibido: '{}' para el recibo: {}", eventType, receiptDTO.getReceiptCode());
+
         try {
-            ReceiptEventDTO eventDTO = objectMapper.readValue(message, ReceiptEventDTO.class);
-            receiptProcessInputPort.processReceiptEvent(eventDTO);
-            log.info("Receipt event with original ID: {} processed successfully.", eventDTO.getId());
-        } catch (JsonProcessingException e) {
-            log.error("Error processing receipt event from RabbitMQ. Message will be retried or moved to DLQ. Error: {}", e.getMessage(), e);
-            // La configuración de RabbitMQ que tienes (DLQ y retry) se encargará de esto.
-            // Para que Spring AMQP sepa que el mensaje debe ser rechazado y potencialmente re-enviado a la DLX,
-            // debes lanzar una AmqpRejectAndDontRequeueException si no quieres que reintente en la misma cola,
-            // o simplemente una RuntimeException si quieres que reintente de acuerdo a tu config del listener.
-            // Dada tu configuración de DLX y retry queue, Spring AMQP lo manejará por ti al lanzar una excepción.
-            throw new AmqpRejectAndDontRequeueException("Error processing receipt event", e);
+            Receipt receipt = receiptEventMapper.toDomain(receiptDTO);
+
+            // 2. Invocar el caso de uso apropiado de la aplicación basado en el tipo de evento
+            switch (eventType) {
+                case "RECEIPT_CREATED":
+                    receiptProcessInputPort.processReceiptCreation(receipt);
+                    break;
+                case "RECEIPT_VOIDED":
+                    receiptProcessInputPort.processReceiptVoid(receipt);
+                    break;
+                default:
+                    log.warn("Tipo de evento no soportado: '{}'. El mensaje será ignorado.", eventType);
+                    break;
+            }
+
+            log.info("Recibo {} procesado exitosamente.", receiptDTO.getReceiptCode());
+
+        } catch (Exception e) {
+            log.error("Error al procesar el evento para el recibo {}. Mensaje será enviado a DLQ.", receiptDTO.getReceiptCode(), e);
+            // Lanzamos esta excepción para que RabbitMQ mueva el mensaje a la DLQ
+            throw new AmqpRejectAndDontRequeueException("Error de procesamiento de negocio", e);
         }
     }
 }

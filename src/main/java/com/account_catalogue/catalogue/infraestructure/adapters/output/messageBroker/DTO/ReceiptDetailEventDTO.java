@@ -2,6 +2,9 @@ package com.account_catalogue.catalogue.infraestructure.adapters.output.messageB
 import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
+
+import java.math.BigDecimal;
+
 import lombok.AllArgsConstructor;
 
 @Getter
@@ -9,8 +12,8 @@ import lombok.AllArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ReceiptDetailEventDTO {
-    private Long invoiceId; // Corresponde a originalInvoiceId en el dominio
-    private Long amountPaid;
+    private Long invoiceId;
+    private BigDecimal amountPaid;
     private String invoiceCode;
     private Long accountingAccount;
 }

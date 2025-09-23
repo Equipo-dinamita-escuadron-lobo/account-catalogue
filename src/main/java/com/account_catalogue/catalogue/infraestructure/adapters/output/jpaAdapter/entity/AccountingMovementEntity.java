@@ -17,32 +17,33 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "receipt_details")
+@Table(name = "accounting_movements")
 @Getter
 @Setter
-public class ReceiptDetailEntity {
-
+public class AccountingMovementEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
-    private Long originalInvoiceId;
-
-    @Column(nullable = false, length = 50)
-    private String invoiceCode;
+    private Long account; // ID de la cuenta en AccountCatalogueEntity
 
     @Column(nullable = false)
-    private Long accountingAccount;
+    private Long thirdPartyId;
+
+    @Column(length = 255)
+    private String description;
 
     @Column(nullable = false, precision = 18, scale = 2)
-    private BigDecimal amountPaid;
+    private BigDecimal debit;
+
+    @Column(nullable = false, precision = 18, scale = 2)
+    private BigDecimal credit;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "receipt_id", nullable = false)
-    private ReceiptEntity receipt;
+    @JoinColumn(name = "accounting_entry_id", nullable = false)
+    private AccountingEntryEntity accountingEntry;
 
     @TenantId
     String tenantId;
-
 }

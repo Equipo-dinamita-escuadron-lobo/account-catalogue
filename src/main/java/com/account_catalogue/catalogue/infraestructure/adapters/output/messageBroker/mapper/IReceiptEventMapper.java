@@ -14,9 +14,11 @@ import jakarta.inject.Named;
 
 @Mapper(componentModel = "spring")
 public interface IReceiptEventMapper {
-    @Mapping(source= "id", target = "originalReceiptId")
+    /*@Mapping(source= "id", target = "originalReceiptId")
     @Mapping(target = "processingStatus", constant = "RECEIVED")
-    Receipt toDomain(ReceiptEventDTO eventDTO);
+    Receipt toDomain(ReceiptEventDTO eventDTO);*/
+
+    Receipt toDomain(ReceiptEventDTO receiptEventDTO);
 
     @Named("mapDetails")
     List<ReceiptDetail> mapDetails(List<ReceiptDetailEventDTO> detailEventDTOs);

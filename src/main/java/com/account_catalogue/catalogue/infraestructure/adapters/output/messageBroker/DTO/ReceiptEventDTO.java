@@ -1,6 +1,7 @@
 package com.account_catalogue.catalogue.infraestructure.adapters.output.messageBroker.DTO;
 
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -17,10 +18,14 @@ public class ReceiptEventDTO {
     private Long id;
     private String receiptCode;
     private Long thirdPartyId;
+    private String enterpriseId;  
+    private Long receiptTypeId;   
     private Long paymentMethodId;
+    private Long paymentMethodAccount; // Añadido para la cuenta del método de pago
     private String status;
     private LocalDate issueDate;
-    private Long totalAmount;
+    private BigDecimal totalAmount;
     private String observations;
+    private Long ledgerAccountId;
     private List<ReceiptDetailEventDTO> details;
 }

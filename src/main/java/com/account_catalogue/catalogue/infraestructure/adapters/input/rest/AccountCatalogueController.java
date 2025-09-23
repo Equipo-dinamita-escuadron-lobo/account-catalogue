@@ -34,11 +34,13 @@ import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.response.AccountCatalogueCreateRes;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.response.AccountCatalogueListRes;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.response.AccountCatalogueUpdateRes;
+import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.response.AuxiliaryAccountListRes;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.response.ItemAccountCatalogueSearchRes;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.mapper.IAccountChangeStateRestMapper;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.mapper.IAccountCreateRestMapper;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.mapper.IAccountSearchRestMapper;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.mapper.IAccountUpdateRestMapper;
+import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.mapper.IAuxiliaryAccountRestMapper;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.mapper.IItemAccountSearchRestMapper;
 
 import jakarta.validation.Valid;
@@ -60,6 +62,7 @@ public class AccountCatalogueController {
     private final IAccountCatalogueChangeStateInputPort accountCatalogueChangeStateInputPort;
     private final IAccountChangeStateRestMapper accountChangeStateRestMapper;
     private final IAccountCatalogueExportTemplateInputPort accountCatalogueExportTemplateInputPort;
+    private final IAuxiliaryAccountRestMapper auxiliaryAccountRestMapper;
 
 
     @PostMapping("/")
@@ -181,6 +184,38 @@ public class AccountCatalogueController {
         } catch (Exception e) {
             return -1;
         }
+    }
+
+    /**
+     * Obtiene todas las cuentas auxiliares (8 dígitos) activas para una empresa específica.
+     * 
+     * @param idEnterprise el ID de la empresa
+     * @return lista de cuentas auxiliares ordenadas por código
+     */
+    @GetMapping("/auxiliary/{idEnterprise}")
+    public ResponseEntity<AuxiliaryAccountListRes> getAuxiliaryAccounts(
+            @PathVariable("idEnterprise") String idEnterprise) {
+        
+        List<AccountCatalogue> auxiliaryAccounts = accountCatalogueSearchInputPort.getAuxiliaryAccounts(idEnterprise);
+        AuxiliaryAccountListRes response = auxiliaryAccountRestMapper.toAuxiliaryAccountListRes(auxiliaryAccounts, idEnterprise);
+        
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Obtiene todas las cuentas auxiliares (8 dígitos) activas que tienen el campo crossing activo para una empresa específica.
+     * 
+     * @param idEnterprise el ID de la empresa
+     * @return lista de cuentas auxiliares con crossing activo ordenadas por código
+     */
+    @GetMapping("/auxiliary/crossing/{idEnterprise}")
+    public ResponseEntity<AuxiliaryAccountListRes> getAuxiliaryAccountsWithCrossing(
+            @PathVariable("idEnterprise") String idEnterprise) {
+        
+        List<AccountCatalogue> auxiliaryAccountsWithCrossing = accountCatalogueSearchInputPort.getAuxiliaryAccountsWithCrossing(idEnterprise);
+        AuxiliaryAccountListRes response = auxiliaryAccountRestMapper.toAuxiliaryAccountListRes(auxiliaryAccountsWithCrossing, idEnterprise);
+        
+        return ResponseEntity.ok(response);
     }
 
 }

@@ -1,5 +1,8 @@
 package com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import com.account_catalogue.catalogue.application.output.IAccountCatalogueSearchOutputPort;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
 import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.entity.AccountCatalogueEntity;
@@ -96,5 +99,35 @@ public class AccountCatalogueSearchJpaAdapter implements IAccountCatalogueSearch
     public AccountCatalogue getAccountCatalogueByDescriptionIgnoreCaseAndIdEnterprise(String description, String idEnterprise) {
         AccountCatalogueEntity accountCatalogue = accountCatalogueRepository.findByDescriptionIgnoreCaseAndIdEnterprise(description, idEnterprise);
         return itemAccountCatalogueSearchMapper.toDomain(accountCatalogue);
+    }
+
+    /**
+     * Obtiene todas las cuentas auxiliares (8 dígitos) activas para una empresa específica.
+     * 
+     * @param idEnterprise el id de la empresa
+     * @return lista de cuentas auxiliares ordenadas por código
+     */
+    @Override
+    public List<AccountCatalogue> getAuxiliaryAccountsByIdEnterprise(String idEnterprise) {
+        List<AccountCatalogueEntity> auxiliaryAccountsEntities = accountCatalogueRepository.findAuxiliaryAccountsByIdEnterprise(idEnterprise);
+        
+        return auxiliaryAccountsEntities.stream()
+                .map(itemAccountCatalogueSearchMapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Obtiene todas las cuentas auxiliares (8 dígitos) activas que tienen el campo crossing activo para una empresa específica.
+     * 
+     * @param idEnterprise el id de la empresa
+     * @return lista de cuentas auxiliares con crossing activo ordenadas por código
+     */
+    @Override
+    public List<AccountCatalogue> getAuxiliaryAccountsWithCrossingByIdEnterprise(String idEnterprise) {
+        List<AccountCatalogueEntity> auxiliaryAccountsWithCrossingEntities = accountCatalogueRepository.findAuxiliaryAccountsWithCrossingByIdEnterprise(idEnterprise);
+        
+        return auxiliaryAccountsWithCrossingEntities.stream()
+                .map(itemAccountCatalogueSearchMapper::toDomain)
+                .collect(Collectors.toList());
     }
 }

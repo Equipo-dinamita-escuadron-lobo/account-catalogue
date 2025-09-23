@@ -1,5 +1,7 @@
 package com.account_catalogue.catalogue.application.services;
 
+import java.util.List;
+
 import com.account_catalogue.catalogue.application.input.IAccountCatalogueSearchInputPort;
 import com.account_catalogue.catalogue.application.output.IAccountCatalogueSearchOutputPort;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
@@ -53,6 +55,38 @@ public class AccountCatalogueSearchService implements IAccountCatalogueSearchInp
     @Override
     public AccountCatalogue getAccountCatalogueById(Long id) {
         return validationService.validateAccountExistsById(id);
+    }
+
+    /**
+     * Obtiene todas las cuentas auxiliares (8 dígitos) activas para una empresa específica.
+     *
+     * @param idEnterprise el ID de la empresa
+     * @return lista de cuentas auxiliares
+     * @throws IllegalArgumentException si el idEnterprise es null o vacío
+     */
+    @Override
+    public List<AccountCatalogue> getAuxiliaryAccounts(String idEnterprise) {
+        if (idEnterprise == null || idEnterprise.trim().isEmpty()) {
+            throw new IllegalArgumentException("El ID de empresa es requerido para buscar cuentas auxiliares");
+        }
+        
+        return accountCatalogueSearchOutputPort.getAuxiliaryAccountsByIdEnterprise(idEnterprise.trim());
+    }
+
+    /**
+     * Obtiene todas las cuentas auxiliares (8 dígitos) activas que tienen el campo crossing activo para una empresa específica.
+     *
+     * @param idEnterprise el ID de la empresa
+     * @return lista de cuentas auxiliares con crossing activo
+     * @throws IllegalArgumentException si el idEnterprise es null o vacío
+     */
+    @Override
+    public List<AccountCatalogue> getAuxiliaryAccountsWithCrossing(String idEnterprise) {
+        if (idEnterprise == null || idEnterprise.trim().isEmpty()) {
+            throw new IllegalArgumentException("El ID de empresa es requerido para buscar cuentas auxiliares con crossing");
+        }
+        
+        return accountCatalogueSearchOutputPort.getAuxiliaryAccountsWithCrossingByIdEnterprise(idEnterprise.trim());
     }
 
 }

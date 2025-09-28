@@ -69,40 +69,39 @@ public class JwtDecoder {
      * @param claimName nombre del claim a extraer
      * @return el valor del claim como string, o null si no se puede extraer
      */
-    public String extractClaim(String jwtToken, String claimName) {
-        try {
-            // Remover el prefijo "Bearer " si existe
-            String token = jwtToken.startsWith("Bearer ") ? jwtToken.substring(7) : jwtToken;
+    // public String extractClaim(String jwtToken, String claimName) {
+    //     try {
+    //         // Remover el prefijo "Bearer " si existe
+    //         String token = jwtToken.startsWith("Bearer ") ? jwtToken.substring(7) : jwtToken;
             
-            // Un JWT tiene 3 partes separadas por puntos: header.payload.signature
-            String[] chunks = token.split("\\.");
+    //         // Un JWT tiene 3 partes separadas por puntos: header.payload.signature
+    //         String[] chunks = token.split("\\.");
             
-            if (chunks.length != 3) {
-                log.error("Token JWT inválido: no tiene el formato correcto");
-                return null;
-            }
+    //         if (chunks.length != 3) {
+    //             log.error("Token JWT inválido: no tiene el formato correcto");
+    //             return null;
+    //         }
             
-            // Decodificar el payload (segunda parte)
-            Base64.Decoder decoder = Base64.getUrlDecoder();
-            String payload = new String(decoder.decode(chunks[1]));
+    //         // Decodificar el payload (segunda parte)
+    //         Base64.Decoder decoder = Base64.getUrlDecoder();
+    //         String payload = new String(decoder.decode(chunks[1]));
             
-            // Parsear el JSON del payload
-            JsonNode jsonNode = objectMapper.readTree(payload);
+    //         // Parsear el JSON del payload
+    //         JsonNode jsonNode = objectMapper.readTree(payload);
             
-            // Extraer el claim solicitado
-            JsonNode claimNode = jsonNode.get(claimName);
-            if (claimNode != null) {
-                String claimValue = claimNode.asText();
-                log.debug("Claim '{}' extraído del JWT: {}", claimName, claimValue);
-                return claimValue;
-            } else {
-                log.warn("No se encontró el claim '{}' en el token JWT", claimName);
-                return null;
-            }
+    //         // Extraer el claim solicitado
+    //         JsonNode claimNode = jsonNode.get(claimName);
+    //         if (claimNode != null) {
+    //             log.debug("Claim '{}' extraído del JWT: {}", claimName, claimValue);
+    //             return claimValue;
+    //         } else {
+    //             log.warn("No se encontró el claim '{}' en el token JWT", claimName);
+    //             return null;
+    //         }
             
-        } catch (Exception e) {
-            log.error("Error al extraer el claim '{}' del token JWT: {}", claimName, e.getMessage(), e);
-            return null;
-        }
-    }
+    //     } catch (Exception e) {
+    //         log.error("Error al extraer el claim '{}' del token JWT: {}", claimName, e.getMessage(), e);
+    //         return null;
+    //     }
+    // }
 }

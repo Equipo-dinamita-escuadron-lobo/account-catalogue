@@ -3,6 +3,8 @@ package com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapt
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.entity.AccountingEntryEntity;
 
@@ -10,4 +12,8 @@ public interface IAccountingEntryRepository extends JpaRepository<AccountingEntr
     
     Optional<AccountingEntryEntity> findBySourceDocumentId(Long sourceDocumentId);
 
+    // Para buscar asientos por ID. Aunque JpaRepository ya tiene findById,
+    // este podría incluir un JOIN FETCH si queremos cargar los movimientos de una vez.
+    @Query("SELECT ae FROM AccountingEntryEntity ae JOIN FETCH ae.movements WHERE ae.id = :id")
+    Optional<AccountingEntryEntity> findByIdWithMovements(@Param("id") Long id);
 }

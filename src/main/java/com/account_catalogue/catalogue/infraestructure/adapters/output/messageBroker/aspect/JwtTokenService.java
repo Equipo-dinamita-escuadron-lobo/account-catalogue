@@ -18,6 +18,8 @@ public class JwtTokenService {
     @Autowired
     private IJwtUtils jwtUtils;
 
+    
+
     // ThreadLocal para tokens de RabbitMQ
     private static final ThreadLocal<String> rabbitJwtToken = new ThreadLocal<>();
     private static final ThreadLocal<String> rabbitTenantId = new ThreadLocal<>();

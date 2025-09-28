@@ -25,7 +25,7 @@ public class AccountingMovementEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(name = "account_id",nullable = false)
     private Long account; // ID de la cuenta en AccountCatalogueEntity
 
     @Column(nullable = false)

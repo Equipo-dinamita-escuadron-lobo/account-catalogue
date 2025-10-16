@@ -12,7 +12,7 @@ import java.util.List;
 public interface ITaxRepository extends JpaRepository<TaxEntity, Long> {
 
     /**
-     * Encuentra un TaxEntity por código y id de empresa (solo activos, no eliminados).
+     * Encuentra un TaxEntity por código y id de empresa 
      * 
      * @param code         el código del impuesto.
      * @param idEnterprise el id de la empresa.
@@ -23,38 +23,23 @@ public interface ITaxRepository extends JpaRepository<TaxEntity, Long> {
     TaxEntity findByCode(String code, String idEnterprise);
 
     /**
-     * Encuentra un TaxEntity por ID (solo activos, no eliminados).
+     * Encuentra un TaxEntity por ID 
      * 
      * @param id el ID del impuesto.
      * @return el TaxEntity con el ID dado. Si no se encuentra, se devuelve null.
      */
-    @Query("SELECT a FROM TaxEntity a WHERE a.id=?1")
+    @Query("SELECT a FROM TaxEntity a WHERE a.id=?1 AND a.status = true")
     TaxEntity findByIdActive(Long id);
 
     /**
-     * Encuentra un TaxEntity por ID y empresa (solo activos, no eliminados).
-     * Este método es más eficiente para operaciones que requieren validar empresa.
+     * Encuentra un TaxEntity por ID y empresa
      * 
      * @param id el ID del impuesto.
      * @param idEnterprise el ID de la empresa.
      * @return el TaxEntity con el ID y empresa dados. Si no se encuentra, se devuelve null.
      */
-    @Query("SELECT a FROM TaxEntity a WHERE a.id=?1 AND a.idEnterprise=?2")
+    @Query("SELECT a FROM TaxEntity a WHERE a.id=?1 AND a.idEnterprise=?2 AND a.status = true")
     TaxEntity findByIdAndEnterpriseActive(Long id, String idEnterprise);
-
-
-    boolean existsByCode(String code);
-
-    void deleteByCode(String code) ;
-
-    /**
-     * Encuentra todos los impuestos de una empresa (solo activos, no eliminados).
-     * 
-     * @param idEnterprise el ID de la empresa.
-     * @return lista de impuestos activos de la empresa.
-     */
-    @Query("SELECT a FROM TaxEntity a WHERE a.idEnterprise=?1")
-    List<TaxEntity> findAllByIdEnterprise(String idEnterprise);
 
     /**
      * Encuentra todos los impuestos activos de una empresa.

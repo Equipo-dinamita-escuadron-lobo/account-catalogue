@@ -12,9 +12,7 @@ import org.hibernate.annotations.TenantId;
     indexes = {
         @Index(name = "idx_bank_account_id_enterprise", columnList = "id_enterprise"),
         @Index(name = "idx_bank_account_account_number", columnList = "account_number"),
-        @Index(name = "idx_bank_account_bank_id", columnList = "bank_id"),
-        @Index(name = "idx_bank_account_is_deleted", columnList = "is_deleted"),
-        @Index(name = "idx_bank_account_enterprise_deleted", columnList = "id_enterprise, is_deleted")
+        @Index(name = "idx_bank_account_bank_id", columnList = "bank_id")
     }
 )
 @Getter
@@ -45,10 +43,6 @@ public class BankAccountEntity {
     @Column(name = "status", nullable = false)
     @Builder.Default
     private Boolean status = true;
-
-    @Column(name = "is_deleted", nullable = false)
-    @Builder.Default
-    private Boolean isDeleted = false;
 
     @Column(name = "id_enterprise", nullable = false)
     private String idEnterprise;

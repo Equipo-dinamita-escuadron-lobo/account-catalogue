@@ -16,7 +16,5 @@ public class BankAccountRes {
     private AccountType accountType;
     private String cuentaContable;
     private Boolean status;
-    @Builder.Default
-    private Boolean isDeleted = false;
     private String idEnterprise;
 }

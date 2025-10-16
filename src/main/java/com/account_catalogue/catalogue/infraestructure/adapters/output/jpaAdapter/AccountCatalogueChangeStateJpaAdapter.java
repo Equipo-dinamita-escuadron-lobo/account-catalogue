@@ -32,12 +32,17 @@ public class AccountCatalogueChangeStateJpaAdapter implements IAccountCatalogueC
             return null;
         }
 
-        // Cambiar el estado de la cuenta padre
+        // Cambiar el estado de la cuenta
         accountCatalogueEntity.setStatus(status);
         accountCatalogueEntity = accountCatalogueRepository.save(accountCatalogueEntity);
 
-        // Actualizar recursivamente el estado de todos los hijos
-        updateChildrenStatusRecursively(accountCatalogueEntity, status);
+        if (status) {
+            // Si se está activando, activar toda la jerarquía de padres
+            activateParentHierarchy(accountCatalogueEntity);
+        } else {
+            // Si se está inactivando, inactivar todos los hijos recursivamente
+            updateChildrenStatusRecursively(accountCatalogueEntity, status);
+        }
 
         return accountCatalogueUpdateMapper.toAccountCatalogue(accountCatalogueEntity);
     }
@@ -62,6 +67,26 @@ public class AccountCatalogueChangeStateJpaAdapter implements IAccountCatalogueC
 
                 // Actualizar recursivamente los hijos de este hijo
                 updateChildrenStatusRecursively(child, status);
+            }
+        }
+    }
+
+    /**
+     * Activa recursivamente toda la jerarquía de padres de una cuenta.
+     *
+     * @param child la cuenta hija desde donde se inicia la activación ascendente
+     */
+    private void activateParentHierarchy(AccountCatalogueEntity child) {
+        if (child.getParent() != null) {
+            AccountCatalogueEntity parent = child.getParent();
+
+            // Si el padre no está activo, activarlo
+            if (!parent.getStatus()) {
+                parent.setStatus(true);
+                accountCatalogueRepository.save(parent);
+
+                // Continuar activando recursivamente hacia arriba
+                activateParentHierarchy(parent);
             }
         }
     }

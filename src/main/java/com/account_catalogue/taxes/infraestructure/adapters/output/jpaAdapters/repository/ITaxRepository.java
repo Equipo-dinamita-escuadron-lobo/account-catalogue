@@ -17,7 +17,7 @@ public interface ITaxRepository extends JpaRepository<TaxEntity, Long> {
      * @return el TaxEntity con el código y id de empresa dados. Si no se
      *         encuentra, se devuelve null.
      */
-    @Query("SELECT a FROM TaxEntity a WHERE a.code=?1 AND a.idEnterprise=?2 AND a.isDeleted=false")
+    @Query("SELECT a FROM TaxEntity a WHERE a.code=?1 AND a.idEnterprise=?2")
     TaxEntity findByCode(String code, String idEnterprise);
 
     /**
@@ -26,7 +26,7 @@ public interface ITaxRepository extends JpaRepository<TaxEntity, Long> {
      * @param id el ID del impuesto.
      * @return el TaxEntity con el ID dado. Si no se encuentra, se devuelve null.
      */
-    @Query("SELECT a FROM TaxEntity a WHERE a.id=?1 AND a.isDeleted=false")
+    @Query("SELECT a FROM TaxEntity a WHERE a.id=?1")
     TaxEntity findByIdActive(Long id);
 
     /**
@@ -37,7 +37,7 @@ public interface ITaxRepository extends JpaRepository<TaxEntity, Long> {
      * @param idEnterprise el ID de la empresa.
      * @return el TaxEntity con el ID y empresa dados. Si no se encuentra, se devuelve null.
      */
-    @Query("SELECT a FROM TaxEntity a WHERE a.id=?1 AND a.idEnterprise=?2 AND a.isDeleted=false")
+    @Query("SELECT a FROM TaxEntity a WHERE a.id=?1 AND a.idEnterprise=?2")
     TaxEntity findByIdAndEnterpriseActive(Long id, String idEnterprise);
 
 
@@ -51,7 +51,7 @@ public interface ITaxRepository extends JpaRepository<TaxEntity, Long> {
      * @param idEnterprise el ID de la empresa.
      * @return lista de impuestos activos de la empresa.
      */
-    @Query("SELECT a FROM TaxEntity a WHERE a.idEnterprise=?1 AND a.isDeleted=false")
+    @Query("SELECT a FROM TaxEntity a WHERE a.idEnterprise=?1")
     List<TaxEntity> findAllByIdEnterprise(String idEnterprise);
 
     /**
@@ -61,6 +61,6 @@ public interface ITaxRepository extends JpaRepository<TaxEntity, Long> {
      * @param idEnterprise ID de la empresa
      * @return true si existe, false si no
      */
-    @Query("SELECT COUNT(a) > 0 FROM TaxEntity a WHERE a.code=?1 AND a.idEnterprise=?2 AND a.isDeleted=false")
+    @Query("SELECT COUNT(a) > 0 FROM TaxEntity a WHERE a.code=?1 AND a.idEnterprise=?2")
     boolean existsByCodeAndIdEnterprise(String code, String idEnterprise);
 }

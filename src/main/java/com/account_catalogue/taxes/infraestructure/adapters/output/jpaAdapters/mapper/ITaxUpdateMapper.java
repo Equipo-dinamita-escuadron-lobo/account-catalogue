@@ -29,7 +29,6 @@ public interface ITaxUpdateMapper {
                 .depositAccount(tax.getDepositAccount())
                 .refundAccount(tax.getRefundAccount())
                 .status(tax.getStatus() != null ? tax.getStatus() : true)
-                .isDeleted(tax.getIsDeleted() != null ? tax.getIsDeleted() : false)
                 .build();
     }
     /**
@@ -52,7 +51,6 @@ public interface ITaxUpdateMapper {
                 .refundAccount(taxEntity.getRefundAccount())
                 .depositAccount(taxEntity.getDepositAccount())
                 .status(taxEntity.getStatus())
-                .isDeleted(taxEntity.getIsDeleted())
                 .build();
     }
 }

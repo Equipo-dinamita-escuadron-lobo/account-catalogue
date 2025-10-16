@@ -18,5 +18,4 @@ public class Tax {
     private AccountCatalogueEntity depositAccount;
     private  AccountCatalogueEntity refundAccount;
     private Boolean status;
-    private Boolean isDeleted;
 }

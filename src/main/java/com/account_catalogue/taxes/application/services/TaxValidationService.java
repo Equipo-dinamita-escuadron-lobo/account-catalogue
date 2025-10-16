@@ -79,7 +79,7 @@ public class TaxValidationService {
         Tax tax = taxSearchOutputPort.getTax(code, idEnterprise);
         if (tax == null) {
             throw new TaxNotFoundException(
-                "No se encontró un impuesto con código '" + code + "' para la empresa '" + idEnterprise + "'"
+                "No se encontró un impuesto con código '" + code + "'"
             );
         }
     }
@@ -96,7 +96,7 @@ public class TaxValidationService {
         Tax tax = taxSearchOutputPort.getTaxByIdAndEnterprise(id, idEnterprise);
         if (tax == null) {
             throw new TaxNotFoundException(
-                "No se encontró un impuesto con ID '" + id + "' para la empresa '" + idEnterprise + "'"
+                "No se encontró un impuesto con ID '" + id + "'"
             );
         }
     }

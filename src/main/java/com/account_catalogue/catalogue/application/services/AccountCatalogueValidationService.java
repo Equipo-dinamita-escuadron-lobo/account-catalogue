@@ -106,7 +106,7 @@ public class AccountCatalogueValidationService {
         AccountCatalogue account = accountCatalogueSearchOutputPort.getAccountCatalogueByCode(code, idEnterprise);
         if (account == null) {
             throw new AccountCatalogueNotFoundException(
-                "No se encontró una cuenta con el código '" + code + "' para la empresa '" + idEnterprise + "'"
+                "No se encontró una cuenta con el código '" + code + "'"
             );
         }
         return account;
@@ -124,7 +124,7 @@ public class AccountCatalogueValidationService {
         AccountCatalogue account = accountCatalogueSearchOutputPort.getAccountCatalogueByIdAndIdEnterprise(id, idEnterprise);
         if (account == null) {
             throw new AccountCatalogueNotFoundException(
-                "No se encontró una cuenta con el ID '" + id + "' para la empresa '" + idEnterprise + "'"
+                "No se encontró una cuenta con el ID '" + id + "'"
             );
         }
         return account;

@@ -36,7 +36,7 @@ public class AccountCatalogueDeleteService implements IAccountCatalogueDeleteInp
         // Validar que la cuenta existe
         if (accountTreeToDelete == null) {
             throw new AccountCatalogueNotFoundException(
-                "No se encontró una cuenta con el ID '" + id + "' para la empresa '" + idEnterprise + "'"
+                "No se encontró una cuenta con el ID '" + id + "'"
             );
         }
         

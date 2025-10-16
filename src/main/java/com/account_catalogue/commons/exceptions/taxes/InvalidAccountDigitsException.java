@@ -4,6 +4,10 @@ import com.account_catalogue.commons.exceptions.BaseBusinessException;
 
 public class InvalidAccountDigitsException extends BaseBusinessException {
 
+    public InvalidAccountDigitsException() {
+        super(TaxesErrorCode.INVALID_ACCOUNT_DIGITS);
+    }
+
     public InvalidAccountDigitsException(String message) {
         super(TaxesErrorCode.INVALID_ACCOUNT_DIGITS, message);
     }

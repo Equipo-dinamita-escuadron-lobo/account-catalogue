@@ -4,6 +4,10 @@ import com.account_catalogue.commons.exceptions.BaseBusinessException;
 
 public class InvalidDepositAccountException extends BaseBusinessException {
 
+    public InvalidDepositAccountException() {
+        super(TaxesErrorCode.INVALID_DEPOSIT_ACCOUNT);
+    }
+
     public InvalidDepositAccountException(String message) {
         super(TaxesErrorCode.INVALID_DEPOSIT_ACCOUNT, message);
     }

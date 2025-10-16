@@ -1,10 +1,5 @@
 package com.account_catalogue.taxes.infraestructure.adapters.input.rest;
 
-import com.account_catalogue.commons.exceptions.taxes.InvalidAccountDigitsException;
-import com.account_catalogue.commons.exceptions.taxes.InvalidDepositAccountException;
-import com.account_catalogue.commons.exceptions.taxes.InvalidRefundAccountException;
-import com.account_catalogue.commons.exceptions.taxes.TaxAlreadyExistsException;
-import com.account_catalogue.commons.exceptions.taxes.TaxNotFoundException;
 import com.account_catalogue.taxes.application.input.ITaxChangeStateInputPort;
 import com.account_catalogue.taxes.application.input.ITaxCreateInputPort;
 import com.account_catalogue.taxes.application.input.ITaxDeleteInputPort;
@@ -47,71 +42,36 @@ public class TaxController {
 
     @PostMapping("/")
     ResponseEntity<?> createTax(@RequestBody TaxCreateReq taxCreateReq) {
-        try {
-            TaxDTO taxDTO = taxCreateRestMapper.toDomain(taxCreateReq);
-            Tax tax = taxCreateInputPort.createTax(taxDTO);
-            return ResponseEntity.ok(taxCreateRestMapper.toCreateResponse(tax));
-
-        } catch (IllegalArgumentException | TaxAlreadyExistsException | InvalidDepositAccountException | InvalidRefundAccountException | InvalidAccountDigitsException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        TaxDTO taxDTO = taxCreateRestMapper.toDomain(taxCreateReq);
+        Tax tax = taxCreateInputPort.createTax(taxDTO);
+        return ResponseEntity.ok(taxCreateRestMapper.toCreateResponse(tax));
     }
 
     @GetMapping("/{code}/{idEnterprise}")
     ResponseEntity<?> getTax(@PathVariable("code") String code, @PathVariable String idEnterprise) {
-        try {
-            Tax tax = taxSearchInputPort.getTax(code, idEnterprise);
-            return ResponseEntity.ok(taxSearchRestMapper.toSearchResponse(tax));
-        } catch (TaxNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error interno del servidor");
-        }
+        Tax tax = taxSearchInputPort.getTax(code, idEnterprise);
+        return ResponseEntity.ok(taxSearchRestMapper.toSearchResponse(tax));
     }
 
     @GetMapping("/taxes/{idEnterprise}")
     ResponseEntity<List<TaxSearchRes>> getTaxes(@PathVariable("idEnterprise") String idEnterprise) {
-        try {
-            List<Tax> taxes = taxSearchInputPort.getTaxes(idEnterprise);
-            return ResponseEntity.ok(taxSearchRestMapper.toSearchListResponse(taxes));
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        }
+        List<Tax> taxes = taxSearchInputPort.getTaxes(idEnterprise);
+        return ResponseEntity.ok(taxSearchRestMapper.toSearchListResponse(taxes));
     }
 
     @PutMapping("/{id}")
     ResponseEntity<?> updateTax(@PathVariable("id") long id, @RequestBody TaxUpdateReq taxUpdateReq) {
-        try {
-            TaxDTO taxDTO = taxUpdateRestMapper.toDomain(taxUpdateReq);
-            Tax tax = taxUpdateInputPort.update(taxDTO, id);
-            return ResponseEntity.ok(taxUpdateRestMapper.toCreateResponse(tax));
-        } catch (IllegalArgumentException | TaxAlreadyExistsException | InvalidDepositAccountException | InvalidRefundAccountException | InvalidAccountDigitsException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        TaxDTO taxDTO = taxUpdateRestMapper.toDomain(taxUpdateReq);
+        Tax tax = taxUpdateInputPort.update(taxDTO, id);
+        return ResponseEntity.ok(taxUpdateRestMapper.toCreateResponse(tax));
     }
 
     @DeleteMapping("/{id}/{enterpriseId}")
     ResponseEntity<?> deleteByCode(@PathVariable("id") long id, @PathVariable("enterpriseId") String enterpriseId) {
-        try {
-            if (taxDeleteInputPort.deleteByCode(id, enterpriseId)) {
-                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-            } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Impuesto no encontrado para la empresa especificada");
-            }
-        } catch (TaxNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Ha ocurrido un error al eliminar el impuesto.");
+        if (taxDeleteInputPort.deleteByCode(id, enterpriseId)) {
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Impuesto no encontrado para la empresa especificada");
         }
     }
 

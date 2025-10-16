@@ -47,7 +47,7 @@ public class AccountCatalogueSearchJpaAdapter implements IAccountCatalogueSearch
 
     /**
      * Obtiene el catálogo de cuentas por ID (solo la cuenta, sin hijas).
-     * NOTA: Este método no filtra por empresa ni por isDeleted. 
+     * NOTA: Este método no filtra por empresa. 
      * Se recomienda usar getAccountCatalogueByIdAndIdEnterprise cuando sea posible.
      * 
      * @param id el ID del catálogo de cuentas
@@ -61,7 +61,7 @@ public class AccountCatalogueSearchJpaAdapter implements IAccountCatalogueSearch
 
     /**
      * Obtiene el catálogo de cuentas por ID y id de empresa (solo la cuenta, sin hijas).
-     * Filtra por empresa y por registros no eliminados.
+     * 
      * 
      * @param id           el ID del catálogo de cuentas
      * @param idEnterprise el id de la empresa
@@ -76,7 +76,7 @@ public class AccountCatalogueSearchJpaAdapter implements IAccountCatalogueSearch
     /**
      * Obtiene el árbol completo del catálogo de cuentas por ID y id de empresa.
      * Incluye todas las cuentas hijas en la jerarquía.
-     * Filtra por empresa y por registros no eliminados.
+     * 
      * 
      * @param id           el ID del catálogo de cuentas
      * @param idEnterprise el id de la empresa

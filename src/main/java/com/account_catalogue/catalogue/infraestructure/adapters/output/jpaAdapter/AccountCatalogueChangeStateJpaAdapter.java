@@ -51,20 +51,17 @@ public class AccountCatalogueChangeStateJpaAdapter implements IAccountCatalogueC
     private void updateChildrenStatusRecursively(AccountCatalogueEntity parent, Boolean status) {
         if (parent.getChildren() != null && !parent.getChildren().isEmpty()) {
             for (AccountCatalogueEntity child : parent.getChildren()) {
-                // Solo actualizar si el hijo no está eliminado
-                if (child.getIsDeleted() == null || !child.getIsDeleted()) {
-                    // Asegurarse de que los hijos del hijo estén cargados
-                    if (child.getChildren() == null) {
-                        child = accountCatalogueRepository.findByIdWithChildren(child.getId());
-                        if (child == null) continue;
-                    }
-
-                    child.setStatus(status);
-                    accountCatalogueRepository.save(child);
-
-                    // Actualizar recursivamente los hijos de este hijo
-                    updateChildrenStatusRecursively(child, status);
+                // Asegurarse de que los hijos del hijo estén cargados
+                if (child.getChildren() == null) {
+                    child = accountCatalogueRepository.findByIdWithChildren(child.getId());
+                    if (child == null) continue;
                 }
+
+                child.setStatus(status);
+                accountCatalogueRepository.save(child);
+
+                // Actualizar recursivamente los hijos de este hijo
+                updateChildrenStatusRecursively(child, status);
             }
         }
     }

@@ -35,5 +35,4 @@ public class AccountCatalogue {
     private Boolean crossing;
     private Boolean costCenter;
     private Boolean status;
-    private Boolean isDeleted;
 }

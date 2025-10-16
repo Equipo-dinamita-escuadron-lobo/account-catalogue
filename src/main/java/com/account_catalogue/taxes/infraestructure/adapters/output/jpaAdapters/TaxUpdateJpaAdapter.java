@@ -63,12 +63,8 @@ public class TaxUpdateJpaAdapter implements ITaxUpdateOutputPort {
         }
 
         if (!taxEntity.getCode().equals(taxDTO.getCode())) {
-            if (taxRepository.existsByCode(taxDTO.getCode())) {
-                throw new TaxAlreadyExistsException("El impuesto con ese código ya existe.");
-            } else {
-                taxEntity.setCode(taxDTO.getCode());
-            }
-
+            taxValidationService.validateTaxCodeNotExists(taxDTO.getCode(), taxDTO.getIdEnterprise());
+            taxEntity.setCode(taxDTO.getCode());
         }
 
         taxEntity.setDescription(taxDTO.getDescription());

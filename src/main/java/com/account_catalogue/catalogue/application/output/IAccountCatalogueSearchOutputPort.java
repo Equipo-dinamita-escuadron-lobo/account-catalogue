@@ -10,7 +10,7 @@ public interface IAccountCatalogueSearchOutputPort {
 
     AccountCatalogue getAccountCatalogueTreeByCode(String code, String idEnterprise);
 
-    AccountCatalogue getAccountCatalogueById(Long id);
+    AccountCatalogue getAccountCatalogueById(Long id, String idEnterprise);
 
     AccountCatalogue getAccountCatalogueByIdAndIdEnterprise(Long id, String idEnterprise);
 

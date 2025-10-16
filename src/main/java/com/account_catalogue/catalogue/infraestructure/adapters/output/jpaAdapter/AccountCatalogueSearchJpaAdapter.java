@@ -46,24 +46,23 @@ public class AccountCatalogueSearchJpaAdapter implements IAccountCatalogueSearch
     }
 
     /**
-     * Obtiene el catálogo de cuentas por ID (solo la cuenta, sin hijas).
-     * NOTA: Este método no filtra por empresa. 
-     * Se recomienda usar getAccountCatalogueByIdAndIdEnterprise cuando sea posible.
+     * Obtiene el catálogo de cuentas por ID y id de empresa (solo la cuenta, sin hijas).
      * 
      * @param id el ID del catálogo de cuentas
+     * @param idEnterprise el id de la empresa
      * @return el catálogo de cuentas si existe, null en caso contrario
      */
     @Override
-    public AccountCatalogue getAccountCatalogueById(Long id) {
-        AccountCatalogueEntity accountCatalogue = accountCatalogueRepository.findById(id.longValue());
+    public AccountCatalogue getAccountCatalogueById(Long id, String idEnterprise) {
+        AccountCatalogueEntity accountCatalogue = accountCatalogueRepository.findByIdAndIdEnterprise(id, idEnterprise);
         return itemAccountCatalogueSearchMapper.toDomain(accountCatalogue);
     }
 
     /**
      * Obtiene el catálogo de cuentas por ID y id de empresa (solo la cuenta, sin hijas).
+     * Filtra por empresa.
      * 
-     * 
-     * @param id           el ID del catálogo de cuentas
+     * @param id el ID del catálogo de cuentas
      * @param idEnterprise el id de la empresa
      * @return el catálogo de cuentas si existe, null en caso contrario
      */

@@ -70,7 +70,7 @@ public class AccountCatalogueController {
             @RequestBody AccountCatalogueCreateReq accountCatalogueCreateReq) {
         AccountCatalogue padre = null;
         if (accountCatalogueCreateReq.getParent() != null) {
-            padre = accountCatalogueSearchInputPort.getAccountCatalogueById(accountCatalogueCreateReq.getParent());
+            padre = accountCatalogueSearchInputPort.getAccountCatalogueById(accountCatalogueCreateReq.getParent(), accountCatalogueCreateReq.getIdEnterprise());
         }
         AccountCatalogue account = accountCreateRestMapper.toDomain(accountCatalogueCreateReq, padre);
         account = accountCatalogueCreateInputPort.createAccountCatalogue(account);

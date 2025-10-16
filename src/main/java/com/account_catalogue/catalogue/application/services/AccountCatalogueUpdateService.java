@@ -25,7 +25,7 @@ public class AccountCatalogueUpdateService implements IAccountCatalogueUpdateInp
     @Override
     public AccountCatalogue updateAccountCatalogue(long id, AccountCatalogue accountCatalogue) {
         // Validar que la cuenta a actualizar existe
-        AccountCatalogue existingAccount = validationService.validateAccountExistsById(id);
+        AccountCatalogue existingAccount = validationService.validateAccountExistsByIdAndEnterprise(id, accountCatalogue.getIdEnterprise());
         
         // Verificar que el idEnterprise esté establecido
         if (accountCatalogue.getIdEnterprise() == null || accountCatalogue.getIdEnterprise().trim().isEmpty()) {
@@ -72,7 +72,7 @@ public class AccountCatalogueUpdateService implements IAccountCatalogueUpdateInp
         
         // Si tiene padre, validar que el padre existe
         if (accountCatalogue.getParent() != null && accountCatalogue.getParent().getId() != null) {
-            validationService.validateAccountExistsById(accountCatalogue.getParent().getId());
+            validationService.validateAccountExistsByIdAndEnterprise(accountCatalogue.getParent().getId(), accountCatalogue.getIdEnterprise());
         }
         
         // Validar que crossing y costCenter solo se puedan establecer en cuentas auxiliares (8 dígitos)

@@ -113,23 +113,6 @@ public class AccountCatalogueValidationService {
     }
     
     /**
-     * Valida que la cuenta existe en el sistema por ID.
-     * 
-     * @param id el ID de la cuenta
-     * @return la cuenta encontrada
-     * @throws AccountCatalogueNotFoundException si la cuenta no existe
-     */
-    public AccountCatalogue validateAccountExistsById(Long id) {
-        AccountCatalogue account = accountCatalogueSearchOutputPort.getAccountCatalogueById(id);
-        if (account == null) {
-            throw new AccountCatalogueNotFoundException(
-                "No se encontró una cuenta con el ID '" + id + "'"
-            );
-        }
-        return account;
-    }
-
-    /**
      * Valida que la cuenta existe en el sistema por ID y empresa.
      * 
      * @param id el ID de la cuenta

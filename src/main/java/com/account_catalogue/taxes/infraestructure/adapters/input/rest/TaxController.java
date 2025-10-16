@@ -20,11 +20,16 @@ import jakarta.validation.Valid;
 
 import lombok.AllArgsConstructor;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.account_catalogue.commons.utils.PaginationHelper;
+
 import java.util.List;
+import java.util.Optional;
 
 @RequestMapping("/api/tax")
 @RestController
@@ -40,6 +45,7 @@ public class TaxController {
     private final ITaxDeleteInputPort taxDeleteInputPort;
     private final ITaxChangeStateInputPort taxChangeStateInputPort;
     private final ITaxChangeStateRestMapper taxChangeStateRestMapper;
+    private final PaginationHelper paginationHelper;
 
     @PostMapping("/")
     ResponseEntity<?> createTax(@RequestBody @Valid TaxCreateReq taxCreateReq) {
@@ -55,9 +61,30 @@ public class TaxController {
     }
 
     @GetMapping("/taxes/{idEnterprise}")
-    ResponseEntity<List<TaxSearchRes>> getTaxes(@PathVariable String idEnterprise) {
-        List<Tax> taxes = taxSearchInputPort.getTaxes(idEnterprise);
-        return ResponseEntity.ok(taxSearchRestMapper.toSearchListResponse(taxes));
+    public ResponseEntity<Page<TaxSearchRes>> getTaxesPaginated(
+            @PathVariable String idEnterprise,
+            @RequestParam(required = false) Optional<Integer> page,
+            @RequestParam(required = false) Optional<Integer> size,
+            @RequestParam(defaultValue = "description") String sortField,
+            @RequestParam(defaultValue = "asc") String sortOrder,
+            @RequestParam(required = false) String search) {
+
+        // Contar total de registros (con o sin filtro)
+        long totalRecords = (search != null && !search.trim().isEmpty()) 
+            ? taxSearchInputPort.countTaxesByEnterpriseAndDescription(idEnterprise, search)
+            : taxSearchInputPort.countTaxesByEnterprise(idEnterprise);
+
+        // Crear Pageable flexible
+        Pageable pageable = paginationHelper.createFlexiblePageable(page, size, totalRecords);
+
+        // Obtener página de datos (con o sin filtro)
+        Page<Tax> pageResult = (search != null && !search.trim().isEmpty())
+            ? taxSearchInputPort.getTaxesByDescriptionPaginated(idEnterprise, search, pageable.getPageNumber(),
+                    pageable.getPageSize(), sortField, sortOrder)
+            : taxSearchInputPort.getTaxesPaginated(idEnterprise, pageable.getPageNumber(),
+                    pageable.getPageSize(), sortField, sortOrder);
+        
+        return ResponseEntity.ok(pageResult.map(taxSearchRestMapper::toSearchResponse));
     }
 
     @GetMapping("/active/{idEnterprise}")

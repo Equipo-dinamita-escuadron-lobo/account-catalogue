@@ -2,6 +2,8 @@ package com.account_catalogue.taxes.infraestructure.adapters.output.jpaAdapters.
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import com.account_catalogue.taxes.infraestructure.adapters.output.jpaAdapters.entity.TaxEntity;
 
@@ -64,12 +66,42 @@ public interface ITaxRepository extends JpaRepository<TaxEntity, Long> {
     List<TaxEntity> findActiveByIdEnterprise(String idEnterprise);
 
     /**
-     * Verifica si existe un impuesto con el código e idEnterprise especificados (solo activos).
+     * Encuentra todos los impuestos de una empresa con paginación.
      * 
-     * @param code código del impuesto
-     * @param idEnterprise ID de la empresa
-     * @return true si existe, false si no
+     * @param idEnterprise el ID de la empresa.
+     * @param pageable configuración de paginación.
+     * @return página de impuestos de la empresa.
      */
-    @Query("SELECT COUNT(a) > 0 FROM TaxEntity a WHERE a.code=?1 AND a.idEnterprise=?2")
-    boolean existsByCodeAndIdEnterprise(String code, String idEnterprise);
+    @Query("SELECT a FROM TaxEntity a WHERE a.idEnterprise=?1")
+    Page<TaxEntity> findAllByIdEnterprise(String idEnterprise, Pageable pageable);
+
+    /**
+     * Cuenta el total de impuestos por empresa.
+     * 
+     * @param idEnterprise el ID de la empresa.
+     * @return número total de impuestos.
+     */
+    @Query("SELECT COUNT(a) FROM TaxEntity a WHERE a.idEnterprise=?1")
+    long countByIdEnterprise(String idEnterprise);
+
+    /**
+     * Busca impuestos por empresa y descripción (búsqueda parcial case-insensitive).
+     * 
+     * @param idEnterprise el ID de la empresa.
+     * @param description término de búsqueda.
+     * @param pageable configuración de paginación.
+     * @return página de impuestos que coinciden con la búsqueda.
+     */
+    @Query("SELECT a FROM TaxEntity a WHERE a.idEnterprise=?1 AND LOWER(a.description) LIKE LOWER(CONCAT('%', ?2, '%'))")
+    Page<TaxEntity> findByIdEnterpriseAndDescriptionContainingIgnoreCase(String idEnterprise, String description, Pageable pageable);
+
+    /**
+     * Cuenta impuestos por empresa y descripción (búsqueda parcial case-insensitive).
+     * 
+     * @param idEnterprise el ID de la empresa.
+     * @param description término de búsqueda.
+     * @return número total de impuestos que coinciden con la búsqueda.
+     */
+    @Query("SELECT COUNT(a) FROM TaxEntity a WHERE a.idEnterprise=?1 AND LOWER(a.description) LIKE LOWER(CONCAT('%', ?2, '%'))")
+    long countByIdEnterpriseAndDescriptionContainingIgnoreCase(String idEnterprise, String description);
 }

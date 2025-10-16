@@ -19,7 +19,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.context.ActiveProfiles;
 
 
-import java.util.Collections;
 import java.util.List;
 
 
@@ -86,43 +85,6 @@ public class TaxSearchServiceTest {
     }
 
 
-    @DisplayName("Test para listar impuestos")
-    @Test
-    void testGetTaxes(){
-       Tax tax2 = Tax.builder()
-                .id(2L)
-               .idEnterprise("1")
-                .code("1234")
-                .description("iva")
-               .interest(2.7)
-                .refundAccount(account1)
-                .depositAccount(account2)
-                .build();
-
-        //given
-        given(taxSearchOutputPort.getTaxes("1")).willReturn(List.of(tax,tax2));
-        //when
-        List<Tax> taxes=taxSearchService.getTaxes("1");
-
-        //then
-        assertThat(taxes).isNotNull();
-        assertThat(taxes.size()).isEqualTo(2);
-
-    }
-    @DisplayName("Test prar retornar una lista vacia de impuestos")
-    @Test
-    void testGetTaxesEmpty(){
-        //given
-        given(taxSearchOutputPort.getTaxes("2")).willReturn(Collections.emptyList());
-
-
-        //when
-        List<Tax> taxes=taxSearchService.getTaxes("2");
-
-        //then
-        assertThat(taxes).isEmpty();
-
-    }
     @DisplayName("Test para obtener un impuesto por el codigo")
     @Test
     void testGetTax(){

@@ -16,9 +16,7 @@ import com.account_catalogue.taxes.infraestructure.adapters.input.rest.mapper.IT
 import com.account_catalogue.taxes.infraestructure.adapters.input.rest.mapper.ITaxSearchRestMapper;
 import com.account_catalogue.taxes.infraestructure.adapters.input.rest.mapper.ITaxUpdateRestMapper;
 
-
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 
 import lombok.AllArgsConstructor;
 
@@ -74,7 +72,8 @@ public class TaxController {
         if (taxDeleteInputPort.deleteByCode(id, enterpriseId)) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Impuesto no encontrado para la empresa especificada");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("Impuesto no encontrado para la empresa especificada");
         }
     }
 
@@ -82,8 +81,8 @@ public class TaxController {
     ResponseEntity<TaxChangeStateRes> changeState(
             @PathVariable Long id,
             @PathVariable String enterpriseId,
-            @RequestParam @NotNull(message = "El parámetro 'status' es requerido") Boolean status) {
-        
+            @RequestParam Boolean status) {
+
         Tax updatedTax = taxChangeStateInputPort.changeState(id, enterpriseId, status);
         TaxChangeStateRes response = taxChangeStateRestMapper.toChangeStateResponse(updatedTax);
         return ResponseEntity.ok(response);

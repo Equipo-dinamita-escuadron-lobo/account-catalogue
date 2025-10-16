@@ -4,9 +4,8 @@ import org.springframework.stereotype.Service;
 
 import com.account_catalogue.catalogue.application.output.IAccountCatalogueSearchOutputPort;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
+import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueNotFoundException;
 import com.account_catalogue.commons.exceptions.taxes.InvalidAccountDigitsException;
-import com.account_catalogue.commons.exceptions.taxes.InvalidDepositAccountException;
-import com.account_catalogue.commons.exceptions.taxes.InvalidRefundAccountException;
 import com.account_catalogue.commons.exceptions.taxes.TaxAlreadyExistsException;
 import com.account_catalogue.commons.exceptions.taxes.TaxNotFoundException;
 import com.account_catalogue.taxes.application.output.ITaxSearchOutputPort;
@@ -27,15 +26,14 @@ public class TaxValidationService {
      * @param depositAccountId ID de cuenta de depósito
      * @param refundAccountId ID de cuenta de devolución
      * @param idEnterprise ID de la empresa
-     * @throws InvalidDepositAccountException si la cuenta de depósito no existe
-     * @throws InvalidRefundAccountException si la cuenta de devolución no existe
+     * @throws AccountCatalogueNotFoundException si la cuenta de depósito o devolución no existe
      * @throws InvalidAccountDigitsException si alguna cuenta no tiene 8 dígitos
      */
     public void validateAccountDigits(Long depositAccountId, Long refundAccountId, String idEnterprise) {
         if (depositAccountId != null) {
             AccountCatalogue depositAccount = accountCatalogueSearchOutputPort.getAccountCatalogueByIdAndIdEnterprise(depositAccountId, idEnterprise);
             if (depositAccount == null) {
-                throw new InvalidDepositAccountException();
+                throw new AccountCatalogueNotFoundException("La cuenta con ID '" + depositAccountId + "' no existe");
             }
             if (depositAccount.getCode() == null || depositAccount.getCode().trim().length() != 8) {
                 throw new InvalidAccountDigitsException();
@@ -45,7 +43,7 @@ public class TaxValidationService {
         if (refundAccountId != null) {
             AccountCatalogue refundAccount = accountCatalogueSearchOutputPort.getAccountCatalogueByIdAndIdEnterprise(refundAccountId, idEnterprise);
             if (refundAccount == null) {
-                throw new InvalidRefundAccountException();
+                throw new AccountCatalogueNotFoundException("La cuenta con ID '" + refundAccountId + "' no existe");
             }
             if (refundAccount.getCode() == null || refundAccount.getCode().trim().length() != 8) {
                 throw new InvalidAccountDigitsException();

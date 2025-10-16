@@ -1,6 +1,7 @@
 package com.account_catalogue.taxes.infraestructure.adapters.output.jpaAdapters.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -31,7 +32,10 @@ public class TaxEntity {
     private String code;
 
     private String description;
-    private float interest;
+    
+    @Positive
+    @Column(nullable = false)
+    private Float interest;
 
     @ManyToOne
     @JoinColumn(name="depositAccount_code")

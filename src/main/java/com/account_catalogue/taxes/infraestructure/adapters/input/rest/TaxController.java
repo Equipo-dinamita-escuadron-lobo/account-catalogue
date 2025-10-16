@@ -17,6 +17,9 @@ import com.account_catalogue.taxes.infraestructure.adapters.input.rest.mapper.IT
 import com.account_catalogue.taxes.infraestructure.adapters.input.rest.mapper.ITaxUpdateRestMapper;
 
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+
 import lombok.AllArgsConstructor;
 
 import org.springframework.http.HttpStatus;
@@ -41,7 +44,7 @@ public class TaxController {
     private final ITaxChangeStateRestMapper taxChangeStateRestMapper;
 
     @PostMapping("/")
-    ResponseEntity<?> createTax(@RequestBody TaxCreateReq taxCreateReq) {
+    ResponseEntity<?> createTax(@RequestBody @Valid TaxCreateReq taxCreateReq) {
         TaxDTO taxDTO = taxCreateRestMapper.toDomain(taxCreateReq);
         Tax tax = taxCreateInputPort.createTax(taxDTO);
         return ResponseEntity.ok(taxCreateRestMapper.toCreateResponse(tax));
@@ -60,7 +63,7 @@ public class TaxController {
     }
 
     @PutMapping("/{id}")
-    ResponseEntity<?> updateTax(@PathVariable("id") long id, @RequestBody TaxUpdateReq taxUpdateReq) {
+    ResponseEntity<?> updateTax(@PathVariable("id") long id, @RequestBody @Valid TaxUpdateReq taxUpdateReq) {
         TaxDTO taxDTO = taxUpdateRestMapper.toDomain(taxUpdateReq);
         Tax tax = taxUpdateInputPort.update(taxDTO, id);
         return ResponseEntity.ok(taxUpdateRestMapper.toCreateResponse(tax));
@@ -75,24 +78,11 @@ public class TaxController {
         }
     }
 
-    /**
-     * Cambia el estado (activo/inactivo) de un impuesto.
-     * 
-     * @param id el ID del impuesto
-     * @param enterpriseId el ID de la empresa
-     * @param status el nuevo estado (true = activo, false = inactivo)
-     * @return respuesta con el estado actualizado
-     */
     @PatchMapping("/changeState/{id}/{enterpriseId}")
     ResponseEntity<TaxChangeStateRes> changeState(
             @PathVariable("id") Long id,
             @PathVariable("enterpriseId") String enterpriseId,
-            @RequestParam("status") Boolean status) {
-        
-        // Validación manual del parámetro status
-        if (status == null) {
-            throw new IllegalArgumentException("El parámetro 'status' es requerido");
-        }
+            @RequestParam("status") @NotNull(message = "El parámetro 'status' es requerido") Boolean status) {
         
         Tax updatedTax = taxChangeStateInputPort.changeState(id, enterpriseId, status);
         TaxChangeStateRes response = taxChangeStateRestMapper.toChangeStateResponse(updatedTax);

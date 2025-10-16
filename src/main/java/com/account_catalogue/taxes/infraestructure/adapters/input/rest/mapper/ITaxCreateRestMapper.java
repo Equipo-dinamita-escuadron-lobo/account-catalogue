@@ -48,8 +48,8 @@ public interface ITaxCreateRestMapper {
                 .code(tax.getCode())
                 .description(tax.getDescription())
                 .interest(tax.getInterest())
-                .refundAccountId(tax.getRefundAccount().getId())
-                .depositAccountId(tax.getDepositAccount().getId())
+                .refundAccountId(tax.getRefundAccount() != null ? tax.getRefundAccount().getId() : null)
+                .depositAccountId(tax.getDepositAccount() != null ? tax.getDepositAccount().getId() : null)
                 .status(tax.getStatus())
                 .build();
     }

@@ -70,8 +70,8 @@ public class TaxUpdateServiceTest {
                 .code("123")
                 .description("iva")
                 .interest(2.7f)
-                .refundAccount("1L")
-                .depositAccount("2L")
+                .refundAccountId(1L)
+                .depositAccountId(2L)
                 .build();
 
         tax = Tax.builder()

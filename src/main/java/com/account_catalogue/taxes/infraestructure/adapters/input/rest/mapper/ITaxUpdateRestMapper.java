@@ -25,8 +25,8 @@ public interface ITaxUpdateRestMapper {
                 .code(taxUpdateReq.getCode())
                 .description(taxUpdateReq.getDescription())
                 .interest(taxUpdateReq.getInterest())
-                .depositAccount(taxUpdateReq.getDepositAccount())
-                .refundAccount(taxUpdateReq.getRefundAccount())
+                .depositAccountId(taxUpdateReq.getDepositAccount())
+                .refundAccountId(taxUpdateReq.getRefundAccount())
                 .build();
 
     }
@@ -46,8 +46,8 @@ public interface ITaxUpdateRestMapper {
                 .code(tax.getCode())
                 .description(tax.getDescription())
                 .interest(tax.getInterest())
-                .refundAccount(tax.getRefundAccount().getCode())
-                .depositAccount(tax.getDepositAccount().getCode())
+                .refundAccount(tax.getRefundAccount().getId())
+                .depositAccount(tax.getDepositAccount().getId())
                 .status(tax.getStatus())
                 .build();
     }

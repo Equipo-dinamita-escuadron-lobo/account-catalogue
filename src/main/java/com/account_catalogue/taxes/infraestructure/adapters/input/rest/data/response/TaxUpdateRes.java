@@ -13,7 +13,7 @@ public class TaxUpdateRes {
     private String code;
     private String description;
     private float interest;
-    private String refundAccount;
-    private String depositAccount;
+    private Long refundAccount;
+    private Long depositAccount;
     private Boolean status;
 }

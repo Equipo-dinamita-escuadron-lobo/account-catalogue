@@ -20,6 +20,6 @@ public class TaxCreateReq {
     private String description;
     @NotBlank(message = "la descripcion es requerdio")
     private float interest;
-    private String refundAccount;
-    private String depositAccount;
+    private Long refundAccountId;
+    private Long depositAccountId;
 }

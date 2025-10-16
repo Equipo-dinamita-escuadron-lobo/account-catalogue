@@ -47,15 +47,15 @@ public class TaxCreateJpaAdapter implements ITaxCreateOutputPort {
     public Tax createTax(TaxDTO tax) {
         // Validaciones usando el servicio centralizado
         taxValidationService.validateTaxCodeNotExists(tax.getCode(), tax.getIdEnterprise());
-        taxValidationService.validateAccountDigits(tax.getDepositAccount(), tax.getRefundAccount());
+        taxValidationService.validateAccountDigits(tax.getDepositAccountId(), tax.getRefundAccountId(), tax.getIdEnterprise());
 
-        AccountCatalogueEntity depositAccount = accountCatalogueRepository.findByCode(tax.getDepositAccount(),
+        AccountCatalogueEntity depositAccount = accountCatalogueRepository.findByIdAndIdEnterprise(tax.getDepositAccountId(),
                 tax.getIdEnterprise());
         if (depositAccount == null) {
             throw new InvalidDepositAccountException("No existe la cuenta que seleccionaste.");
         }
 
-        AccountCatalogueEntity refundAccount = accountCatalogueRepository.findByCode(tax.getRefundAccount(),
+        AccountCatalogueEntity refundAccount = accountCatalogueRepository.findByIdAndIdEnterprise(tax.getRefundAccountId(),
                 tax.getIdEnterprise());
         if (refundAccount == null) {
             throw new InvalidRefundAccountException("No existe la cuenta de devolución que seleccionaste.");

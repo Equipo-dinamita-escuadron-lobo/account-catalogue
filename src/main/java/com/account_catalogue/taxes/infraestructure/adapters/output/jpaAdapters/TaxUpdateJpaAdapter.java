@@ -46,8 +46,8 @@ public class TaxUpdateJpaAdapter implements ITaxUpdateOutputPort {
             return null;
         }
 
-        if (!taxEntity.getDepositAccount().getCode().equals(taxDTO.getDepositAccount())) {
-            depositAccount = accountCatalogueRepository.findByCode(taxDTO.getDepositAccount(),
+        if (!taxEntity.getDepositAccount().getId().equals(taxDTO.getDepositAccountId())) {
+            depositAccount = accountCatalogueRepository.findByIdAndIdEnterprise(taxDTO.getDepositAccountId(),
                     taxDTO.getIdEnterprise());
             if (depositAccount == null) {
                 throw new InvalidDepositAccountException("No existe la cuenta que seleccionaste.");
@@ -56,8 +56,8 @@ public class TaxUpdateJpaAdapter implements ITaxUpdateOutputPort {
             }
         }
 
-        if (!taxEntity.getRefundAccount().getCode().equals(taxDTO.getRefundAccount())) {
-            refundAccount = accountCatalogueRepository.findByCode(taxDTO.getRefundAccount(), taxDTO.getIdEnterprise());
+        if (!taxEntity.getRefundAccount().getId().equals(taxDTO.getRefundAccountId())) {
+            refundAccount = accountCatalogueRepository.findByIdAndIdEnterprise(taxDTO.getRefundAccountId(), taxDTO.getIdEnterprise());
             if (refundAccount == null) {
                 throw new InvalidRefundAccountException("No existe la cuenta de devolución que seleccionaste.");
             } else {

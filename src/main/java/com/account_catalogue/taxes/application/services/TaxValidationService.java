@@ -2,6 +2,7 @@ package com.account_catalogue.taxes.application.services;
 
 import org.springframework.stereotype.Service;
 
+import com.account_catalogue.catalogue.application.services.AccountCatalogueValidationService;
 import com.account_catalogue.commons.exceptions.taxes.InvalidAccountDigitsException;
 import com.account_catalogue.commons.exceptions.taxes.TaxAlreadyExistsException;
 import com.account_catalogue.commons.exceptions.taxes.TaxNotFoundException;
@@ -15,25 +16,23 @@ import lombok.AllArgsConstructor;
 public class TaxValidationService {
 
     private final ITaxSearchOutputPort taxSearchOutputPort;
+    private final AccountCatalogueValidationService accountCatalogueValidationService;
 
     /**
-     * Valida que las cuentas de depósito y devolución tengan exactamente 4 dígitos.
+     * Valida que existan las cuentas de depósito y devolución por sus IDs.
      * 
-     * @param depositAccountCode código de cuenta de depósito
-     * @param refundAccountCode código de cuenta de devolución
-     * @throws InvalidAccountDigitsException si alguna cuenta no tiene 4 dígitos
+     * @param depositAccountId ID de cuenta de depósito
+     * @param refundAccountId ID de cuenta de devolución
+     * @param idEnterprise ID de la empresa
+     * @throws InvalidAccountDigitsException si alguna cuenta no existe
      */
-    public void validateAccountDigits(String depositAccountCode, String refundAccountCode) {
-        if (depositAccountCode != null && depositAccountCode.trim().length() != 4) {
-            throw new InvalidAccountDigitsException(
-                "La cuenta de depósito '" + depositAccountCode + "' debe tener exactamente 4 dígitos"
-            );
+    public void validateAccountDigits(Long depositAccountId, Long refundAccountId, String idEnterprise) {
+        if (depositAccountId != null) {
+            accountCatalogueValidationService.validateAccountExistsByIdAndEnterprise(depositAccountId, idEnterprise);
         }
         
-        if (refundAccountCode != null && refundAccountCode.trim().length() != 4) {
-            throw new InvalidAccountDigitsException(
-                "La cuenta de devolución '" + refundAccountCode + "' debe tener exactamente 4 dígitos"
-            );
+        if (refundAccountId != null) {
+            accountCatalogueValidationService.validateAccountExistsByIdAndEnterprise(refundAccountId, idEnterprise);
         }
     }
 

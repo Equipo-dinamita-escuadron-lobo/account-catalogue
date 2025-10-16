@@ -6,6 +6,7 @@ import com.account_catalogue.catalogue.domain.enums.NatureEnum;
 import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.entity.AccountCatalogueEntity;
 import com.account_catalogue.taxes.application.output.ITaxSearchOutputPort;
 import com.account_catalogue.taxes.application.services.TaxSearchService;
+import com.account_catalogue.taxes.application.services.TaxValidationService;
 import com.account_catalogue.taxes.domain.models.Tax;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -31,6 +32,9 @@ public class TaxSearchServiceTest {
 
     @Mock
     private ITaxSearchOutputPort taxSearchOutputPort;
+
+    @Mock
+    private TaxValidationService taxValidationService;
 
     @InjectMocks
     private TaxSearchService taxSearchService;
@@ -124,6 +128,7 @@ public class TaxSearchServiceTest {
     void testGetTax(){
         //giiven
         given(taxSearchOutputPort.getTax("123","1")).willReturn(tax);
+        willDoNothing().given(taxValidationService).validateTaxExists("123", "1");
         //when
         Tax taxAux=taxSearchService.getTax(tax.getCode(),tax.getIdEnterprise());
         //then
@@ -137,6 +142,7 @@ public class TaxSearchServiceTest {
     void testGetTaxIncorrrect(){
         //giiven
         given(taxSearchOutputPort.getTax("123","2")).willReturn(null);
+        willDoNothing().given(taxValidationService).validateTaxExists("123", "2");
         //when
         Tax taxAux=taxSearchService.getTax(tax.getCode(),"2");
         //then

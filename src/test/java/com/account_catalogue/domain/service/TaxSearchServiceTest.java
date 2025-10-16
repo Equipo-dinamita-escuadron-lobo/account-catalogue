@@ -150,4 +150,19 @@ public class TaxSearchServiceTest {
 
     }
 
+    @DisplayName("Test para obtener una lista de impuestos activos")
+    @Test
+    void testGetActiveTaxes(){
+        //given
+        given(taxSearchOutputPort.getActiveTaxes("1")).willReturn(List.of(tax));
+        //when
+        List<Tax> activeTaxes = taxSearchService.getActiveTaxes("1");
+
+        //then
+        assertThat(activeTaxes).isNotNull();
+        assertThat(activeTaxes.size()).isEqualTo(1);
+        assertThat(activeTaxes.get(0)).isEqualTo(tax);
+        verify(taxSearchOutputPort).getActiveTaxes("1");
+    }
+
 }

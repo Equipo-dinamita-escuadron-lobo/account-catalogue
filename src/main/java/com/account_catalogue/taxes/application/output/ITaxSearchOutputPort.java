@@ -8,6 +8,7 @@ public interface ITaxSearchOutputPort {
 
     Tax getTax(String code, String idEnterprise);
     List<Tax> getTaxes(String idEnterprise);
+    List<Tax> getActiveTaxes(String idEnterprise);
     Tax getTaxById(Long id);
     Tax getTaxByIdAndEnterprise(Long id, String idEnterprise);
 

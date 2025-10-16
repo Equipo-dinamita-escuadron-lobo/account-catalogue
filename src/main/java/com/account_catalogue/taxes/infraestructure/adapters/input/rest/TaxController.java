@@ -60,6 +60,12 @@ public class TaxController {
         return ResponseEntity.ok(taxSearchRestMapper.toSearchListResponse(taxes));
     }
 
+    @GetMapping("/active/{idEnterprise}")
+    ResponseEntity<List<TaxSearchRes>> getActiveTaxes(@PathVariable String idEnterprise) {
+        List<Tax> activeTaxes = taxSearchInputPort.getActiveTaxes(idEnterprise);
+        return ResponseEntity.ok(taxSearchRestMapper.toSearchListResponse(activeTaxes));
+    }
+
     @PutMapping("/{id}")
     ResponseEntity<?> updateTax(@PathVariable long id, @RequestBody @Valid TaxUpdateReq taxUpdateReq) {
         TaxDTO taxDTO = taxUpdateRestMapper.toDomain(taxUpdateReq);

@@ -70,4 +70,16 @@ public class TaxSearchJpaAdapter implements ITaxSearchOutputPort {
         TaxEntity taxEntity = taxRepository.findByIdAndEnterpriseActive(id, idEnterprise);
         return taxSearchMapper.toDomain(taxEntity);
     }
+
+    /**
+     * Obtiene una lista de impuestos activos asociados al ID de empresa proporcionado.
+     *
+     * @param idEnterprise el ID de la empresa
+     * @return una lista de impuestos activos asociados al ID de empresa proporcionado
+     */
+    @Override
+    public List<Tax> getActiveTaxes(String idEnterprise) {
+        List<TaxEntity> taxEntities = taxRepository.findActiveByIdEnterprise(idEnterprise);
+        return taxSearchMapper.toDomainList(taxEntities);
+    }
 }

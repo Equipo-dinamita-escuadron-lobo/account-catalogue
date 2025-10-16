@@ -43,4 +43,15 @@ public class TaxSearchService implements ITaxSearchInputPort {
     public List<Tax> getTaxes(String idEnterprise) {
         return taxSearchOutputPort.getTaxes(idEnterprise);
     }
+
+    /**
+     * Obtiene una lista de impuestos activos asociados al ID de empresa proporcionado.
+     *
+     * @param idEnterprise el ID de la empresa
+     * @return una lista de impuestos activos asociados al ID de empresa proporcionado
+     */
+    @Override
+    public List<Tax> getActiveTaxes(String idEnterprise) {
+        return taxSearchOutputPort.getActiveTaxes(idEnterprise);
+    }
 }

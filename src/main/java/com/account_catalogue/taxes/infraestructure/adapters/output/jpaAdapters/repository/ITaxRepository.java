@@ -55,6 +55,15 @@ public interface ITaxRepository extends JpaRepository<TaxEntity, Long> {
     List<TaxEntity> findAllByIdEnterprise(String idEnterprise);
 
     /**
+     * Encuentra todos los impuestos activos de una empresa.
+     * 
+     * @param idEnterprise el ID de la empresa.
+     * @return lista de impuestos activos de la empresa.
+     */
+    @Query("SELECT a FROM TaxEntity a WHERE a.idEnterprise=?1 AND a.status = true")
+    List<TaxEntity> findActiveByIdEnterprise(String idEnterprise);
+
+    /**
      * Verifica si existe un impuesto con el código e idEnterprise especificados (solo activos).
      * 
      * @param code código del impuesto

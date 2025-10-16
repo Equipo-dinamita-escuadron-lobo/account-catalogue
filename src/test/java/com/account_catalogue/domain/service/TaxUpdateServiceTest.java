@@ -69,7 +69,7 @@ public class TaxUpdateServiceTest {
                 .idEnterprise("1")
                 .code("123")
                 .description("iva")
-                .interest(2.7f)
+                .interest(2.7)
                 .refundAccountId(1L)
                 .depositAccountId(2L)
                 .build();
@@ -79,7 +79,7 @@ public class TaxUpdateServiceTest {
                 .idEnterprise("1")
                 .code("123")
                 .description("iva")
-                .interest(2.7f)
+                .interest(2.7)
                 .refundAccount(account1)
                 .depositAccount(account2)
                 .build();
@@ -94,14 +94,14 @@ public class TaxUpdateServiceTest {
         given(taxUpdateOutputPort.update(taxDTO,id)).willReturn(tax);
 
         tax.setDescription("retefuente");
-        tax.setInterest(2.0f);
+        tax.setInterest(2.0);
 
         //when
         Tax taxUpdate=taxUpdateService.update(taxDTO,id);
 
         //then
         assertThat(taxUpdate.getDescription()).isEqualTo("retefuente");
-        assertThat(taxUpdate.getInterest()).isEqualTo(2.0f);
+        assertThat(taxUpdate.getInterest()).isEqualTo(2.0);
 
     }
 }

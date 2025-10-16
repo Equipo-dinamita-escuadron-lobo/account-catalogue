@@ -13,7 +13,7 @@ public class TaxCreateRes {
     private String idEnterprise;
     private String code;
     private String description;
-    private float interest;
+    private double interest;
     private Long refundAccountId;
     private Long depositAccountId;
     private Boolean status;

@@ -72,7 +72,7 @@ public class TaxCreateServiceTest {
                 .idEnterprise("1")
                 .code("123")
                 .description("iva")
-                .interest(2.7f)
+                .interest(2.7)
                 .refundAccountId(1L)
                 .depositAccountId(2L)
                 .build();
@@ -82,7 +82,7 @@ public class TaxCreateServiceTest {
                 .idEnterprise("1")
                 .code("123")
                 .description("iva")
-                .interest(2.7f)
+                .interest(2.7)
                 .refundAccount(account1)
                 .depositAccount(account2)
                 .build();

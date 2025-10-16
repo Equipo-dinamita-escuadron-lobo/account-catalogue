@@ -13,7 +13,7 @@ public class Tax {
     private String idEnterprise;
     private String code;
     private String description;
-    private Float interest;
+    private Double interest;
     private AccountCatalogueEntity depositAccount;
     private AccountCatalogueEntity refundAccount;
     private Boolean status;

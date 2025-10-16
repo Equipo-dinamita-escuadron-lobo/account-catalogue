@@ -35,7 +35,7 @@ public class TaxEntity {
     
     @Positive
     @Column(nullable = false)
-    private Float interest;
+    private Double interest;
 
     @ManyToOne
     @JoinColumn(name="depositAccount_code")

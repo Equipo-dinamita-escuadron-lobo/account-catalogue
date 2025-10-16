@@ -20,7 +20,7 @@ public class TaxCreateReq {
     @NotBlank(message = "La descripción es requerida")
     private String description;
     @NotNull(message = "El interés es requerido")
-    private Float interest;
+    private Double interest;
     @NotNull(message = "La cuenta de devolución es requerida")
     private Long refundAccountId;
     @NotNull(message = "La cuenta de depósito es requerida")

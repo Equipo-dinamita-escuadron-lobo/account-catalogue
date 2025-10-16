@@ -77,7 +77,7 @@ public class TaxSearchServiceTest {
                 .idEnterprise("1")
                 .code("123")
                 .description("iva")
-                .interest(2.7f)
+                .interest(2.7)
                 .refundAccount(account1)
                 .depositAccount(account2)
                 .build();
@@ -94,7 +94,7 @@ public class TaxSearchServiceTest {
                .idEnterprise("1")
                 .code("1234")
                 .description("iva")
-               .interest(2.7f)
+               .interest(2.7)
                 .refundAccount(account1)
                 .depositAccount(account2)
                 .build();

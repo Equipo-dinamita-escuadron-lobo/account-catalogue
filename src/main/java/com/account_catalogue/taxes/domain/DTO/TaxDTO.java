@@ -14,7 +14,7 @@ public class TaxDTO {
     private String idEnterprise;
     private String code;
     private String description;
-    private Float interest;
+    private Double interest;
     private Long depositAccountId;
     private Long refundAccountId;
 }

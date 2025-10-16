@@ -27,7 +27,7 @@ public class TaxChangeStateJpaAdapter implements ITaxChangeStateOutputPort {
      */
     @Override
     public Tax changeState(Long id, String idEnterprise, Boolean status) {
-        TaxEntity taxEntity = taxRepository.findByIdAndEnterpriseActive(id, idEnterprise);
+        TaxEntity taxEntity = taxRepository.findByIdAndIdEnterprise(id, idEnterprise);
         
         if (taxEntity == null) {
             return null;

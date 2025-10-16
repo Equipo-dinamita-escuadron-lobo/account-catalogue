@@ -40,7 +40,7 @@ public class TaxUpdateJpaAdapter implements ITaxUpdateOutputPort {
     public Tax update(TaxDTO taxDTO, long id) {
         AccountCatalogueEntity depositAccount;
         AccountCatalogueEntity refundAccount;
-        TaxEntity taxEntity = taxRepository.findByIdAndEnterpriseActive(id, taxDTO.getIdEnterprise());
+        TaxEntity taxEntity = taxRepository.findByIdAndIdEnterprise(id, taxDTO.getIdEnterprise());
 
         if (taxEntity == null) {
             return null;

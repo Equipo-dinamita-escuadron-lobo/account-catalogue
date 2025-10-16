@@ -58,7 +58,7 @@ public class TaxSearchJpaAdapter implements ITaxSearchOutputPort {
      */
     @Override
     public Tax getTaxByIdAndEnterprise(Long id, String idEnterprise) {
-        TaxEntity taxEntity = taxRepository.findByIdAndEnterpriseActive(id, idEnterprise);
+        TaxEntity taxEntity = taxRepository.findByIdAndIdEnterprise(id, idEnterprise);
         return taxSearchMapper.toDomain(taxEntity);
     }
 

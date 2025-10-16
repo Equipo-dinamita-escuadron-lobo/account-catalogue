@@ -24,7 +24,7 @@ public class TaxDeleteJpaAdapter implements ITaxDeleteOutputPort {
     @Override
     @Transactional
     public boolean deleteByCode(long id, String idEnterprise) {
-        TaxEntity taxEntity = taxRepository.findByIdAndEnterpriseActive(Long.valueOf(id), idEnterprise);
+        TaxEntity taxEntity = taxRepository.findByIdAndIdEnterprise(Long.valueOf(id), idEnterprise);
         if (taxEntity != null) {
             taxRepository.delete(taxEntity);
             return true;

@@ -51,26 +51,26 @@ public class TaxController {
     }
 
     @GetMapping("/{code}/{idEnterprise}")
-    ResponseEntity<?> getTax(@PathVariable("code") String code, @PathVariable String idEnterprise) {
+    ResponseEntity<?> getTax(@PathVariable String code, @PathVariable String idEnterprise) {
         Tax tax = taxSearchInputPort.getTax(code, idEnterprise);
         return ResponseEntity.ok(taxSearchRestMapper.toSearchResponse(tax));
     }
 
     @GetMapping("/taxes/{idEnterprise}")
-    ResponseEntity<List<TaxSearchRes>> getTaxes(@PathVariable("idEnterprise") String idEnterprise) {
+    ResponseEntity<List<TaxSearchRes>> getTaxes(@PathVariable String idEnterprise) {
         List<Tax> taxes = taxSearchInputPort.getTaxes(idEnterprise);
         return ResponseEntity.ok(taxSearchRestMapper.toSearchListResponse(taxes));
     }
 
     @PutMapping("/{id}")
-    ResponseEntity<?> updateTax(@PathVariable("id") long id, @RequestBody @Valid TaxUpdateReq taxUpdateReq) {
+    ResponseEntity<?> updateTax(@PathVariable long id, @RequestBody @Valid TaxUpdateReq taxUpdateReq) {
         TaxDTO taxDTO = taxUpdateRestMapper.toDomain(taxUpdateReq);
         Tax tax = taxUpdateInputPort.update(taxDTO, id);
         return ResponseEntity.ok(taxUpdateRestMapper.toCreateResponse(tax));
     }
 
     @DeleteMapping("/{id}/{enterpriseId}")
-    ResponseEntity<?> deleteByCode(@PathVariable("id") long id, @PathVariable("enterpriseId") String enterpriseId) {
+    ResponseEntity<?> deleteByCode(@PathVariable long id, @PathVariable String enterpriseId) {
         if (taxDeleteInputPort.deleteByCode(id, enterpriseId)) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } else {
@@ -80,9 +80,9 @@ public class TaxController {
 
     @PatchMapping("/changeState/{id}/{enterpriseId}")
     ResponseEntity<TaxChangeStateRes> changeState(
-            @PathVariable("id") Long id,
-            @PathVariable("enterpriseId") String enterpriseId,
-            @RequestParam("status") @NotNull(message = "El parámetro 'status' es requerido") Boolean status) {
+            @PathVariable Long id,
+            @PathVariable String enterpriseId,
+            @RequestParam @NotNull(message = "El parámetro 'status' es requerido") Boolean status) {
         
         Tax updatedTax = taxChangeStateInputPort.changeState(id, enterpriseId, status);
         TaxChangeStateRes response = taxChangeStateRestMapper.toChangeStateResponse(updatedTax);

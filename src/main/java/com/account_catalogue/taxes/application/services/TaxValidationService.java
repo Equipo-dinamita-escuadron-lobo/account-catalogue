@@ -102,20 +102,6 @@ public class TaxValidationService {
     }
 
     /**
-     * Valida que exista un impuesto con el ID especificado.
-     * 
-     * @param id ID del impuesto
-     * @throws TaxNotFoundException si el impuesto no existe
-     */
-    public void validateTaxExists(Long id) {
-        Tax tax = taxSearchOutputPort.getTaxById(id);
-        if (tax == null) {
-            throw new TaxNotFoundException(
-                    "No se encontró un impuesto con el ID '" + id + "'");
-        }
-    }
-
-    /**
      * Valida que exista un impuesto con el código e idEnterprise especificados.
      * 
      * @param code         código del impuesto

@@ -23,15 +23,6 @@ public interface ITaxRepository extends JpaRepository<TaxEntity, Long> {
     TaxEntity findByCode(String code, String idEnterprise);
 
     /**
-     * Encuentra un TaxEntity por ID 
-     * 
-     * @param id el ID del impuesto.
-     * @return el TaxEntity con el ID dado. Si no se encuentra, se devuelve null.
-     */
-    @Query("SELECT a FROM TaxEntity a WHERE a.id=?1 AND a.status = true")
-    TaxEntity findByIdActive(Long id);
-
-    /**
      * Encuentra un TaxEntity por ID y empresa
      * 
      * @param id el ID del impuesto.

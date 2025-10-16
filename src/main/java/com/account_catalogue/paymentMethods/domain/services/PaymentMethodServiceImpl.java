@@ -48,7 +48,7 @@ public class PaymentMethodServiceImpl implements IPaymentMethodService {
         validateAccountingAccount(account.getCode(), request.getIdEnterprise());
 
         // Validar unicidad por empresa (solo entre registros no eliminados)
-        if (repository.existsByNameAndIdEnterpriseAndIsDeletedFalse(standardizedName, request.getIdEnterprise())) {
+        if (repository.existsByNameAndIdEnterprise(standardizedName, request.getIdEnterprise())) {
             throw new PaymentMethodsAlreadyExistsException("nombre", standardizedName, request.getIdEnterprise());
         }
 
@@ -73,7 +73,7 @@ public class PaymentMethodServiceImpl implements IPaymentMethodService {
 
     @Transactional
     public PaymentMethod update(PaymentMethodUpdateReq request) {
-        PaymentMethodEntity current = repository.findByIdAndIdEnterpriseAndIsDeletedFalse(request.getId(), request.getIdEnterprise())
+        PaymentMethodEntity current = repository.findByIdAndIdEnterprise(request.getId(), request.getIdEnterprise())
                 .orElseThrow(PaymentMethodsNotFoundException::new);
 
         String standardizedName = standardizeName(request.getName());
@@ -89,7 +89,7 @@ public class PaymentMethodServiceImpl implements IPaymentMethodService {
 
         // Validar unicidad si el nombre cambió (solo entre registros no eliminados)
         if (!standardizedName.equals(current.getName()) &&
-            repository.existsByNameAndIdEnterpriseAndIdNotAndIsDeletedFalse(standardizedName, request.getIdEnterprise(), current.getId())) {
+            repository.existsByNameAndIdEnterpriseAndIdNot(standardizedName, request.getIdEnterprise(), current.getId())) {
             throw new PaymentMethodsAlreadyExistsException("nombre", standardizedName, request.getIdEnterprise());
         }
 
@@ -102,7 +102,7 @@ public class PaymentMethodServiceImpl implements IPaymentMethodService {
 
     @Transactional(readOnly = true)
     public PaymentMethod findById(Long id, String idEnterprise) {
-        return dataMapper.toDomain(repository.findByIdAndIdEnterpriseAndIsDeletedFalse(id, idEnterprise)
+        return dataMapper.toDomain(repository.findByIdAndIdEnterprise(id, idEnterprise)
                 .orElseThrow(PaymentMethodsNotFoundException::new));
     }
 
@@ -110,20 +110,20 @@ public class PaymentMethodServiceImpl implements IPaymentMethodService {
     public Page<PaymentMethod> findAllByEnterprise(String idEnterprise, int page, int size, String sortField, String sortOrder) {
         Sort sort = Sort.by(sortOrder.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC, sortField);
         Pageable pageable = PageRequest.of(page, size, sort);
-        return repository.findAllByIdEnterpriseAndIsDeletedFalse(idEnterprise, pageable).map(dataMapper::toDomain);
+        return repository.findAllByIdEnterprise(idEnterprise, pageable).map(dataMapper::toDomain);
     }
 
     @Transactional(readOnly = true)
     public Page<PaymentMethod> findAllByEnterpriseAndStatus(String idEnterprise, Boolean status, int page, int size, String sortField, String sortOrder) {
         Sort sort = Sort.by(sortOrder.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC, sortField);
         Pageable pageable = PageRequest.of(page, size, sort);
-        return repository.findAllByIdEnterpriseAndStatusAndIsDeletedFalse(idEnterprise, status, pageable)
+        return repository.findAllByIdEnterpriseAndStatus(idEnterprise, status, pageable)
                 .map(dataMapper::toDomain);
     }
 
     @Transactional
     public PaymentMethod changeState(Long id, String idEnterprise, Boolean newState) {
-        PaymentMethodEntity current = repository.findByIdAndIdEnterpriseAndIsDeletedFalse(id, idEnterprise)
+        PaymentMethodEntity current = repository.findByIdAndIdEnterprise(id, idEnterprise)
                 .orElseThrow(PaymentMethodsNotFoundException::new);
 
         current.setStatus(newState);
@@ -132,13 +132,13 @@ public class PaymentMethodServiceImpl implements IPaymentMethodService {
     }
 
     @Transactional
-    public PaymentMethod softDelete(Long id, String idEnterprise) {
-        PaymentMethodEntity current = repository.findByIdAndIdEnterpriseAndIsDeletedFalse(id, idEnterprise)
+    public PaymentMethod delete(Long id, String idEnterprise) {
+        PaymentMethodEntity current = repository.findByIdAndIdEnterprise(id, idEnterprise)
                 .orElseThrow(PaymentMethodsNotFoundException::new);
 
-        current.setIsDeleted(true);
-        PaymentMethodEntity saved = repository.save(current);
-        return dataMapper.toDomain(saved);
+        PaymentMethod domain = dataMapper.toDomain(current);
+        repository.delete(current);
+        return domain;
     }
 
     private String standardizeName(String input) {

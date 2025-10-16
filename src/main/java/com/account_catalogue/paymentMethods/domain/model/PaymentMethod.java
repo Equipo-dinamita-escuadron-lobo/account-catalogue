@@ -14,7 +14,5 @@ public class PaymentMethod {
     private String accountingAccount;
     private AccountCatalogue accountingAccountEntity;
     private Boolean status;
-    @Builder.Default
-    private Boolean isDeleted = false;
     private String idEnterprise;
 }

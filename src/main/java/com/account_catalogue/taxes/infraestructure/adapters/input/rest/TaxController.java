@@ -70,13 +70,13 @@ public class TaxController {
             @RequestParam(required = false) String search) {
 
         long totalRecords = (search != null && !search.trim().isEmpty())
-                ? taxSearchInputPort.countTaxesByEnterpriseAndDescription(idEnterprise, search)
+                ? taxSearchInputPort.countTaxesByEnterpriseAndCodeOrDescription(idEnterprise, search)
                 : taxSearchInputPort.countTaxesByEnterprise(idEnterprise);
 
         Pageable pageable = paginationHelper.createFlexiblePageable(page, size, totalRecords);
 
         Page<Tax> pageResult = (search != null && !search.trim().isEmpty())
-                ? taxSearchInputPort.getTaxesByDescriptionPaginated(idEnterprise, search, pageable.getPageNumber(),
+                ? taxSearchInputPort.getTaxesByCodeOrDescriptionPaginated(idEnterprise, search, pageable.getPageNumber(),
                         pageable.getPageSize(), sortField, sortOrder)
                 : taxSearchInputPort.getTaxesPaginated(idEnterprise, pageable.getPageNumber(),
                         pageable.getPageSize(), sortField, sortOrder);

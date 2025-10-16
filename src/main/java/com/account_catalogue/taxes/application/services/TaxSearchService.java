@@ -61,10 +61,10 @@ public class TaxSearchService implements ITaxSearchInputPort {
     }
 
     /**
-     * Obtiene una página de impuestos por empresa y descripción con paginación y ordenamiento.
+     * Obtiene una página de impuestos por empresa y código o descripción con paginación y ordenamiento.
      *
      * @param idEnterprise el ID de la empresa
-     * @param search término de búsqueda en la descripción
+     * @param search término de búsqueda en el código o descripción
      * @param page número de página
      * @param size tamaño de página
      * @param sortField campo de ordenamiento
@@ -72,8 +72,8 @@ public class TaxSearchService implements ITaxSearchInputPort {
      * @return página de impuestos que coinciden con la búsqueda
      */
     @Override
-    public Page<Tax> getTaxesByDescriptionPaginated(String idEnterprise, String search, int page, int size, String sortField, String sortOrder) {
-        return taxSearchOutputPort.getTaxesByDescriptionPaginated(idEnterprise, search, page, size, sortField, sortOrder);
+    public Page<Tax> getTaxesByCodeOrDescriptionPaginated(String idEnterprise, String search, int page, int size, String sortField, String sortOrder) {
+        return taxSearchOutputPort.getTaxesByCodeOrDescriptionPaginated(idEnterprise, search, page, size, sortField, sortOrder);
     }
 
     /**
@@ -88,14 +88,14 @@ public class TaxSearchService implements ITaxSearchInputPort {
     }
 
     /**
-     * Cuenta impuestos por empresa y descripción.
+     * Cuenta impuestos por empresa y código o descripción.
      *
      * @param idEnterprise el ID de la empresa
-     * @param search término de búsqueda en la descripción
+     * @param search término de búsqueda en el código o descripción
      * @return número total de impuestos que coinciden con la búsqueda
      */
     @Override
-    public long countTaxesByEnterpriseAndDescription(String idEnterprise, String search) {
-        return taxSearchOutputPort.countTaxesByEnterpriseAndDescription(idEnterprise, search);
+    public long countTaxesByEnterpriseAndCodeOrDescription(String idEnterprise, String search) {
+        return taxSearchOutputPort.countTaxesByEnterpriseAndCodeOrDescription(idEnterprise, search);
     }
 }

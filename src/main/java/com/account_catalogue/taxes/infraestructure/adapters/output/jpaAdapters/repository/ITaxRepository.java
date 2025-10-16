@@ -61,23 +61,23 @@ public interface ITaxRepository extends JpaRepository<TaxEntity, Long> {
     long countByIdEnterprise(String idEnterprise);
 
     /**
-     * Busca impuestos por empresa y descripción (búsqueda parcial case-insensitive).
+     * Busca impuestos por empresa y código o descripción (búsqueda parcial case-insensitive).
      * 
      * @param idEnterprise el ID de la empresa.
-     * @param description término de búsqueda.
+     * @param search término de búsqueda.
      * @param pageable configuración de paginación.
      * @return página de impuestos que coinciden con la búsqueda.
      */
-    @Query("SELECT a FROM TaxEntity a WHERE a.idEnterprise=?1 AND LOWER(a.description) LIKE LOWER(CONCAT('%', ?2, '%'))")
-    Page<TaxEntity> findByIdEnterpriseAndDescriptionContainingIgnoreCase(String idEnterprise, String description, Pageable pageable);
+    @Query("SELECT a FROM TaxEntity a WHERE a.idEnterprise=?1 AND (LOWER(a.code) LIKE LOWER(CONCAT('%', ?2, '%')) OR LOWER(a.description) LIKE LOWER(CONCAT('%', ?2, '%')))")
+    Page<TaxEntity> findByIdEnterpriseAndDescriptionContainingIgnoreCase(String idEnterprise, String search, Pageable pageable);
 
     /**
-     * Cuenta impuestos por empresa y descripción (búsqueda parcial case-insensitive).
+     * Cuenta impuestos por empresa y código o descripción (búsqueda parcial case-insensitive).
      * 
      * @param idEnterprise el ID de la empresa.
-     * @param description término de búsqueda.
+     * @param search término de búsqueda.
      * @return número total de impuestos que coinciden con la búsqueda.
      */
-    @Query("SELECT COUNT(a) FROM TaxEntity a WHERE a.idEnterprise=?1 AND LOWER(a.description) LIKE LOWER(CONCAT('%', ?2, '%'))")
-    long countByIdEnterpriseAndDescriptionContainingIgnoreCase(String idEnterprise, String description);
+    @Query("SELECT COUNT(a) FROM TaxEntity a WHERE a.idEnterprise=?1 AND (LOWER(a.code) LIKE LOWER(CONCAT('%', ?2, '%')) OR LOWER(a.description) LIKE LOWER(CONCAT('%', ?2, '%')))")
+    long countByIdEnterpriseAndDescriptionContainingIgnoreCase(String idEnterprise, String search);
 }

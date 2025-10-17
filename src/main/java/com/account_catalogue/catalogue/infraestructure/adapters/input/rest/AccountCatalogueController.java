@@ -89,28 +89,28 @@ public class AccountCatalogueController {
     }
 
     @GetMapping("/accountByCode/{code}/{idEnterprise}")
-    public ResponseEntity<ItemAccountCatalogueSearchRes> getAccountCatalogue(@PathVariable("code") String code,
-            @PathVariable("idEnterprise") String idEnterprise) {
+    public ResponseEntity<ItemAccountCatalogueSearchRes> getAccountCatalogue(@PathVariable String code,
+            @PathVariable String idEnterprise) {
         AccountCatalogue accountCatalogue = accountCatalogueSearchInputPort.getAccountCatalogueByCode(code, idEnterprise);
         return ResponseEntity.ok(itemAccountSearchRestMapper.toItemAccountCatalogueSearch(accountCatalogue));
     }
 
     @DeleteMapping("/{id}/{idEnterprise}")
-    public ResponseEntity<Void> deleteByCode(@PathVariable("id") Long id, @PathVariable("idEnterprise") String idEnterprise) {
+    public ResponseEntity<Void> deleteByCode(@PathVariable Long id, @PathVariable String idEnterprise) {
         accountCatalogueDeleteInputPort.deleteById(id, idEnterprise);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @GetMapping("/tree/{code}/{idEnterprise}")
-    public ResponseEntity<AccountCatalogueListRes> getAccountCatalogueTree(@PathVariable("code") String code,
-            @PathVariable("idEnterprise") String idEnterprise) {
+    public ResponseEntity<AccountCatalogueListRes> getAccountCatalogueTree(@PathVariable String code,
+            @PathVariable String idEnterprise) {
         AccountCatalogue accountCatalogue = accountCatalogueSearchInputPort.getAccountCatalogueTree(code, idEnterprise);
         return ResponseEntity.ok(accountSearchRestMapper.toAccountCatalogueListRes(accountCatalogue));
     }
 
     @GetMapping("/trees/{idEnterprise}")
     public ResponseEntity<List<AccountCatalogueListRes>> getAccountCatalogueTrees(
-            @PathVariable("idEnterprise") String idEnterprise) {
+            @PathVariable String idEnterprise) {
         List<AccountCatalogueListRes> accountCatalogueListRes = new ArrayList<>();
         for (int i = 1; i <= 9; i++) {
             try {
@@ -137,9 +137,9 @@ public class AccountCatalogueController {
      */
     @PatchMapping("/changeState/{id}/{enterpriseId}")
     public ResponseEntity<AccountCatalogueChangeStateRes> changeState(
-            @PathVariable("id") Long id,
-            @PathVariable("enterpriseId") String enterpriseId,
-            @RequestParam("status") Boolean status) {
+            @PathVariable Long id,
+            @PathVariable String enterpriseId,
+            @RequestParam Boolean status) {
         
         // Validación manual del parámetro status
         if (status == null) {
@@ -194,7 +194,7 @@ public class AccountCatalogueController {
      */
     @GetMapping("/auxiliary/{idEnterprise}")
     public ResponseEntity<AuxiliaryAccountListRes> getAuxiliaryAccounts(
-            @PathVariable("idEnterprise") String idEnterprise) {
+            @PathVariable String idEnterprise) {
         
         List<AccountCatalogue> auxiliaryAccounts = accountCatalogueSearchInputPort.getAuxiliaryAccounts(idEnterprise);
         AuxiliaryAccountListRes response = auxiliaryAccountRestMapper.toAuxiliaryAccountListRes(auxiliaryAccounts, idEnterprise);
@@ -210,7 +210,7 @@ public class AccountCatalogueController {
      */
     @GetMapping("/auxiliary/crossing/{idEnterprise}")
     public ResponseEntity<AuxiliaryAccountListRes> getAuxiliaryAccountsWithCrossing(
-            @PathVariable("idEnterprise") String idEnterprise) {
+            @PathVariable String idEnterprise) {
         
         List<AccountCatalogue> auxiliaryAccountsWithCrossing = accountCatalogueSearchInputPort.getAuxiliaryAccountsWithCrossing(idEnterprise);
         AuxiliaryAccountListRes response = auxiliaryAccountRestMapper.toAuxiliaryAccountListRes(auxiliaryAccountsWithCrossing, idEnterprise);

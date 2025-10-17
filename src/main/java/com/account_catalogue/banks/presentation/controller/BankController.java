@@ -65,10 +65,10 @@ public class BankController {
     }
 
     @DeleteMapping("/delete/{id}/{enterpriseId}")
-    public ResponseEntity<BankRes> softDelete(
+    public ResponseEntity<BankRes> delete(
             @PathVariable Long id, 
             @PathVariable String enterpriseId) {
-        Bank deleted = service.softDelete(id, enterpriseId);
+        Bank deleted = service.delete(id, enterpriseId);
         return ResponseEntity.ok(mapper.toRes(deleted));
     }
 }

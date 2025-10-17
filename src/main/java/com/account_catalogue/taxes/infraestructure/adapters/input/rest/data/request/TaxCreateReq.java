@@ -2,6 +2,7 @@ package com.account_catalogue.taxes.infraestructure.adapters.input.rest.data.req
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 @Getter
@@ -16,10 +17,12 @@ public class TaxCreateReq {
     private String idEnterprise;
     @NotBlank(message = "El código es requerido")
     private String code;
-    @NotBlank(message = "la descripcion es requerdio")
+    @NotBlank(message = "La descripción es requerida")
     private String description;
-    @NotBlank(message = "la descripcion es requerdio")
-    private float interest;
-    private String refundAccount;
-    private String depositAccount;
+    @NotNull(message = "El interés es requerido")
+    private Double interest;
+    @NotNull(message = "La cuenta de devolución es requerida")
+    private Long refundAccountId;
+    @NotNull(message = "La cuenta de depósito es requerida")
+    private Long depositAccountId;
 }

@@ -26,8 +26,6 @@ import lombok.NoArgsConstructor;
         @Index(name = "idx_account_id_enterprise", columnList = "idEnterprise"),
         @Index(name = "idx_account_code", columnList = "code"),
         @Index(name = "idx_account_status", columnList = "status"),
-        @Index(name = "idx_account_is_deleted", columnList = "is_deleted"),
-        @Index(name = "idx_account_enterprise_deleted", columnList = "idEnterprise, is_deleted"),
         @Index(name = "idx_account_enterprise_status", columnList = "idEnterprise, status")
     }
 )
@@ -68,9 +66,5 @@ public class AccountCatalogueEntity {
     @Column(name = "status", nullable = false)
     @Builder.Default
     private Boolean status = true;
-
-    @Column(name = "is_deleted", nullable = false)
-    @Builder.Default
-    private Boolean isDeleted = false;
 
 }

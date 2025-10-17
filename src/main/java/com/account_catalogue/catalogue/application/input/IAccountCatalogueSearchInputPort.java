@@ -10,7 +10,7 @@ public interface IAccountCatalogueSearchInputPort {
 
     AccountCatalogue getAccountCatalogueTree(String code, String idEnterprise);
 
-    AccountCatalogue getAccountCatalogueById(Long id);
+    AccountCatalogue getAccountCatalogueById(Long id, String idEnterprise);
 
     List<AccountCatalogue> getAuxiliaryAccounts(String idEnterprise);
 

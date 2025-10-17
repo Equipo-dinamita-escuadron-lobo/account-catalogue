@@ -17,13 +17,13 @@ public interface IAccountCatalogueRepository extends JpaRepository<AccountCatalo
      * @return el AccountCatalogueEntity con el código y id de empresa dados. Si no
      *         se encuentra, se devuelve null.
      */
-    @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.code = ?1 AND a.idEnterprise = ?2 AND a.isDeleted = false")
+    @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.code = ?1 AND a.idEnterprise = ?2")
     AccountCatalogueEntity findByCode(String code, String idEnterprise);
 
-    @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.id = ?1 AND a.isDeleted = false")
+    @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.id = ?1")
     AccountCatalogueEntity findById(long id);
 
-    @Query("SELECT a FROM AccountCatalogueEntity a LEFT JOIN FETCH a.children WHERE a.id = ?1 AND a.isDeleted = false")
+    @Query("SELECT a FROM AccountCatalogueEntity a LEFT JOIN FETCH a.children WHERE a.id = ?1")
     AccountCatalogueEntity findByIdWithChildren(long id);
 
     /**
@@ -34,10 +34,10 @@ public interface IAccountCatalogueRepository extends JpaRepository<AccountCatalo
      * @return el AccountCatalogueEntity con el ID y id de empresa dados. Si no
      *         se encuentra, se devuelve null.
      */
-    @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.id = ?1 AND a.idEnterprise = ?2 AND a.isDeleted = false")
+    @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.id = ?1 AND a.idEnterprise = ?2")
     AccountCatalogueEntity findByIdAndIdEnterprise(Long id, String idEnterprise);
 
-    @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.code = ?1 AND a.isDeleted = false")
+    @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.code = ?1")
     AccountCatalogueEntity findByCode(String code);
 
     /**
@@ -48,7 +48,7 @@ public interface IAccountCatalogueRepository extends JpaRepository<AccountCatalo
      * @return el AccountCatalogueEntity con la descripción y id de empresa dados. Si no
      *         se encuentra, se devuelve null.
      */
-    @Query("SELECT a FROM AccountCatalogueEntity a WHERE UPPER(a.description) = UPPER(?1) AND a.idEnterprise = ?2 AND a.isDeleted = false")
+    @Query("SELECT a FROM AccountCatalogueEntity a WHERE UPPER(a.description) = UPPER(?1) AND a.idEnterprise = ?2")
     AccountCatalogueEntity findByDescriptionIgnoreCaseAndIdEnterprise(String description, String idEnterprise);
 
     /**
@@ -57,7 +57,7 @@ public interface IAccountCatalogueRepository extends JpaRepository<AccountCatalo
      * @param idEnterprise el id de la empresa.
      * @return lista de AccountCatalogueEntity con códigos de 8 dígitos para la empresa dada.
      */
-    @Query("SELECT a FROM AccountCatalogueEntity a WHERE LENGTH(a.code) = 8 AND a.idEnterprise = ?1 AND a.isDeleted = false AND a.status = true ORDER BY a.code ASC")
+    @Query("SELECT a FROM AccountCatalogueEntity a WHERE LENGTH(a.code) = 8 AND a.idEnterprise = ?1 AND a.status = true ORDER BY a.code ASC")
     List<AccountCatalogueEntity> findAuxiliaryAccountsByIdEnterprise(String idEnterprise);
 
     /**
@@ -66,7 +66,7 @@ public interface IAccountCatalogueRepository extends JpaRepository<AccountCatalo
      * @param idEnterprise el id de la empresa.
      * @return lista de AccountCatalogueEntity con códigos de 8 dígitos y crossing = true para la empresa dada.
      */
-    @Query("SELECT a FROM AccountCatalogueEntity a WHERE LENGTH(a.code) = 8 AND a.idEnterprise = ?1 AND a.isDeleted = false AND a.status = true AND a.crossing = true ORDER BY a.code ASC")
+    @Query("SELECT a FROM AccountCatalogueEntity a WHERE LENGTH(a.code) = 8 AND a.idEnterprise = ?1 AND a.status = true AND a.crossing = true ORDER BY a.code ASC")
     List<AccountCatalogueEntity> findAuxiliaryAccountsWithCrossingByIdEnterprise(String idEnterprise);
 
 }

@@ -20,5 +20,5 @@ public interface IPaymentMethodService {
 
     PaymentMethod changeState(Long id, String idEnterprise, Boolean newState);
 
-    PaymentMethod softDelete(Long id, String idEnterprise);
+    PaymentMethod delete(Long id, String idEnterprise);
 }

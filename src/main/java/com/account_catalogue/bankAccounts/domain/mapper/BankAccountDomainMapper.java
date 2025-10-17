@@ -11,11 +11,9 @@ import org.mapstruct.Mapping;
 public interface BankAccountDomainMapper {
     
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "isDeleted", ignore = true)
     @Mapping(target = "bank", ignore = true)
     BankAccount toDomain(BankAccountCreateReq request);
     
-    @Mapping(target = "isDeleted", ignore = true)
     @Mapping(target = "bank", ignore = true)
     BankAccount toDomain(BankAccountUpdateReq request);
     

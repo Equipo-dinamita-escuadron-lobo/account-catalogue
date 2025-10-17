@@ -2,10 +2,9 @@ package com.account_catalogue.taxes.infraestructure.adapters.output.jpaAdapters;
 
 import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.entity.AccountCatalogueEntity;
 import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.repository.IAccountCatalogueRepository;
-import com.account_catalogue.commons.exceptions.taxes.InvalidDepositAccountException;
-import com.account_catalogue.commons.exceptions.taxes.InvalidRefundAccountException;
 import com.account_catalogue.commons.exceptions.taxes.TaxAlreadyExistsException;
 import com.account_catalogue.taxes.application.output.ITaxUpdateOutputPort;
+import com.account_catalogue.taxes.application.services.TaxValidationService;
 import com.account_catalogue.taxes.domain.DTO.TaxDTO;
 import com.account_catalogue.taxes.domain.models.Tax;
 import com.account_catalogue.taxes.infraestructure.adapters.output.jpaAdapters.entity.TaxEntity;
@@ -25,6 +24,8 @@ public class TaxUpdateJpaAdapter implements ITaxUpdateOutputPort {
 
     private final IAccountCatalogueRepository accountCatalogueRepository;
 
+    private final TaxValidationService taxValidationService;
+
     /**
      * Actualiza los detalles de un impuesto.
      *
@@ -33,46 +34,37 @@ public class TaxUpdateJpaAdapter implements ITaxUpdateOutputPort {
      * @param id     el identificador del impuesto a actualizar.
      * @return el objeto Tax actualizado.
      * @throws TaxAlreadyExistsException si el impuesto con el código especificado
-     *                                  ya existe, o si las cuentas de depósito o
-     *                                  reembolso no existen.
+     *                                  ya existe.
      */
     @Override
     public Tax update(TaxDTO taxDTO, long id) {
         AccountCatalogueEntity depositAccount;
         AccountCatalogueEntity refundAccount;
-        TaxEntity taxEntity = taxRepository.findByIdActive(id);
+        TaxEntity taxEntity = taxRepository.findByIdAndIdEnterprise(id, taxDTO.getIdEnterprise());
 
         if (taxEntity == null) {
             return null;
         }
 
-        if (!taxEntity.getDepositAccount().getCode().equals(taxDTO.getDepositAccount())) {
-            depositAccount = accountCatalogueRepository.findByCode(taxDTO.getDepositAccount(),
+
+        taxValidationService.validateAccountDigits(taxDTO.getDepositAccountId(), taxDTO.getRefundAccountId(), taxDTO.getIdEnterprise());
+
+        if (!taxEntity.getDepositAccount().getId().equals(taxDTO.getDepositAccountId())) {
+            depositAccount = accountCatalogueRepository.findByIdAndIdEnterprise(taxDTO.getDepositAccountId(),
                     taxDTO.getIdEnterprise());
-            if (depositAccount == null) {
-                throw new InvalidDepositAccountException("No existe la cuenta que seleccionaste.");
-            } else {
-                taxEntity.setDepositAccount(depositAccount);
-            }
+
+            taxEntity.setDepositAccount(depositAccount);
         }
 
-        if (!taxEntity.getRefundAccount().getCode().equals(taxDTO.getRefundAccount())) {
-            refundAccount = accountCatalogueRepository.findByCode(taxDTO.getRefundAccount(), taxDTO.getIdEnterprise());
-            if (refundAccount == null) {
-                throw new InvalidRefundAccountException("No existe la cuenta de devolución que seleccionaste.");
-            } else {
-                taxEntity.setRefundAccount(refundAccount);
-            }
+        if (!taxEntity.getRefundAccount().getId().equals(taxDTO.getRefundAccountId())) {
+            refundAccount = accountCatalogueRepository.findByIdAndIdEnterprise(taxDTO.getRefundAccountId(), taxDTO.getIdEnterprise());
 
+            taxEntity.setRefundAccount(refundAccount);
         }
 
         if (!taxEntity.getCode().equals(taxDTO.getCode())) {
-            if (taxRepository.existsByCode(taxDTO.getCode())) {
-                throw new TaxAlreadyExistsException("El impuesto con ese código ya existe.");
-            } else {
-                taxEntity.setCode(taxDTO.getCode());
-            }
-
+            taxValidationService.validateTaxCodeNotExists(taxDTO.getCode(), taxDTO.getIdEnterprise());
+            taxEntity.setCode(taxDTO.getCode());
         }
 
         taxEntity.setDescription(taxDTO.getDescription());

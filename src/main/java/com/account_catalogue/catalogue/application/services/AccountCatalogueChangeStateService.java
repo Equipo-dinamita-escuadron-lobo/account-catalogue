@@ -28,10 +28,9 @@ public class AccountCatalogueChangeStateService implements IAccountCatalogueChan
     @Transactional
     @Override
     public AccountCatalogue changeState(Long id, String idEnterprise, Boolean status) {
-        // Validar que la cuenta existe para la empresa específica
+        
         validationService.validateAccountExistsByIdAndEnterprise(id, idEnterprise);
 
-        // Cambiar el estado de la cuenta y todos sus descendientes
         return accountCatalogueChangeStateOutputPort.changeState(id, status);
     }
 }

@@ -46,15 +46,16 @@ public class AccountCatalogueSearchService implements IAccountCatalogueSearchInp
     }
 
     /**
-     * Obtiene el catálogo de cuenta por ID con validación de existencia.
+     * Obtiene un catálogo de cuenta por ID y empresa.
      *
      * @param id el ID del catálogo de cuenta
+     * @param idEnterprise el ID de la empresa
      * @return el catálogo de cuenta
      * @throws AccountCatalogueNotFoundException si la cuenta no existe
      */
     @Override
-    public AccountCatalogue getAccountCatalogueById(Long id) {
-        return validationService.validateAccountExistsById(id);
+    public AccountCatalogue getAccountCatalogueById(Long id, String idEnterprise) {
+        return validationService.validateAccountExistsByIdAndEnterprise(id, idEnterprise);
     }
 
     /**

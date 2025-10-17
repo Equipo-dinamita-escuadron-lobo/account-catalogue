@@ -14,7 +14,5 @@ public class BankRes {
     private String nombre;
     private Currency moneda;
     private Boolean status;
-    @Builder.Default
-    private Boolean isDeleted = false;
     private String idEnterprise;
 }

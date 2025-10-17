@@ -17,7 +17,5 @@ public class BankAccount {
     private String cuentaContable;
     @Builder.Default
     private Boolean status = true;
-    @Builder.Default
-    private Boolean isDeleted = false;
     private String idEnterprise;
 }

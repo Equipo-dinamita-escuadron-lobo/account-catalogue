@@ -106,29 +106,12 @@ public class AccountCatalogueValidationService {
         AccountCatalogue account = accountCatalogueSearchOutputPort.getAccountCatalogueByCode(code, idEnterprise);
         if (account == null) {
             throw new AccountCatalogueNotFoundException(
-                "No se encontró una cuenta con el código '" + code + "' para la empresa '" + idEnterprise + "'"
+                "No se encontró una cuenta con el código '" + code + "'"
             );
         }
         return account;
     }
     
-    /**
-     * Valida que la cuenta existe en el sistema por ID.
-     * 
-     * @param id el ID de la cuenta
-     * @return la cuenta encontrada
-     * @throws AccountCatalogueNotFoundException si la cuenta no existe
-     */
-    public AccountCatalogue validateAccountExistsById(Long id) {
-        AccountCatalogue account = accountCatalogueSearchOutputPort.getAccountCatalogueById(id);
-        if (account == null || (account.getIsDeleted() != null && account.getIsDeleted())) {
-            throw new AccountCatalogueNotFoundException(
-                "No se encontró una cuenta con el ID '" + id + "'"
-            );
-        }
-        return account;
-    }
-
     /**
      * Valida que la cuenta existe en el sistema por ID y empresa.
      * 
@@ -141,7 +124,7 @@ public class AccountCatalogueValidationService {
         AccountCatalogue account = accountCatalogueSearchOutputPort.getAccountCatalogueByIdAndIdEnterprise(id, idEnterprise);
         if (account == null) {
             throw new AccountCatalogueNotFoundException(
-                "No se encontró una cuenta con el ID '" + id + "' para la empresa '" + idEnterprise + "'"
+                "No se encontró una cuenta con el ID '" + id + "'"
             );
         }
         return account;
@@ -171,7 +154,7 @@ public class AccountCatalogueValidationService {
     
     /**
      * Valida recursivamente que ni la cuenta ni ninguna de sus cuentas hijas estén asociadas a impuestos.
-     * Esta validación se usa antes del soft delete para asegurar que toda la jerarquía puede ser eliminada.
+     * Esta validación se usa antes de la eliminación para asegurar que toda la jerarquía puede ser eliminada.
      * 
      * @param account la cuenta padre a validar junto con todas sus cuentas hijas
      * @throws AccountCatalogueAssociatedWithTaxException si la cuenta o alguna de sus hijas está asociada a impuestos
@@ -183,10 +166,7 @@ public class AccountCatalogueValidationService {
         // Validar recursivamente todas las cuentas hijas
         if (account.getChildren() != null && !account.getChildren().isEmpty()) {
             for (AccountCatalogue child : account.getChildren()) {
-                // Solo validar cuentas hijas que no están ya eliminadas
-                if (child.getIsDeleted() == null || !child.getIsDeleted()) {
-                    validateAccountAndChildrenNotAssociatedWithTaxes(child);
-                }
+                validateAccountAndChildrenNotAssociatedWithTaxes(child);
             }
         }
     }

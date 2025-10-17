@@ -20,5 +20,5 @@ public interface IBankService {
 
     Bank changeState(Long id, String idEnterprise, Boolean newState);
 
-    Bank softDelete(Long id, String idEnterprise);
+    Bank delete(Long id, String idEnterprise);
 }

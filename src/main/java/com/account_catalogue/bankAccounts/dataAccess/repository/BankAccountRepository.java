@@ -8,17 +8,17 @@ import java.util.Optional;
 
 public interface BankAccountRepository extends JpaRepository<BankAccountEntity, Long> {
     
-    boolean existsByAccountNumberAndIdEnterpriseAndIsDeletedFalse(Long accountNumber, String idEnterprise);
+    boolean existsByAccountNumberAndIdEnterprise(Long accountNumber, String idEnterprise);
     
-    boolean existsByAccountNumberAndIdEnterpriseAndIdNotAndIsDeletedFalse(Long accountNumber, String idEnterprise, Long id);
+    boolean existsByAccountNumberAndIdEnterpriseAndIdNot(Long accountNumber, String idEnterprise, Long id);
     
-    Optional<BankAccountEntity> findByIdAndIdEnterpriseAndIsDeletedFalse(Long id, String idEnterprise);
+    Optional<BankAccountEntity> findByIdAndIdEnterprise(Long id, String idEnterprise);
     
-    Page<BankAccountEntity> findAllByIdEnterpriseAndIsDeletedFalse(String idEnterprise, Pageable pageable);
+    Page<BankAccountEntity> findAllByIdEnterprise(String idEnterprise, Pageable pageable);
     
-    Page<BankAccountEntity> findAllByIdEnterpriseAndStatusAndIsDeletedFalse(String idEnterprise, Boolean status, Pageable pageable);
+    Page<BankAccountEntity> findAllByIdEnterpriseAndStatus(String idEnterprise, Boolean status, Pageable pageable);
     
-    Page<BankAccountEntity> findAllByIdEnterpriseAndBankIdAndIsDeletedFalse(String idEnterprise, Long bankId, Pageable pageable);
+    Page<BankAccountEntity> findAllByIdEnterpriseAndBankId(String idEnterprise, Long bankId, Pageable pageable);
     
-    Page<BankAccountEntity> findAllByIdEnterpriseAndAccountTypeAndIsDeletedFalse(String idEnterprise, String accountType, Pageable pageable);
+    Page<BankAccountEntity> findAllByIdEnterpriseAndAccountType(String idEnterprise, String accountType, Pageable pageable);
 }

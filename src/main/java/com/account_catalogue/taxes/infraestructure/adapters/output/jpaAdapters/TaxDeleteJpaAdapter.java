@@ -15,20 +15,18 @@ public class TaxDeleteJpaAdapter implements ITaxDeleteOutputPort {
     private final ITaxRepository taxRepository;
 
     /**
-     * Realiza soft delete de un impuesto por su ID y empresa.
-     * Marca el impuesto como eliminado (isDeleted = true).
+     * Realiza eliminación de un impuesto por su ID y empresa.
      *
      * @param id El ID del impuesto a eliminar.
      * @param idEnterprise El ID de la empresa.
-     * @return true si se marcó como eliminado con éxito, false de lo contrario.
+     * @return true si se eliminó con éxito, false de lo contrario.
      */
     @Override
     @Transactional
     public boolean deleteByCode(long id, String idEnterprise) {
-        TaxEntity taxEntity = taxRepository.findByIdAndEnterpriseActive(Long.valueOf(id), idEnterprise);
+        TaxEntity taxEntity = taxRepository.findByIdAndIdEnterprise(Long.valueOf(id), idEnterprise);
         if (taxEntity != null) {
-            taxEntity.setIsDeleted(true);
-            taxRepository.save(taxEntity);
+            taxRepository.delete(taxEntity);
             return true;
         }
         return false;

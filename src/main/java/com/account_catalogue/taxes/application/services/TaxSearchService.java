@@ -5,6 +5,7 @@ import com.account_catalogue.taxes.application.output.ITaxSearchOutputPort;
 import com.account_catalogue.taxes.domain.models.Tax;
 
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -34,13 +35,67 @@ public class TaxSearchService implements ITaxSearchInputPort {
     }
 
     /**
-     * Obtiene una lista de impuestos asociados al ID de empresa proporcionado.
+     * Obtiene una lista de impuestos activos asociados al ID de empresa proporcionado.
      *
      * @param idEnterprise el ID de la empresa
-     * @return una lista de impuestos asociados al ID de empresa proporcionado
+     * @return una lista de impuestos activos asociados al ID de empresa proporcionado
      */
     @Override
-    public List<Tax> getTaxes(String idEnterprise) {
-        return taxSearchOutputPort.getTaxes(idEnterprise);
+    public List<Tax> getActiveTaxes(String idEnterprise) {
+        return taxSearchOutputPort.getActiveTaxes(idEnterprise);
+    }
+
+    /**
+     * Obtiene una página de impuestos por empresa con paginación y ordenamiento.
+     *
+     * @param idEnterprise el ID de la empresa
+     * @param page número de página
+     * @param size tamaño de página
+     * @param sortField campo de ordenamiento
+     * @param sortOrder orden (asc/desc)
+     * @return página de impuestos
+     */
+    @Override
+    public Page<Tax> getTaxesPaginated(String idEnterprise, int page, int size, String sortField, String sortOrder) {
+        return taxSearchOutputPort.getTaxesPaginated(idEnterprise, page, size, sortField, sortOrder);
+    }
+
+    /**
+     * Obtiene una página de impuestos por empresa y código o descripción con paginación y ordenamiento.
+     *
+     * @param idEnterprise el ID de la empresa
+     * @param search término de búsqueda en el código o descripción
+     * @param page número de página
+     * @param size tamaño de página
+     * @param sortField campo de ordenamiento
+     * @param sortOrder orden (asc/desc)
+     * @return página de impuestos que coinciden con la búsqueda
+     */
+    @Override
+    public Page<Tax> getTaxesByCodeOrDescriptionPaginated(String idEnterprise, String search, int page, int size, String sortField, String sortOrder) {
+        return taxSearchOutputPort.getTaxesByCodeOrDescriptionPaginated(idEnterprise, search, page, size, sortField, sortOrder);
+    }
+
+    /**
+     * Cuenta el total de impuestos por empresa.
+     *
+     * @param idEnterprise el ID de la empresa
+     * @return número total de impuestos
+     */
+    @Override
+    public long countTaxesByEnterprise(String idEnterprise) {
+        return taxSearchOutputPort.countTaxesByEnterprise(idEnterprise);
+    }
+
+    /**
+     * Cuenta impuestos por empresa y código o descripción.
+     *
+     * @param idEnterprise el ID de la empresa
+     * @param search término de búsqueda en el código o descripción
+     * @return número total de impuestos que coinciden con la búsqueda
+     */
+    @Override
+    public long countTaxesByEnterpriseAndCodeOrDescription(String idEnterprise, String search) {
+        return taxSearchOutputPort.countTaxesByEnterpriseAndCodeOrDescription(idEnterprise, search);
     }
 }

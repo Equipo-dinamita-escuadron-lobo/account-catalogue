@@ -26,7 +26,6 @@ public class AccountCatalogueUpdateMapper implements IAccountCatalogueUpdateMapp
                 .crossing(accountCatalogueEntity.getCrossing())
                 .costCenter(accountCatalogueEntity.getCostCenter())
                 .status(accountCatalogueEntity.getStatus())
-                .isDeleted(accountCatalogueEntity.getIsDeleted())
                 .depositAccounts(accountCatalogueEntity.getDepositAccounts())
                 .refundAccounts(accountCatalogueEntity.getRefundAccounts())
                 .parent(auxParent(accountCatalogueEntity.getParent() == null ? null : accountCatalogueEntity.getParent()))

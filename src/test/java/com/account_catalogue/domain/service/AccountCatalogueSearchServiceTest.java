@@ -133,9 +133,9 @@ public class AccountCatalogueSearchServiceTest {
     void testgetAccountCatalogueById(){
 
         //given
-        given(accountCatalogueSearchInputPort.getAccountCatalogueById(1L)).willReturn(accountCatalogue);
+        given(accountCatalogueSearchInputPort.getAccountCatalogueById(1L, "1")).willReturn(accountCatalogue);
         //tax
-        AccountCatalogue accountCatalogueAux=accountCatalogueSearchInputPort.getAccountCatalogueById(1L);
+        AccountCatalogue accountCatalogueAux=accountCatalogueSearchInputPort.getAccountCatalogueById(1L, "1");
         //then
         assertThat(accountCatalogueAux).isNotNull();
         assertThat(accountCatalogueAux.getIdEnterprise()).isEqualTo("1");
@@ -147,9 +147,9 @@ public class AccountCatalogueSearchServiceTest {
     void testgetAccountCatalogueByIdIncorrect(){
 
         //given
-        given(accountCatalogueSearchInputPort.getAccountCatalogueById(2L)).willReturn(null);
+        given(accountCatalogueSearchInputPort.getAccountCatalogueById(2L, "1")).willReturn(null);
         //tax
-        AccountCatalogue accountCatalogueAux=accountCatalogueSearchInputPort.getAccountCatalogueById(2L);
+        AccountCatalogue accountCatalogueAux=accountCatalogueSearchInputPort.getAccountCatalogueById(2L, "1");
         //then
         assertThat(accountCatalogueAux).isNull();
 

@@ -17,7 +17,7 @@ public interface IAccountCatalogueRepository extends JpaRepository<AccountCatalo
      * @return el AccountCatalogueEntity con el código y id de empresa dados. Si no
      *         se encuentra, se devuelve null.
      */
-    @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.code = ?1 AND a.idEnterprise = ?2")
+    @Query("SELECT a FROM AccountCatalogueEntity a LEFT JOIN FETCH a.parent WHERE a.code = ?1 AND a.idEnterprise = ?2")
     AccountCatalogueEntity findByCode(String code, String idEnterprise);
 
     @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.id = ?1")
@@ -68,5 +68,15 @@ public interface IAccountCatalogueRepository extends JpaRepository<AccountCatalo
      */
     @Query("SELECT a FROM AccountCatalogueEntity a WHERE LENGTH(a.code) = 8 AND a.idEnterprise = ?1 AND a.status = true AND a.crossing = true ORDER BY a.code ASC")
     List<AccountCatalogueEntity> findAuxiliaryAccountsWithCrossingByIdEnterprise(String idEnterprise);
+
+    /**
+     * Encuentra todas las cuentas hijas directas de un código padre para una empresa específica.
+     * 
+     * @param parentCode el código del padre.
+     * @param idEnterprise el id de la empresa.
+     * @return lista de AccountCatalogueEntity hijos directos del código padre dado.
+     */
+    @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.parent.code = ?1 AND a.idEnterprise = ?2")
+    List<AccountCatalogueEntity> findByParentCode(String parentCode, String idEnterprise);
 
 }

@@ -30,7 +30,7 @@ public class AccountCatalogueChangeStateJpaAdapter implements IAccountCatalogueC
     @Override
     @Transactional
     public AccountCatalogue changeState(Long id, Boolean status) {
-        AccountCatalogueEntity accountCatalogueEntity = accountCatalogueRepository.findByIdWithChildren(id.longValue());
+        AccountCatalogueEntity accountCatalogueEntity = accountCatalogueRepository.findById(id).orElse(null);
 
         if (accountCatalogueEntity == null) {
             return null;

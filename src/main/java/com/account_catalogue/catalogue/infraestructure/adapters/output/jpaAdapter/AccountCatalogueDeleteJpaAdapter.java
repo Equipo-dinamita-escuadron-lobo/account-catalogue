@@ -25,7 +25,7 @@ public class AccountCatalogueDeleteJpaAdapter implements IAccountCatalogueDelete
      */
     @Override
     public void deleteById(Long id) {
-        AccountCatalogueEntity entity = accountCatalogueRepository.findById(id.longValue());
+        AccountCatalogueEntity entity = accountCatalogueRepository.findById(id).orElse(null);
         if (entity != null) {
             // Eliminar físicamente la cuenta principal y sus hijas
             deletePhysical(entity);

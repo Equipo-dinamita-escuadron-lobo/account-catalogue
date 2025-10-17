@@ -22,12 +22,6 @@ public interface IAccountCatalogueRepository extends JpaRepository<AccountCatalo
     @Query("SELECT a FROM AccountCatalogueEntity a LEFT JOIN FETCH a.parent WHERE a.code = ?1 AND a.idEnterprise = ?2")
     AccountCatalogueEntity findByCode(String code, String idEnterprise);
 
-    @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.id = ?1")
-    AccountCatalogueEntity findById(long id);
-
-    @Query("SELECT a FROM AccountCatalogueEntity a LEFT JOIN FETCH a.children WHERE a.id = ?1")
-    AccountCatalogueEntity findByIdWithChildren(long id);
-
     /**
      * Encuentra un AccountCatalogueEntity por ID y id de empresa (no eliminado).
      * 
@@ -38,9 +32,6 @@ public interface IAccountCatalogueRepository extends JpaRepository<AccountCatalo
      */
     @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.id = ?1 AND a.idEnterprise = ?2")
     AccountCatalogueEntity findByIdAndIdEnterprise(Long id, String idEnterprise);
-
-    @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.code = ?1")
-    AccountCatalogueEntity findByCode(String code);
 
     /**
      * Encuentra un AccountCatalogueEntity por descripción (case-insensitive) y id de empresa (no eliminado).
@@ -72,16 +63,6 @@ public interface IAccountCatalogueRepository extends JpaRepository<AccountCatalo
     List<AccountCatalogueEntity> findAuxiliaryAccountsWithCrossingByIdEnterprise(String idEnterprise);
 
     /**
-     * Encuentra todas las cuentas hijas directas de un código padre para una empresa específica.
-     * 
-     * @param parentCode el código del padre.
-     * @param idEnterprise el id de la empresa.
-     * @return lista de AccountCatalogueEntity hijos directos del código padre dado.
-     */
-    @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.parent.code = ?1 AND a.idEnterprise = ?2")
-    List<AccountCatalogueEntity> findByParentCode(String parentCode, String idEnterprise);
-
-    /**
      * Encuentra todos los IDs de descendientes de una cuenta (jerarquía recursiva).
      * 
      * @param parentId el ID del padre.
@@ -106,16 +87,6 @@ public interface IAccountCatalogueRepository extends JpaRepository<AccountCatalo
     @Modifying
     @Query("UPDATE AccountCatalogueEntity a SET a.status = :status WHERE a.id IN :ids AND a.idEnterprise = :idEnterprise AND a.tenantId = :tenantId")
     void updateStatusByIds(@Param("status") Boolean status, @Param("ids") List<Long> ids, @Param("idEnterprise") String idEnterprise, @Param("tenantId") String tenantId);
-
-    /**
-     * Encuentra todos los códigos de padres de una cuenta basándose en las reglas PUC.
-     * 
-     * @param code el código de la cuenta.
-     * @param idEnterprise el id de la empresa.
-     * @return lista de códigos de padres.
-     */
-    @Query(value = "SELECT get_parent_codes(:code)", nativeQuery = true)
-    List<String> findParentCodes(@Param("code") String code, @Param("idEnterprise") String idEnterprise);
 
     /**
      * Actualiza el estado de cuentas por códigos.

@@ -30,7 +30,7 @@ public class AccountCatalogueUpdateJpaAdapter implements IAccountCatalogueUpdate
      */
         @Override
     public AccountCatalogue updateAccountCatalogue(long id, AccountCatalogue accountCatalogue) {
-        AccountCatalogueEntity accountCatalogueEntity = accountCatalogueRepository.findById(id);
+        AccountCatalogueEntity accountCatalogueEntity = accountCatalogueRepository.findById(Long.valueOf(id)).orElse(null);
 
         if(accountCatalogueEntity==null){
             return null;

@@ -8,6 +8,10 @@ import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapte
 
 import lombok.Data;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
 /**
  * Adaptador para la creacion de cuentas usando JPA.
  * Implementa la interfaz IAccountCatalogueCreateOutputPort.
@@ -28,6 +32,7 @@ public class AccountCatalogueCreateJpaAdapter implements IAccountCatalogueCreate
      */
     
     @Override
+    @Transactional
     public AccountCatalogue createAccountCatalogue(AccountCatalogue accountCatalogue) {
 
         AccountCatalogueEntity parent = null;
@@ -56,22 +61,31 @@ public class AccountCatalogueCreateJpaAdapter implements IAccountCatalogueCreate
      * @param child la cuenta hija desde donde se inicia la activación ascendente
      */
     private void activateParentHierarchy(AccountCatalogueEntity child) {
-        String currentCode = child.getCode();
+        List<String> parentCodes = getAllParentCodes(child.getCode());
+        if (!parentCodes.isEmpty()) {
+            accountCatalogueRepository.updateStatusByCodes(true, parentCodes, child.getIdEnterprise(), child.getTenantId());
+        }
+    }
 
-        // Calcular y activar recursivamente todos los padres basándose en el código
+    /**
+     * Obtiene todos los códigos de padres para una cuenta dada basado en las reglas PUC.
+     *
+     * @param code El código de la cuenta.
+     * @return Lista de códigos de padres.
+     */
+    private List<String> getAllParentCodes(String code) {
+        List<String> parentCodes = new ArrayList<>();
+        String currentCode = code;
         while (currentCode.length() > 1) {
             String parentCode = getParentCode(currentCode);
             if (parentCode != null) {
-                AccountCatalogueEntity parent = accountCatalogueRepository.findByCode(parentCode, child.getIdEnterprise());
-                if (parent != null && !parent.getStatus()) {
-                    parent.setStatus(true);
-                    accountCatalogueRepository.save(parent);
-                }
+                parentCodes.add(parentCode);
                 currentCode = parentCode;
             } else {
                 break;
             }
         }
+        return parentCodes;
     }
 
     /**

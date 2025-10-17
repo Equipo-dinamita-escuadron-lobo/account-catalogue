@@ -3,7 +3,9 @@ package com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapt
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.entity.AccountCatalogueEntity;
 
@@ -78,5 +80,52 @@ public interface IAccountCatalogueRepository extends JpaRepository<AccountCatalo
      */
     @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.parent.code = ?1 AND a.idEnterprise = ?2")
     List<AccountCatalogueEntity> findByParentCode(String parentCode, String idEnterprise);
+
+    /**
+     * Encuentra todos los IDs de descendientes de una cuenta (jerarquía recursiva).
+     * 
+     * @param parentId el ID del padre.
+     * @param idEnterprise el id de la empresa.
+     * @param tenantId el id del tenant.
+     * @return lista de IDs de descendientes.
+     */
+    @Query(value = "WITH RECURSIVE descendants AS ( " +
+                   "SELECT id FROM account WHERE id = :parentId AND id_enterprise = :idEnterprise AND tenant_id = :tenantId " +
+                   "UNION ALL " +
+                   "SELECT ac.id FROM account ac INNER JOIN descendants d ON ac.parent_id = d.id WHERE ac.id_enterprise = :idEnterprise AND ac.tenant_id = :tenantId " +
+                   ") SELECT id FROM descendants WHERE id != :parentId", nativeQuery = true)
+    List<Long> findDescendantIds(@Param("parentId") Long parentId, @Param("idEnterprise") String idEnterprise, @Param("tenantId") String tenantId);
+
+    /**
+     * Actualiza el estado de múltiples cuentas por sus IDs.
+     * 
+     * @param status el nuevo estado.
+     * @param ids lista de IDs a actualizar.
+     * @param idEnterprise el id de la empresa.
+     */
+    @Modifying
+    @Query("UPDATE AccountCatalogueEntity a SET a.status = :status WHERE a.id IN :ids AND a.idEnterprise = :idEnterprise AND a.tenantId = :tenantId")
+    void updateStatusByIds(@Param("status") Boolean status, @Param("ids") List<Long> ids, @Param("idEnterprise") String idEnterprise, @Param("tenantId") String tenantId);
+
+    /**
+     * Encuentra todos los códigos de padres de una cuenta basándose en las reglas PUC.
+     * 
+     * @param code el código de la cuenta.
+     * @param idEnterprise el id de la empresa.
+     * @return lista de códigos de padres.
+     */
+    @Query(value = "SELECT get_parent_codes(:code)", nativeQuery = true)
+    List<String> findParentCodes(@Param("code") String code, @Param("idEnterprise") String idEnterprise);
+
+    /**
+     * Actualiza el estado de cuentas por códigos.
+     * 
+     * @param status el nuevo estado.
+     * @param codes lista de códigos a actualizar.
+     * @param idEnterprise el id de la empresa.
+     */
+    @Modifying
+    @Query("UPDATE AccountCatalogueEntity a SET a.status = :status WHERE a.code IN :codes AND a.idEnterprise = :idEnterprise AND a.tenantId = :tenantId")
+    void updateStatusByCodes(@Param("status") Boolean status, @Param("codes") List<String> codes, @Param("idEnterprise") String idEnterprise, @Param("tenantId") String tenantId);
 
 }

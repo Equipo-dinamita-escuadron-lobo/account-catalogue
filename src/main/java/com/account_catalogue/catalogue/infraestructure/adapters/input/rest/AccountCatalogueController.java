@@ -3,11 +3,8 @@ package com.account_catalogue.catalogue.infraestructure.adapters.input.rest;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.core.io.Resource;
 //import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,7 +20,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.account_catalogue.catalogue.application.input.IAccountCatalogueChangeStateInputPort;
 import com.account_catalogue.catalogue.application.input.IAccountCatalogueCreateInputPort;
 import com.account_catalogue.catalogue.application.input.IAccountCatalogueDeleteInputPort;
-import com.account_catalogue.catalogue.application.input.IAccountCatalogueExportTemplateInputPort;
 import com.account_catalogue.catalogue.application.input.IAccountCatalogueSearchInputPort;
 import com.account_catalogue.catalogue.application.input.IAccountCatalogueUpdateInputPort;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
@@ -61,7 +57,6 @@ public class AccountCatalogueController {
     private final IAccountCatalogueUpdateInputPort accountCatalogueUpdateInputPort;
     private final IAccountCatalogueChangeStateInputPort accountCatalogueChangeStateInputPort;
     private final IAccountChangeStateRestMapper accountChangeStateRestMapper;
-    private final IAccountCatalogueExportTemplateInputPort accountCatalogueExportTemplateInputPort;
     private final IAuxiliaryAccountRestMapper auxiliaryAccountRestMapper;
 
 
@@ -151,39 +146,6 @@ public class AccountCatalogueController {
         
         AccountCatalogueChangeStateRes response = accountChangeStateRestMapper.toChangeStateResponse(updatedAccount);
         return ResponseEntity.ok(response);
-    }
-
-    /**
-     * Descarga la plantilla de catálogo de cuentas en formato Excel.
-     * 
-     * @return la plantilla como archivo descargable
-     */
-    @GetMapping("/template")
-    public ResponseEntity<Resource> downloadTemplate() {
-        Resource resource = accountCatalogueExportTemplateInputPort.getAccountCatalogueTemplate();
-        
-        HttpHeaders headers = new HttpHeaders();
-        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"plantillaCatalogoCuentas.xlsx\"");
-        headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM_VALUE);
-        
-        return ResponseEntity.ok()
-                .headers(headers)
-                .contentLength(getResourceSize(resource))
-                .body(resource);
-    }
-
-    /**
-     * Obtiene el tamaño del recurso de forma segura.
-     * 
-     * @param resource el recurso
-     * @return el tamaño del recurso o -1 si no se puede determinar
-     */
-    private long getResourceSize(Resource resource) {
-        try {
-            return resource.contentLength();
-        } catch (Exception e) {
-            return -1;
-        }
     }
 
     /**

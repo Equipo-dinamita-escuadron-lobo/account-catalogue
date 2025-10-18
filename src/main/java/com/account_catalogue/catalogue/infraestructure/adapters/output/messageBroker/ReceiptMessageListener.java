@@ -9,10 +9,10 @@ import org.springframework.stereotype.Component;
 
 import com.account_catalogue.catalogue.application.input.IReceiptProcessInputPort;
 import com.account_catalogue.catalogue.domain.models.Receipt;
-import com.account_catalogue.catalogue.infraestructure.adapters.config.ReceiptRabbitConfig;
 import com.account_catalogue.catalogue.infraestructure.adapters.output.messageBroker.DTO.EventDTO;
 import com.account_catalogue.catalogue.infraestructure.adapters.output.messageBroker.DTO.ReceiptEventDTO;
 import com.account_catalogue.catalogue.infraestructure.adapters.output.messageBroker.mapper.IReceiptEventMapper;
+import com.account_catalogue.catalogue.infraestructure.config.ReceiptRabbitConfig;
 import com.rabbitmq.client.Channel;
 
 import lombok.AllArgsConstructor;

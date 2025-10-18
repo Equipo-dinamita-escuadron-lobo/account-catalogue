@@ -3,6 +3,8 @@ package com.account_catalogue.catalogue.application.services;
 import com.account_catalogue.catalogue.domain.enums.ClassificationEnum;
 import com.account_catalogue.catalogue.domain.enums.FinancialStatusEnum;
 import com.account_catalogue.catalogue.domain.enums.NatureEnum;
+import com.account_catalogue.commons.exceptions.catalogue.ExcelValidationException;
+
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddressList;
@@ -67,7 +69,7 @@ public class AccountCatalogueExcelValidationService {
      * @param startRow fila inicial
      * @param endRow fila final
      */
-    public void applyAccountCatalogueValidations(Sheet sheet, int startRow, int endRow) {
+    public void applyAccountCatalogueValidations(Sheet sheet, int startRow, int endRow) throws ExcelValidationException {
         // Columna 0: Código (validación numérica personalizada)
         applyCodeValidation(sheet, 0, startRow, endRow);
 
@@ -94,7 +96,7 @@ public class AccountCatalogueExcelValidationService {
      * Aplica validación personalizada para el código de cuenta.
      * Debe ser positivo y tener exactamente 1, 2, 4, 6 u 8 dígitos.
      */
-    public void applyCodeValidation(Sheet sheet, int columnIndex, int startRow, int endRow) {
+    public void applyCodeValidation(Sheet sheet, int columnIndex, int startRow, int endRow) throws ExcelValidationException {
         try {
             XSSFSheet xssfSheet = (XSSFSheet) sheet;
             XSSFDataValidationHelper validationHelper = new XSSFDataValidationHelper(xssfSheet);
@@ -125,7 +127,7 @@ public class AccountCatalogueExcelValidationService {
             sheet.addValidationData(validation);
 
         } catch (Exception e) {
-            log.error("Error aplicando validación de código en columna {}", columnIndex, e);
+            throw new ExcelValidationException.ExcelCodeValidationException(columnIndex, e);
         }
     }
 
@@ -133,7 +135,7 @@ public class AccountCatalogueExcelValidationService {
      * Aplica validación de lista desplegable a una columna específica.
      */
     public void applyDropdownValidation(Sheet sheet, int columnIndex, int startRow, int endRow,
-            List<String> options, String errorMessage) {
+            List<String> options, String errorMessage) throws ExcelValidationException {
         if (options == null || options.isEmpty()) {
             return;
         }
@@ -159,7 +161,7 @@ public class AccountCatalogueExcelValidationService {
             sheet.addValidationData(validation);
 
         } catch (Exception e) {
-            log.error("Error aplicando validación en columna {}", columnIndex, e);
+            throw new ExcelValidationException.ExcelDropdownValidationException(columnIndex, e);
         }
     }
 
@@ -168,7 +170,7 @@ public class AccountCatalogueExcelValidationService {
      * Solo permitida cuando el código tiene exactamente 8 dígitos.
      * Usa lista desplegable SI/NO con tooltip personalizado.
      */
-    public void applyCruceValidation(Sheet sheet, int columnIndex, int startRow, int endRow) {
+    public void applyCruceValidation(Sheet sheet, int columnIndex, int startRow, int endRow) throws ExcelValidationException {
         applyConditionalDropdownValidation(sheet, columnIndex, startRow, endRow,
                 "LEN(TEXT(A{row}, \"0\")) = 8", 
                 List.of("SI", "NO"),
@@ -181,7 +183,7 @@ public class AccountCatalogueExcelValidationService {
      * Solo permitida cuando el código tiene 8 dígitos Y Estado Financiero es "Estado de Resultados".
      * Usa lista desplegable SI/NO con tooltip personalizado.
      */
-    public void applyCentroCostoValidation(Sheet sheet, int columnIndex, int startRow, int endRow) {
+    public void applyCentroCostoValidation(Sheet sheet, int columnIndex, int startRow, int endRow) throws ExcelValidationException {
         applyConditionalDropdownValidation(sheet, columnIndex, startRow, endRow,
                 "AND(LEN(TEXT(A{row}, \"0\")) = 8, D{row} = \"" + FinancialStatusEnum.INCOMESTATEMENT.getState() + "\")",
                 List.of("SI", "NO"),
@@ -194,7 +196,7 @@ public class AccountCatalogueExcelValidationService {
      * Muestra lista desplegable SI/NO solo cuando se cumple la condición.
      */
     private void applyConditionalDropdownValidation(Sheet sheet, int columnIndex, int startRow, int endRow,
-            String conditionFormula, List<String> options, String errorMessage, String promptMessage) {
+            String conditionFormula, List<String> options, String errorMessage, String promptMessage) throws ExcelValidationException {
         try {
             XSSFSheet xssfSheet = (XSSFSheet) sheet;
             XSSFWorkbook workbook = xssfSheet.getWorkbook();
@@ -238,7 +240,7 @@ public class AccountCatalogueExcelValidationService {
             }
 
         } catch (Exception e) {
-            log.error("Error aplicando validación condicional en columna {}", columnIndex, e);
+            throw new ExcelValidationException.ExcelConditionalValidationException(columnIndex, e);
         }
     }
 }

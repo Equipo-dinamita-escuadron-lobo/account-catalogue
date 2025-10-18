@@ -17,7 +17,11 @@ public enum AccountCatalogueErrorCode implements ErrorCodeDefinition {
     ACCOUNT_HAS_CHILDREN("ACCOUNT_HAS_CHILDREN", "La cuenta tiene subcuentas asociadas"),
     PARENT_ACCOUNT_NOT_FOUND("PARENT_ACCOUNT_NOT_FOUND", "Cuenta padre no encontrada"),
     ACCOUNT_ASSOCIATED_WITH_TAX("ACCOUNT_ASSOCIATED_WITH_TAX", "La cuenta está asociada a uno o más impuestos"),
-    INVALID_ACCOUNT_CODE_LENGTH("INVALID_ACCOUNT_CODE_LENGTH", "El código de cuenta debe tener exactamente 1, 2, 4, 6 u 8 dígitos");
+    INVALID_ACCOUNT_CODE_LENGTH("INVALID_ACCOUNT_CODE_LENGTH", "El código de cuenta debe tener exactamente 1, 2, 4, 6 u 8 dígitos"),
+    EXCEL_VALIDATION_ERROR("EXCEL_VALIDATION_ERROR", "Error en la validación de datos del archivo Excel"),
+    EXCEL_CODE_VALIDATION_ERROR("EXCEL_CODE_VALIDATION_ERROR", "Error aplicando validación de código en columna"),
+    EXCEL_DROPDOWN_VALIDATION_ERROR("EXCEL_DROPDOWN_VALIDATION_ERROR", "Error aplicando validación de lista desplegable en columna"),
+    EXCEL_CONDITIONAL_VALIDATION_ERROR("EXCEL_CONDITIONAL_VALIDATION_ERROR", "Error aplicando validación condicional en columna");
 
     private final String code;
     private final String message;

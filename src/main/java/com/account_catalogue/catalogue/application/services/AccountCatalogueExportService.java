@@ -5,6 +5,8 @@ import com.account_catalogue.catalogue.domain.enums.ClassificationEnum;
 import com.account_catalogue.catalogue.domain.enums.FinancialStatusEnum;
 import com.account_catalogue.catalogue.domain.enums.NatureEnum;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogueTemplateData;
+import com.account_catalogue.commons.exceptions.catalogue.ExcelValidationException;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
@@ -32,6 +34,9 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
         try {
             byte[] templateData = generateTemplateWithValidations(entId);
             return new ByteArrayResource(templateData);
+        } catch (ExcelValidationException e) {
+            log.error("Error de validación generando plantilla de catálogo de cuentas", e);
+            throw e;
         } catch (Exception e) {
             log.error("Error generando plantilla de catálogo de cuentas", e);
             throw new RuntimeException("Error al generar plantilla", e);
@@ -46,13 +51,16 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
             List<AccountCatalogueTemplateData> templateData = getHardcodedTemplateData();
             byte[] excelData = generateExcelFileWithValidations(templateData);
             return new ByteArrayResource(excelData);
+        } catch (ExcelValidationException e) {
+            log.error("Error de validación generando archivo de exportación de catálogo de cuentas", e);
+            throw e;
         } catch (Exception e) {
             log.error("Error generando archivo de exportación de catálogo de cuentas", e);
             throw new RuntimeException("Error al generar archivo de exportación", e);
         }
     }
 
-    private byte[] generateTemplateWithValidations(String entId) throws IOException {
+    private byte[] generateTemplateWithValidations(String entId) throws IOException, ExcelValidationException {
         try (Workbook workbook = new XSSFWorkbook();
              ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
 
@@ -80,7 +88,7 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
         }
     }
 
-    private byte[] generateExcelFileWithValidations(List<AccountCatalogueTemplateData> data) throws IOException {
+    private byte[] generateExcelFileWithValidations(List<AccountCatalogueTemplateData> data) throws IOException, ExcelValidationException {
         try (Workbook workbook = new XSSFWorkbook();
              ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
 
@@ -239,14 +247,14 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
         }
     }
 
-    private void applyValidationsToTemplate(Sheet sheet) {
+    private void applyValidationsToTemplate(Sheet sheet) throws ExcelValidationException {
         int startRow = 1; // Después del encabezado
         int endRow = 1000; // Permitir muchas filas para la plantilla
 
         excelValidationService.applyAccountCatalogueValidations(sheet, startRow, endRow);
     }
 
-    private void applyValidationsToDataSheet(Sheet sheet, int dataRowCount) {
+    private void applyValidationsToDataSheet(Sheet sheet, int dataRowCount) throws ExcelValidationException {
         int startRow = 1; // Después del encabezado
         int endRow = Math.max(dataRowCount + 100, 1000); // Datos existentes + filas adicionales
 

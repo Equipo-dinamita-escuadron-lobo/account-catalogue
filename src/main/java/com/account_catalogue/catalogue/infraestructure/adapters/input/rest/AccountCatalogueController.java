@@ -5,6 +5,9 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.core.io.Resource;
 //import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -190,22 +193,17 @@ public class AccountCatalogueController {
      * @param entId ID de la entidad
      * @return Archivo Excel con la plantilla
      */
-    @GetMapping(value = "/template/excel", produces = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-    public ResponseEntity<byte[]> exportAccountCatalogueTemplate(
+    @GetMapping("/template/excel")
+    public ResponseEntity<Resource> exportAccountCatalogueTemplate(
             @RequestParam String entId) {
 
-        org.springframework.core.io.Resource templateFile = accountCatalogueExportInputPort.exportAccountCatalogueTemplate(entId);
+        Resource templateFile = accountCatalogueExportInputPort.exportAccountCatalogueTemplate(entId);
         String filename = fileNameGenerator.generateTemplateFileName();
 
-        try {
-            byte[] fileContent = templateFile.getInputStream().readAllBytes();
-            return ResponseEntity.ok()
-                    .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
-                    .header(org.springframework.http.HttpHeaders.CONTENT_TYPE, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-                    .body(fileContent);
-        } catch (Exception e) {
-            throw new RuntimeException("Error al leer el archivo de plantilla", e);
-        }
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(templateFile);
     }
 
     /**
@@ -215,23 +213,18 @@ public class AccountCatalogueController {
      * @param companyName Nombre de la empresa (opcional)
      * @return Archivo Excel con los datos del catálogo
      */
-    @GetMapping(value = "/export/excel", produces = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-    public ResponseEntity<byte[]> exportAccountCatalogueWithValidations(
+    @GetMapping("/export/excel")
+    public ResponseEntity<Resource> exportAccountCatalogueWithValidations(
             @RequestParam String entId,
             @RequestParam(required = false) String companyName) {
 
-        org.springframework.core.io.Resource excelFile = accountCatalogueExportInputPort.exportAccountCatalogueWithValidations(entId);
+        Resource excelFile = accountCatalogueExportInputPort.exportAccountCatalogueWithValidations(entId);
         String filename = fileNameGenerator.generateExportFileName(entId, companyName);
 
-        try {
-            byte[] fileContent = excelFile.getInputStream().readAllBytes();
-            return ResponseEntity.ok()
-                    .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
-                    .header(org.springframework.http.HttpHeaders.CONTENT_TYPE, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-                    .body(fileContent);
-        } catch (Exception e) {
-            throw new RuntimeException("Error al leer el archivo de exportación", e);
-        }
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(excelFile);
     }
 
 }

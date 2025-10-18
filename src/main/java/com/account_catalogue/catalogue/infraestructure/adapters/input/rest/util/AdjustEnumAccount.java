@@ -51,7 +51,7 @@ public class AdjustEnumAccount {
                 enumState = ClassificationEnum.OPERATINGEXPENSES;
                 break;
             case "Ingresos Operacionales":
-                enumState = ClassificationEnum.OPERATINGINCOME;
+                enumState = ClassificationEnum.OPERATINGREVENUES;
                 break;
 
             default:
@@ -102,10 +102,10 @@ public class AdjustEnumAccount {
     public NatureEnum adjustNatureEnum(String state) {
         NatureEnum enumState;
         switch (state) {
-            case "Crédito":
+            case "Credito":
                 enumState = NatureEnum.CREDIT;
                 break;
-            case "Débito":
+            case "Debito":
                 enumState = NatureEnum.DEBIT;
                 break;
             default:

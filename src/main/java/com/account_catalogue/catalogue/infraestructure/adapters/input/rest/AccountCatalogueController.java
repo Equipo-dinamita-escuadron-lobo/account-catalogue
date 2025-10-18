@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.account_catalogue.catalogue.application.input.IAccountCatalogueChangeStateInputPort;
 import com.account_catalogue.catalogue.application.input.IAccountCatalogueCreateInputPort;
 import com.account_catalogue.catalogue.application.input.IAccountCatalogueDeleteInputPort;
+import com.account_catalogue.catalogue.application.input.IAccountCatalogueExportInputPort;
 import com.account_catalogue.catalogue.application.input.IAccountCatalogueSearchInputPort;
 import com.account_catalogue.catalogue.application.input.IAccountCatalogueUpdateInputPort;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
@@ -38,6 +39,7 @@ import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.mappe
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.mapper.IAccountUpdateRestMapper;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.mapper.IAuxiliaryAccountRestMapper;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.mapper.IItemAccountSearchRestMapper;
+import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.util.AccountCatalogueExcelFileNameGenerator;
 
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -58,6 +60,8 @@ public class AccountCatalogueController {
     private final IAccountCatalogueChangeStateInputPort accountCatalogueChangeStateInputPort;
     private final IAccountChangeStateRestMapper accountChangeStateRestMapper;
     private final IAuxiliaryAccountRestMapper auxiliaryAccountRestMapper;
+    private final IAccountCatalogueExportInputPort accountCatalogueExportInputPort;
+    private final AccountCatalogueExcelFileNameGenerator fileNameGenerator;
 
 
     @PostMapping("/")
@@ -178,6 +182,46 @@ public class AccountCatalogueController {
         AuxiliaryAccountListRes response = auxiliaryAccountRestMapper.toAuxiliaryAccountListRes(auxiliaryAccountsWithCrossing, idEnterprise);
         
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Exporta una plantilla de catálogo de cuentas con validaciones.
+     *
+     * @param entId ID de la entidad
+     * @return Archivo Excel con la plantilla
+     */
+    @GetMapping("/template/excel")
+    public ResponseEntity<org.springframework.core.io.Resource> exportAccountCatalogueTemplate(
+            @RequestParam String entId) {
+
+        org.springframework.core.io.Resource templateFile = accountCatalogueExportInputPort.exportAccountCatalogueTemplate(entId);
+        String filename = fileNameGenerator.generateTemplateFileName();
+
+        return ResponseEntity.ok()
+                .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                .contentType(org.springframework.http.MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(templateFile);
+    }
+
+    /**
+     * Exporta el catálogo de cuentas con validaciones a formato Excel.
+     *
+     * @param entId ID de la entidad
+     * @param companyName Nombre de la empresa (opcional)
+     * @return Archivo Excel con los datos del catálogo
+     */
+    @GetMapping("/export/excel")
+    public ResponseEntity<org.springframework.core.io.Resource> exportAccountCatalogueWithValidations(
+            @RequestParam String entId,
+            @RequestParam(required = false) String companyName) {
+
+        org.springframework.core.io.Resource excelFile = accountCatalogueExportInputPort.exportAccountCatalogueWithValidations(entId);
+        String filename = fileNameGenerator.generateExportFileName(entId, companyName);
+
+        return ResponseEntity.ok()
+                .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                .contentType(org.springframework.http.MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(excelFile);
     }
 
 }

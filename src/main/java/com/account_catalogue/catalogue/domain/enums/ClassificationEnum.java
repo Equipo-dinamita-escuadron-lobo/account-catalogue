@@ -12,7 +12,6 @@ public enum ClassificationEnum {
     OPERATINGREVENUES("Ingresos Operacionales"),
     NONOPERATINGINCOME("Ingresos No Operacionales"),
     OPERATINGEXPENSES("Gastos Operacionales"),
-    OPERATINGINCOME("Ingresos Operacionales"),
     EMPTY("Por defecto");
 
     private final String state;

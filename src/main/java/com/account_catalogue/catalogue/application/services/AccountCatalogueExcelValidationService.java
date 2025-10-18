@@ -8,6 +8,7 @@ import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddressList;
 import org.apache.poi.xssf.usermodel.XSSFDataValidationHelper;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -165,71 +166,79 @@ public class AccountCatalogueExcelValidationService {
     /**
      * Aplica validación condicional para Cruce.
      * Solo permitida cuando el código tiene exactamente 8 dígitos.
+     * Usa lista desplegable SI/NO con tooltip personalizado.
      */
     public void applyCruceValidation(Sheet sheet, int columnIndex, int startRow, int endRow) {
-        try {
-            XSSFSheet xssfSheet = (XSSFSheet) sheet;
-            XSSFDataValidationHelper validationHelper = new XSSFDataValidationHelper(xssfSheet);
-
-            for (int row = startRow; row <= endRow; row++) {
-                CellRangeAddressList addressList = new CellRangeAddressList(row, row, columnIndex, columnIndex);
-
-                // Fórmula condicional: solo permite SI/NO si el código tiene 8 dígitos
-                String formula = "OR(LEN(TEXT(A" + (row + 1) + ", \"0\")) <> 8, B" + (row + 1) + " = \"SI\", B" + (row + 1) + " = \"NO\", ISBLANK(B" + (row + 1) + "))";
-
-                DataValidationConstraint constraint = validationHelper.createCustomConstraint(formula);
-                DataValidation validation = validationHelper.createValidation(constraint, addressList);
-
-                validation.setShowErrorBox(true);
-                validation.setErrorStyle(DataValidation.ErrorStyle.STOP);
-                validation.createErrorBox("Error de Validación",
-                        "Cruce solo es válido para cuentas con código de 8 dígitos");
-
-                validation.setShowPromptBox(true);
-                validation.createPromptBox("Cruce",
-                        "Solo disponible para códigos de 8 dígitos. Use SI o NO");
-
-                sheet.addValidationData(validation);
-            }
-
-        } catch (Exception e) {
-            log.error("Error aplicando validación de cruce en columna {}", columnIndex, e);
-        }
+        applyConditionalDropdownValidation(sheet, columnIndex, startRow, endRow,
+                "LEN(TEXT(A{row}, \"0\")) = 8", 
+                List.of("SI", "NO"),
+                "Seleccione una opción válida",
+                "¿Permitir asociar cruce?");
     }
 
     /**
      * Aplica validación condicional para Centro de Costo.
      * Solo permitida cuando el código tiene 8 dígitos Y Estado Financiero es "Estado de Resultados".
+     * Usa lista desplegable SI/NO con tooltip personalizado.
      */
     public void applyCentroCostoValidation(Sheet sheet, int columnIndex, int startRow, int endRow) {
+        applyConditionalDropdownValidation(sheet, columnIndex, startRow, endRow,
+                "AND(LEN(TEXT(A{row}, \"0\")) = 8, D{row} = \"" + FinancialStatusEnum.INCOMESTATEMENT.getState() + "\")",
+                List.of("SI", "NO"),
+                "Seleccione una opción válida",
+                "¿Permitir asociar Centro de Costo?");
+    }
+
+    /**
+     * Aplica validación condicional de lista desplegable.
+     * Muestra lista desplegable SI/NO solo cuando se cumple la condición.
+     */
+    private void applyConditionalDropdownValidation(Sheet sheet, int columnIndex, int startRow, int endRow,
+            String conditionFormula, List<String> options, String errorMessage, String promptMessage) {
         try {
             XSSFSheet xssfSheet = (XSSFSheet) sheet;
+            XSSFWorkbook workbook = xssfSheet.getWorkbook();
+
+            // Crear hoja oculta para validaciones si no existe
+            XSSFSheet validationSheet = workbook.getSheet("Validations");
+            if (validationSheet == null) {
+                validationSheet = workbook.createSheet("Validations");
+                workbook.setSheetHidden(workbook.getSheetIndex(validationSheet), true);
+
+                // Agregar opciones SI/NO en la hoja oculta
+                validationSheet.createRow(0).createCell(0).setCellValue("SI");
+                validationSheet.createRow(1).createCell(0).setCellValue("NO");
+
+                // Crear rango nombrado para las opciones
+                Name optionsName = workbook.createName();
+                optionsName.setNameName("ValidationOptions");
+                optionsName.setRefersToFormula("Validations!$A$1:$A$2");
+            }
+
             XSSFDataValidationHelper validationHelper = new XSSFDataValidationHelper(xssfSheet);
 
             for (int row = startRow; row <= endRow; row++) {
                 CellRangeAddressList addressList = new CellRangeAddressList(row, row, columnIndex, columnIndex);
 
-                // Fórmula condicional compleja
-                String formula = "OR(AND(LEN(TEXT(A" + (row + 1) + ", \"0\")) = 8, D" + (row + 1) + " = \"Estado de Resultados\"), " +
-                               "OR(C" + (row + 1) + " = \"SI\", C" + (row + 1) + " = \"NO\", ISBLANK(C" + (row + 1) + ")))";
+                // Crear fórmula condicional para el rango de la lista
+                String actualCondition = conditionFormula.replace("{row}", String.valueOf(row + 1));
+                String formula = "IF(" + actualCondition + ", ValidationOptions, OFFSET(ValidationOptions,0,0,0,1))";
 
-                DataValidationConstraint constraint = validationHelper.createCustomConstraint(formula);
+                DataValidationConstraint constraint = validationHelper.createFormulaListConstraint(formula);
                 DataValidation validation = validationHelper.createValidation(constraint, addressList);
 
                 validation.setShowErrorBox(true);
                 validation.setErrorStyle(DataValidation.ErrorStyle.STOP);
-                validation.createErrorBox("Error de Validación",
-                        "Centro de Costo requiere código de 8 dígitos y Estado de Resultados");
+                validation.createErrorBox("Error de Validación", errorMessage);
 
                 validation.setShowPromptBox(true);
-                validation.createPromptBox("Centro de Costo",
-                        "Requiere código de 8 dígitos y Estado Financiero = 'Estado de Resultados'");
+                validation.createPromptBox("Selección", promptMessage);
 
                 sheet.addValidationData(validation);
             }
 
         } catch (Exception e) {
-            log.error("Error aplicando validación de centro de costo en columna {}", columnIndex, e);
+            log.error("Error aplicando validación condicional en columna {}", columnIndex, e);
         }
     }
 }

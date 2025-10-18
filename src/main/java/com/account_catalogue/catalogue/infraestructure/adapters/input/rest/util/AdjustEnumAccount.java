@@ -19,47 +19,37 @@ public class AdjustEnumAccount {
      * - Patrimonio -> EQUITY
      * - Ingresos No Operacionales -> NONOPERATINGINCOME
      * - Gastos Operacionales -> OPERATINGEXPENSES
-     * - Ingresos Operacionales -> OPERATINGINCOME
-     * - Cualquier otro valor -> EMPTY
+     * - Ingresos Operacionales -> OPERATINGREVENUES
      * 
      * @param state la clasificación de cadena.
      * @return la ClassificationEnum equivalente.
+     * @throws IllegalArgumentException si el estado no es válido.
      */
     public ClassificationEnum adjustClassificationEnum(String state) {
-
-        ClassificationEnum enumState;
-        switch (state) {
-            case "Activo Corriente":
-                enumState = ClassificationEnum.CURRENTASSETS;
-                break;
-            case "Activo No Corriente":
-                enumState = ClassificationEnum.NONCURRENTASSETS;
-                break;
-            case "Pasivo Corriente":
-                enumState = ClassificationEnum.CURRENTLIABILITIES;
-                break;
-            case "Pasivo No Corriente":
-                enumState = ClassificationEnum.NONCURRENTLIABILITIES;
-                break;
-            case "Patrimonio":
-                enumState = ClassificationEnum.EQUITY;
-                break;
-            case "Ingresos No Operacionales":
-                enumState = ClassificationEnum.NONOPERATINGINCOME;
-                break;
-            case "Gastos Operacionales":
-                enumState = ClassificationEnum.OPERATINGEXPENSES;
-                break;
-            case "Ingresos Operacionales":
-                enumState = ClassificationEnum.OPERATINGREVENUES;
-                break;
-
-            default:
-                enumState = ClassificationEnum.EMPTY;
-
+        if (state == null || state.trim().isEmpty()) {
+            throw new IllegalArgumentException("La clasificación no puede ser nula o vacía");
         }
 
-        return enumState;
+        switch (state.trim()) {
+            case "Activo Corriente":
+                return ClassificationEnum.CURRENTASSETS;
+            case "Activo No Corriente":
+                return ClassificationEnum.NONCURRENTASSETS;
+            case "Pasivo Corriente":
+                return ClassificationEnum.CURRENTLIABILITIES;
+            case "Pasivo No Corriente":
+                return ClassificationEnum.NONCURRENTLIABILITIES;
+            case "Patrimonio":
+                return ClassificationEnum.EQUITY;
+            case "Ingresos No Operacionales":
+                return ClassificationEnum.NONOPERATINGINCOME;
+            case "Gastos Operacionales":
+                return ClassificationEnum.OPERATINGEXPENSES;
+            case "Ingresos Operacionales":
+                return ClassificationEnum.OPERATINGREVENUES;
+            default:
+                throw new IllegalArgumentException("Clasificación no válida: " + state);
+        }
     }
 
     /**
@@ -67,25 +57,24 @@ public class AdjustEnumAccount {
      * Los valores posibles son:
      * - Estado de Resultados -> INCOMESTATEMENT
      * - Estado de Situacion Financiero -> STATEMENTFINANCIALPOSITION
-     * - Cualquier otro valor -> EMPTY
      * 
      * @param state el estado financiero de cadena.
      * @return la FinancialStatusEnum equivalente.
+     * @throws IllegalArgumentException si el estado no es válido.
      */
     public FinancialStatusEnum adjustFinancialStatusEnum(String state) {
-        FinancialStatusEnum enumState;
-        switch (state) {
-            case "Estado de Resultados":
-                enumState = FinancialStatusEnum.INCOMESTATEMENT;
-                break;
-            case "Estado de Situacion Financiero":
-                enumState = FinancialStatusEnum.STATEMENTFINANCIALPOSITION;
-                break;
-            default:
-                enumState = FinancialStatusEnum.EMPTY;
-
+        if (state == null || state.trim().isEmpty()) {
+            throw new IllegalArgumentException("El estado financiero no puede ser nulo o vacío");
         }
-        return enumState;
+
+        switch (state.trim()) {
+            case "Estado de Resultados":
+                return FinancialStatusEnum.INCOMESTATEMENT;
+            case "Estado de Situacion Financiero":
+                return FinancialStatusEnum.STATEMENTFINANCIALPOSITION;
+            default:
+                throw new IllegalArgumentException("Estado financiero no válido: " + state);
+        }
     }
 
 
@@ -94,25 +83,24 @@ public class AdjustEnumAccount {
      * Los valores posibles son:
      * - Crédito -> CREDIT
      * - Débito -> DEBIT
-     * - Cualquier otro valor -> EMPTY
      * 
      * @param state la naturaleza de cadena.
      * @return la NatureEnum equivalente.
+     * @throws IllegalArgumentException si el estado no es válido.
      */
     public NatureEnum adjustNatureEnum(String state) {
-        NatureEnum enumState;
-        switch (state) {
-            case "Credito":
-                enumState = NatureEnum.CREDIT;
-                break;
-            case "Debito":
-                enumState = NatureEnum.DEBIT;
-                break;
-            default:
-                enumState = NatureEnum.EMPTY;
-
+        if (state == null || state.trim().isEmpty()) {
+            throw new IllegalArgumentException("La naturaleza no puede ser nula o vacía");
         }
-        return enumState;
+
+        switch (state.trim()) {
+            case "Credito":
+                return NatureEnum.CREDIT;
+            case "Debito":
+                return NatureEnum.DEBIT;
+            default:
+                throw new IllegalArgumentException("Naturaleza no válida: " + state);
+        }
     }
 
 }

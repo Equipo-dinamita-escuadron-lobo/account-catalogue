@@ -2,6 +2,8 @@ package com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapt
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -99,4 +101,14 @@ public interface IAccountCatalogueRepository extends JpaRepository<AccountCatalo
     @Query("UPDATE AccountCatalogueEntity a SET a.status = :status WHERE a.code IN :codes AND a.idEnterprise = :idEnterprise AND a.tenantId = :tenantId")
     void updateStatusByCodes(@Param("status") Boolean status, @Param("codes") List<String> codes, @Param("idEnterprise") String idEnterprise, @Param("tenantId") String tenantId);
 
+    /**
+     * Encuentra todas las cuentas activas para una empresa específica con paginación.
+     * Ordenadas por código para mantener la jerarquía.
+     * 
+     * @param idEnterprise el id de la empresa.
+     * @param pageable objeto de paginación.
+     * @return página de AccountCatalogueEntity para la empresa dada.
+     */
+    @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.idEnterprise = ?1 AND a.status = true ORDER BY a.code ASC")
+    Page<AccountCatalogueEntity> findAllByIdEnterpriseOrderByCode(String idEnterprise, Pageable pageable);
 }

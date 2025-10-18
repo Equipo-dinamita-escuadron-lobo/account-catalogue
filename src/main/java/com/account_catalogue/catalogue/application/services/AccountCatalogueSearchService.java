@@ -2,6 +2,9 @@ package com.account_catalogue.catalogue.application.services;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import com.account_catalogue.catalogue.application.input.IAccountCatalogueSearchInputPort;
 import com.account_catalogue.catalogue.application.output.IAccountCatalogueSearchOutputPort;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
@@ -88,6 +91,23 @@ public class AccountCatalogueSearchService implements IAccountCatalogueSearchInp
         }
         
         return accountCatalogueSearchOutputPort.getAuxiliaryAccountsWithCrossingByIdEnterprise(idEnterprise.trim());
+    }
+
+    /**
+     * Obtiene todos los catálogos de cuentas para una empresa específica con paginación.
+     * Los resultados se ordenan por código para mantener la jerarquía.
+     *
+     * @param idEnterprise el ID de la empresa
+     * @param pageable objeto de paginación con ordenamiento
+     * @return página de catálogos de cuentas
+     */
+    @Override
+    public Page<AccountCatalogue> getAllAccountCatalogues(String idEnterprise, Pageable pageable) {
+        if (idEnterprise == null || idEnterprise.trim().isEmpty()) {
+            throw new IllegalArgumentException("El ID de empresa es requerido para buscar catálogos de cuentas");
+        }
+        
+        return accountCatalogueSearchOutputPort.getAllAccountCataloguesByIdEnterprise(idEnterprise.trim(), pageable);
     }
 
 }

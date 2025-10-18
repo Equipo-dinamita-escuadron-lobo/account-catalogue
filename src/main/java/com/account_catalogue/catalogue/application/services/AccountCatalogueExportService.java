@@ -1,9 +1,11 @@
 package com.account_catalogue.catalogue.application.services;
 
 import com.account_catalogue.catalogue.application.input.IAccountCatalogueExportInputPort;
+import com.account_catalogue.catalogue.application.input.IAccountCatalogueSearchInputPort;
 import com.account_catalogue.catalogue.domain.enums.ClassificationEnum;
 import com.account_catalogue.catalogue.domain.enums.FinancialStatusEnum;
 import com.account_catalogue.catalogue.domain.enums.NatureEnum;
+import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogueTemplateData;
 import com.account_catalogue.commons.exceptions.catalogue.ExcelValidationException;
 
@@ -13,11 +15,16 @@ import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Servicio para la exportación del catálogo de cuentas a formato Excel.
@@ -28,6 +35,9 @@ import java.util.List;
 public class AccountCatalogueExportService implements IAccountCatalogueExportInputPort {
 
     private final AccountCatalogueExcelValidationService excelValidationService;
+    private final IAccountCatalogueSearchInputPort accountCatalogueSearchInputPort;
+
+    private static final int EXPORT_PAGE_SIZE = 5000;
 
     @Override
     public Resource exportAccountCatalogueTemplate(String entId) {
@@ -46,9 +56,12 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
     @Override
     public Resource exportAccountCatalogueWithValidations(String entId) {
         try {
-            // Por ahora, exportamos la plantilla con datos quemados
-            // En el futuro, aquí se obtendrían los datos reales de la BD
-            List<AccountCatalogueTemplateData> templateData = getHardcodedTemplateData();
+            // Obtener todos los datos reales con paginación y orden jerárquico
+            List<AccountCatalogue> accountCatalogues = getAllAccountCataloguesWithPagination(entId);
+            
+            // Convertir a template data para compatibilidad con el método existente
+            List<AccountCatalogueTemplateData> templateData = convertToTemplateData(accountCatalogues);
+            
             byte[] excelData = generateExcelFileWithValidations(templateData);
             return new ByteArrayResource(excelData);
         } catch (ExcelValidationException e) {
@@ -475,5 +488,47 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
                 .classification(ClassificationEnum.OPERATINGREVENUES)
                 .build()
         );
+    }
+
+    private List<AccountCatalogue> getAllAccountCataloguesWithPagination(String entId) {
+        List<AccountCatalogue> allAccounts = new ArrayList<>();
+        int currentPage = 0;
+        Page<AccountCatalogue> page;
+        
+        do {
+            // Crear pageable para la página actual
+            Pageable pageable = PageRequest.of(currentPage, EXPORT_PAGE_SIZE);
+            
+            // Obtener página de cuentas ordenadas por código (jerarquía)
+            page = accountCatalogueSearchInputPort.getAllAccountCatalogues(entId, pageable);
+            
+            // Agregar contenido de esta página a la lista total
+            if (page != null && page.hasContent()) {
+                allAccounts.addAll(page.getContent());
+            }
+            
+            currentPage++;
+            
+        } while (page != null && page.hasNext());
+        
+        return allAccounts;
+    }
+
+    private List<AccountCatalogueTemplateData> convertToTemplateData(List<AccountCatalogue> accounts) {
+        return accounts.stream()
+            .map(this::convertAccountToTemplateData)
+            .collect(Collectors.toList());
+    }
+
+    private AccountCatalogueTemplateData convertAccountToTemplateData(AccountCatalogue account) {
+        return AccountCatalogueTemplateData.builder()
+            .code(account.getCode())
+            .name(account.getDescription())
+            .nature(account.getNature())
+            .financialStatus(account.getFinancialStatus())
+            .classification(account.getClassification())
+            .cruce(account.getCrossing())
+            .centroCosto(account.getCostCenter())
+            .build();
     }
 }

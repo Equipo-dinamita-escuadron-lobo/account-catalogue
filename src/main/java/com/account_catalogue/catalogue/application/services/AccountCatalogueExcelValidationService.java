@@ -172,8 +172,8 @@ public class AccountCatalogueExcelValidationService {
         applyConditionalDropdownValidation(sheet, columnIndex, startRow, endRow,
                 "LEN(TEXT(A{row}, \"0\")) = 8", 
                 List.of("SI", "NO"),
-                "Seleccione una opción válida",
-                "¿Permitir asociar cruce?");
+                "Seleccione SI/NO. Valor permitido en cuenta auxiliar.",
+                "¿Permitir asociar Cruce?");
     }
 
     /**
@@ -185,7 +185,7 @@ public class AccountCatalogueExcelValidationService {
         applyConditionalDropdownValidation(sheet, columnIndex, startRow, endRow,
                 "AND(LEN(TEXT(A{row}, \"0\")) = 8, D{row} = \"" + FinancialStatusEnum.INCOMESTATEMENT.getState() + "\")",
                 List.of("SI", "NO"),
-                "Seleccione una opción válida",
+                "Seleccione SI/NO. Valor permitido en cuenta auxiliar y Estado de Resultados.",
                 "¿Permitir asociar Centro de Costo?");
     }
 

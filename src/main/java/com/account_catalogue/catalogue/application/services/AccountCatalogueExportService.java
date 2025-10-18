@@ -63,7 +63,7 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
             CellStyle templateStyle = createTemplateStyle(workbook);
 
             // Crear encabezados
-            createHeaders(sheet, headerStyle);
+            createHeaders(sheet, headerStyle, createOptionalHeaderStyle(workbook));
 
             // Crear filas de ejemplo con estilos
             List<AccountCatalogueTemplateData> exampleData = getHardcodedTemplateData();
@@ -91,7 +91,7 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
             CellStyle dataStyle = createDataStyle(workbook);
 
             // Crear encabezados
-            createHeaders(sheet, headerStyle);
+            createHeaders(sheet, headerStyle, createOptionalHeaderStyle(workbook));
 
             // Llenar datos
             fillData(sheet, data, dataStyle);
@@ -147,15 +147,47 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
         return style;
     }
 
-    private void createHeaders(Sheet sheet, CellStyle headerStyle) {
+    private CellStyle createOptionalHeaderStyle(Workbook workbook) {
+        CellStyle style = workbook.createCellStyle();
+        Font font = workbook.createFont();
+        font.setBold(true);
+        font.setColor(IndexedColors.WHITE.getIndex());
+        style.setFont(font);
+        style.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
+        style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        style.setBorderBottom(BorderStyle.THIN);
+        style.setBorderTop(BorderStyle.THIN);
+        style.setBorderRight(BorderStyle.THIN);
+        style.setBorderLeft(BorderStyle.THIN);
+        style.setAlignment(HorizontalAlignment.CENTER);
+        style.setVerticalAlignment(VerticalAlignment.CENTER);
+        style.setWrapText(true);
+        return style;
+    }
+
+    private void createHeaders(Sheet sheet, CellStyle requiredHeaderStyle, CellStyle optionalHeaderStyle) {
         Row headerRow = sheet.createRow(0);
-        String[] headers = {"Código", "Nombre", "Naturaleza", "Estado Financiero", "Clasificación", "Cruce", "Centro de Costo"};
+        String[] headers = {
+            "Código\n(Requerido)",
+            "Nombre\n(Requerido)",
+            "Naturaleza\n(Requerido)",
+            "Estado Financiero\n(Requerido)",
+            "Clasificación\n(Requerido)",
+            "Cruce\n(Opcional)",
+            "Centro de Costo\n(Opcional)"
+        };
 
         for (int i = 0; i < headers.length; i++) {
             Cell cell = headerRow.createCell(i);
             cell.setCellValue(headers[i]);
-            cell.setCellStyle(headerStyle);
+            if (i >= 5) { // Columnas 5 y 6 son opcionales
+                cell.setCellStyle(optionalHeaderStyle);
+            } else {
+                cell.setCellStyle(requiredHeaderStyle);
+            }
         }
+
+        headerRow.setHeightInPoints(40);
     }
 
     private void createTemplateRows(Sheet sheet, CellStyle templateStyle, List<AccountCatalogueTemplateData> exampleData) {

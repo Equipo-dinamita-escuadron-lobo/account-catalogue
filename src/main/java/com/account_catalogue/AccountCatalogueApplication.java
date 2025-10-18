@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 
-import com.account_catalogue.catalogue.infraestructure.config.FileUploadProperties;
+import com.account_catalogue.commons.config.FileUploadProperties;
 
 @SpringBootApplication
 @EnableDiscoveryClient

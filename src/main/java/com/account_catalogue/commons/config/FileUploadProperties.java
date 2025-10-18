@@ -1,4 +1,4 @@
-package com.account_catalogue.catalogue.infraestructure.config;
+package com.account_catalogue.commons.config;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;

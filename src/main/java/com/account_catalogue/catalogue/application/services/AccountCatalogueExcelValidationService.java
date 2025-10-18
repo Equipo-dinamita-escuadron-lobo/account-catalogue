@@ -1,5 +1,8 @@
 package com.account_catalogue.catalogue.application.services;
 
+import com.account_catalogue.catalogue.domain.enums.ClassificationEnum;
+import com.account_catalogue.catalogue.domain.enums.FinancialStatusEnum;
+import com.account_catalogue.catalogue.domain.enums.NatureEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddressList;
@@ -22,14 +25,20 @@ public class AccountCatalogueExcelValidationService {
      * Obtiene todas las opciones de naturaleza.
      */
     public List<String> getNatureOptions() {
-        return List.of("Debito", "Credito");
+        return List.of(
+            NatureEnum.DEBIT.getState(),
+            NatureEnum.CREDIT.getState()
+        );
     }
 
     /**
      * Obtiene todas las opciones de estado financiero.
      */
     public List<String> getFinancialStatusOptions() {
-        return List.of("Estado de Situacion Financiero", "Estado de Resultados");
+        return List.of(
+            FinancialStatusEnum.STATEMENTFINANCIALPOSITION.getState(),
+            FinancialStatusEnum.INCOMESTATEMENT.getState()
+        );
     }
 
     /**
@@ -37,14 +46,14 @@ public class AccountCatalogueExcelValidationService {
      */
     public List<String> getClassificationOptions() {
         return List.of(
-            "Activo Corriente",
-            "Activo No Corriente",
-            "Pasivo Corriente",
-            "Pasivo No Corriente",
-            "Patrimonio",
-            "Ingresos Operacionales",
-            "Ingresos No Operacionales",
-            "Gastos Operacionales"
+            ClassificationEnum.CURRENTASSETS.getState(),
+            ClassificationEnum.NONCURRENTASSETS.getState(),
+            ClassificationEnum.CURRENTLIABILITIES.getState(),
+            ClassificationEnum.NONCURRENTLIABILITIES.getState(),
+            ClassificationEnum.EQUITY.getState(),
+            ClassificationEnum.OPERATINGREVENUES.getState(),
+            ClassificationEnum.NONOPERATINGINCOME.getState(),
+            ClassificationEnum.OPERATINGEXPENSES.getState()
         );
     }
 
@@ -82,7 +91,7 @@ public class AccountCatalogueExcelValidationService {
 
     /**
      * Aplica validación personalizada para el código de cuenta.
-     * Debe ser positivo, entre 1 y 8 dígitos.
+     * Debe ser positivo y tener exactamente 1, 2, 4, 6 u 8 dígitos.
      */
     public void applyCodeValidation(Sheet sheet, int columnIndex, int startRow, int endRow) {
         try {
@@ -91,9 +100,13 @@ public class AccountCatalogueExcelValidationService {
 
             CellRangeAddressList addressList = new CellRangeAddressList(startRow, endRow, columnIndex, columnIndex);
 
-            // Validación personalizada: número entero positivo con máximo 8 dígitos
-            // Usamos fórmula personalizada para validar el rango
-            String formula = "AND(ISNUMBER(A" + (startRow + 1) + "), A" + (startRow + 1) + " >= 1, LEN(TEXT(A" + (startRow + 1) + ", \"0\")) <= 8)";
+            // Validación personalizada: número entero positivo con exactamente 1, 2, 4, 6 u 8 dígitos
+            String formula = "AND(ISNUMBER(A" + (startRow + 1) + "), A" + (startRow + 1) + " >= 1, " +
+                           "OR(LEN(TEXT(A" + (startRow + 1) + ", \"0\")) = 1, " +
+                           "LEN(TEXT(A" + (startRow + 1) + ", \"0\")) = 2, " +
+                           "LEN(TEXT(A" + (startRow + 1) + ", \"0\")) = 4, " +
+                           "LEN(TEXT(A" + (startRow + 1) + ", \"0\")) = 6, " +
+                           "LEN(TEXT(A" + (startRow + 1) + ", \"0\")) = 8))";
 
             DataValidationConstraint constraint = validationHelper.createCustomConstraint(formula);
 
@@ -102,11 +115,11 @@ public class AccountCatalogueExcelValidationService {
             validation.setShowErrorBox(true);
             validation.setErrorStyle(DataValidation.ErrorStyle.STOP);
             validation.createErrorBox("Error de Validación",
-                    "El código debe ser un número positivo con máximo 8 dígitos");
+                    "El código debe ser un número positivo con exactamente 1, 2, 4, 6 u 8 dígitos");
 
             validation.setShowPromptBox(true);
             validation.createPromptBox("Código de Cuenta",
-                    "Ingrese un código numérico positivo (máximo 8 dígitos)");
+                    "Ingrese un código numérico positivo (1, 2, 4, 6 u 8 dígitos)");
 
             sheet.addValidationData(validation);
 

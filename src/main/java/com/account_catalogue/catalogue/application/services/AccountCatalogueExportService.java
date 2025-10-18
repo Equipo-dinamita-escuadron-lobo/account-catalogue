@@ -111,22 +111,23 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
         CellStyle style = workbook.createCellStyle();
         Font font = workbook.createFont();
         font.setBold(true);
-        font.setFontHeightInPoints((short) 12);
+        font.setColor(IndexedColors.WHITE.getIndex());
         style.setFont(font);
-        style.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
+        style.setFillForegroundColor(IndexedColors.DARK_BLUE.getIndex());
         style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
         style.setBorderBottom(BorderStyle.THIN);
         style.setBorderTop(BorderStyle.THIN);
         style.setBorderRight(BorderStyle.THIN);
         style.setBorderLeft(BorderStyle.THIN);
         style.setAlignment(HorizontalAlignment.CENTER);
+        style.setVerticalAlignment(VerticalAlignment.CENTER);
+        style.setWrapText(true);
         return style;
     }
 
     private CellStyle createTemplateStyle(Workbook workbook) {
         CellStyle style = workbook.createCellStyle();
         Font font = workbook.createFont();
-        font.setItalic(true);
         style.setFont(font);
         style.setBorderBottom(BorderStyle.THIN);
         style.setBorderTop(BorderStyle.THIN);
@@ -163,12 +164,6 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
             Row row = sheet.createRow(rowIndex++);
             fillTemplateRow(row, data, templateStyle);
         }
-
-        // Agregar filas vacías adicionales para la plantilla
-        for (int i = 0; i < 10; i++) {
-            Row row = sheet.createRow(rowIndex++);
-            createEmptyTemplateRow(row, templateStyle);
-        }
     }
 
     private void fillTemplateRow(Row row, AccountCatalogueTemplateData data, CellStyle style) {
@@ -180,12 +175,6 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
         createTemplateCell(row, colIndex++, data.getClassification() != null ? data.getClassification().getState() : "Seleccionar...", style);
         createTemplateCell(row, colIndex++, data.getCruce() != null ? (data.getCruce() ? "SI" : "NO") : "", style);
         createTemplateCell(row, colIndex++, data.getCentroCosto() != null ? (data.getCentroCosto() ? "SI" : "NO") : "", style);
-    }
-
-    private void createEmptyTemplateRow(Row row, CellStyle templateStyle) {
-        for (int i = 0; i < 7; i++) {
-            createTemplateCell(row, i, "", templateStyle);
-        }
     }
 
     private void createTemplateCell(Row row, int colIndex, String value, CellStyle style) {

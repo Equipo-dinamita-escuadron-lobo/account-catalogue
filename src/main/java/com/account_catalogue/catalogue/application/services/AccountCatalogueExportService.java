@@ -151,7 +151,7 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
         CellStyle style = workbook.createCellStyle();
         Font font = workbook.createFont();
         font.setBold(true);
-        font.setColor(IndexedColors.WHITE.getIndex());
+        font.setColor(IndexedColors.BLACK.getIndex());
         style.setFont(font);
         style.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
         style.setFillPattern(FillPatternType.SOLID_FOREGROUND);

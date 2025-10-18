@@ -10,6 +10,8 @@ import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapte
 import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.repository.IAccountCatalogueRepository;
 
 import lombok.Data;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -128,5 +130,19 @@ public class AccountCatalogueSearchJpaAdapter implements IAccountCatalogueSearch
         return auxiliaryAccountsWithCrossingEntities.stream()
                 .map(itemAccountCatalogueSearchMapper::toDomain)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Obtiene todos los catálogos de cuentas para una empresa específica con paginación.
+     * Los resultados se ordenan por código para mantener la jerarquía.
+     *
+     * @param idEnterprise el ID de la empresa
+     * @param pageable objeto de paginación con ordenamiento
+     * @return página de catálogos de cuentas
+     */
+    @Override
+    public Page<AccountCatalogue> getAllAccountCataloguesByIdEnterprise(String idEnterprise, Pageable pageable) {
+        Page<AccountCatalogueEntity> entities = accountCatalogueRepository.findAllByIdEnterpriseOrderByCode(idEnterprise, pageable);
+        return entities.map(itemAccountCatalogueSearchMapper::toDomain);
     }
 }

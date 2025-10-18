@@ -8,6 +8,10 @@ import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapte
 
 import lombok.Data;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
 /**
  * Adaptador para la creacion de cuentas usando JPA.
  * Implementa la interfaz IAccountCatalogueCreateOutputPort.
@@ -28,6 +32,7 @@ public class AccountCatalogueCreateJpaAdapter implements IAccountCatalogueCreate
      */
     
     @Override
+    @Transactional
     public AccountCatalogue createAccountCatalogue(AccountCatalogue accountCatalogue) {
 
         AccountCatalogueEntity parent = null;
@@ -42,9 +47,61 @@ public class AccountCatalogueCreateJpaAdapter implements IAccountCatalogueCreate
         }
         if(accountCatalogueRepository.findByCode(accountCatalogueEntity.getCode(), accountCatalogueEntity.getIdEnterprise())==null){
             accountCatalogueEntity=accountCatalogueRepository.save(accountCatalogueEntity);
+            
+            activateParentHierarchy(accountCatalogueEntity);
         }else{
             accountCatalogueEntity=accountCatalogueRepository.findByCode(accountCatalogueEntity.getCode(),accountCatalogueEntity.getIdEnterprise());
         }
         return accountCatalogueCreateMapper.toModel(accountCatalogueEntity);
+    }
+
+    /**
+     * Activa recursivamente toda la jerarquía de padres de una cuenta.
+     *
+     * @param child la cuenta hija desde donde se inicia la activación ascendente
+     */
+    private void activateParentHierarchy(AccountCatalogueEntity child) {
+        List<String> parentCodes = getAllParentCodes(child.getCode());
+        if (!parentCodes.isEmpty()) {
+            accountCatalogueRepository.updateStatusByCodes(true, parentCodes, child.getIdEnterprise(), child.getTenantId());
+        }
+    }
+
+    /**
+     * Obtiene todos los códigos de padres para una cuenta dada basado en las reglas PUC.
+     *
+     * @param code El código de la cuenta.
+     * @return Lista de códigos de padres.
+     */
+    private List<String> getAllParentCodes(String code) {
+        List<String> parentCodes = new ArrayList<>();
+        String currentCode = code;
+        while (currentCode.length() > 1) {
+            String parentCode = getParentCode(currentCode);
+            if (parentCode != null) {
+                parentCodes.add(parentCode);
+                currentCode = parentCode;
+            } else {
+                break;
+            }
+        }
+        return parentCodes;
+    }
+
+    /**
+     * Obtiene el código del padre para una cuenta dada basado en las reglas PUC.
+     *
+     * @param code El código de la cuenta.
+     * @return El código del padre o null si no tiene padre.
+     */
+    private String getParentCode(String code) {
+        switch (code.length()) {
+            case 1: return null; // Clase, no tiene padre
+            case 2: return code.substring(0, 1); // Grupo -> Clase
+            case 4: return code.substring(0, 2); // Cuenta -> Grupo
+            case 6: return code.substring(0, 4); // Subcuenta -> Cuenta
+            case 8: return code.substring(0, 6); // Auxiliar -> Subcuenta
+            default: return null;
+        }
     }
 }

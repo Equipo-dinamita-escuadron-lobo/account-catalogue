@@ -1,4 +1,4 @@
-package com.account_catalogue.catalogue.infraestructure.adapters.config;
+package com.account_catalogue.catalogue.infraestructure.config;
 
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;

@@ -2,8 +2,12 @@ package com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapt
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.entity.AccountCatalogueEntity;
 
@@ -17,14 +21,8 @@ public interface IAccountCatalogueRepository extends JpaRepository<AccountCatalo
      * @return el AccountCatalogueEntity con el código y id de empresa dados. Si no
      *         se encuentra, se devuelve null.
      */
-    @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.code = ?1 AND a.idEnterprise = ?2")
+    @Query("SELECT a FROM AccountCatalogueEntity a LEFT JOIN FETCH a.parent WHERE a.code = ?1 AND a.idEnterprise = ?2")
     AccountCatalogueEntity findByCode(String code, String idEnterprise);
-
-    @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.id = ?1")
-    AccountCatalogueEntity findById(long id);
-
-    @Query("SELECT a FROM AccountCatalogueEntity a LEFT JOIN FETCH a.children WHERE a.id = ?1")
-    AccountCatalogueEntity findByIdWithChildren(long id);
 
     /**
      * Encuentra un AccountCatalogueEntity por ID y id de empresa (no eliminado).
@@ -36,9 +34,6 @@ public interface IAccountCatalogueRepository extends JpaRepository<AccountCatalo
      */
     @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.id = ?1 AND a.idEnterprise = ?2")
     AccountCatalogueEntity findByIdAndIdEnterprise(Long id, String idEnterprise);
-
-    @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.code = ?1")
-    AccountCatalogueEntity findByCode(String code);
 
     /**
      * Encuentra un AccountCatalogueEntity por descripción (case-insensitive) y id de empresa (no eliminado).
@@ -69,4 +64,51 @@ public interface IAccountCatalogueRepository extends JpaRepository<AccountCatalo
     @Query("SELECT a FROM AccountCatalogueEntity a WHERE LENGTH(a.code) = 8 AND a.idEnterprise = ?1 AND a.status = true AND a.crossing = true ORDER BY a.code ASC")
     List<AccountCatalogueEntity> findAuxiliaryAccountsWithCrossingByIdEnterprise(String idEnterprise);
 
+    /**
+     * Encuentra todos los IDs de descendientes de una cuenta (jerarquía recursiva).
+     * 
+     * @param parentId el ID del padre.
+     * @param idEnterprise el id de la empresa.
+     * @param tenantId el id del tenant.
+     * @return lista de IDs de descendientes.
+     */
+    @Query(value = "WITH RECURSIVE descendants AS ( " +
+                   "SELECT id FROM account WHERE id = :parentId AND id_enterprise = :idEnterprise AND tenant_id = :tenantId " +
+                   "UNION ALL " +
+                   "SELECT ac.id FROM account ac INNER JOIN descendants d ON ac.parent_id = d.id WHERE ac.id_enterprise = :idEnterprise AND ac.tenant_id = :tenantId " +
+                   ") SELECT id FROM descendants WHERE id != :parentId", nativeQuery = true)
+    List<Long> findDescendantIds(@Param("parentId") Long parentId, @Param("idEnterprise") String idEnterprise, @Param("tenantId") String tenantId);
+
+    /**
+     * Actualiza el estado de múltiples cuentas por sus IDs.
+     * 
+     * @param status el nuevo estado.
+     * @param ids lista de IDs a actualizar.
+     * @param idEnterprise el id de la empresa.
+     */
+    @Modifying
+    @Query("UPDATE AccountCatalogueEntity a SET a.status = :status WHERE a.id IN :ids AND a.idEnterprise = :idEnterprise AND a.tenantId = :tenantId")
+    void updateStatusByIds(@Param("status") Boolean status, @Param("ids") List<Long> ids, @Param("idEnterprise") String idEnterprise, @Param("tenantId") String tenantId);
+
+    /**
+     * Actualiza el estado de cuentas por códigos.
+     * 
+     * @param status el nuevo estado.
+     * @param codes lista de códigos a actualizar.
+     * @param idEnterprise el id de la empresa.
+     */
+    @Modifying
+    @Query("UPDATE AccountCatalogueEntity a SET a.status = :status WHERE a.code IN :codes AND a.idEnterprise = :idEnterprise AND a.tenantId = :tenantId")
+    void updateStatusByCodes(@Param("status") Boolean status, @Param("codes") List<String> codes, @Param("idEnterprise") String idEnterprise, @Param("tenantId") String tenantId);
+
+    /**
+     * Encuentra todas las cuentas activas para una empresa específica con paginación.
+     * Ordenadas por código para mantener la jerarquía.
+     * 
+     * @param idEnterprise el id de la empresa.
+     * @param pageable objeto de paginación.
+     * @return página de AccountCatalogueEntity para la empresa dada.
+     */
+    @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.idEnterprise = ?1 AND a.status = true ORDER BY a.code ASC")
+    Page<AccountCatalogueEntity> findAllByIdEnterpriseOrderByCode(String idEnterprise, Pageable pageable);
 }

@@ -11,9 +11,7 @@ public enum ClassificationEnum {
     EQUITY("Patrimonio"),
     OPERATINGREVENUES("Ingresos Operacionales"),
     NONOPERATINGINCOME("Ingresos No Operacionales"),
-    OPERATINGEXPENSES("Gastos Operacionales"),
-    OPERATINGINCOME("Ingresos Operacionales"),
-    EMPTY("Por defecto");
+    OPERATINGEXPENSES("Gastos Operacionales");
 
     private final String state;
 

@@ -51,7 +51,7 @@ public class AccountCatalogueUpdateServiceTest {
         //given
         given(accountCatalogueUpdateOutputPort.updateAccountCatalogue(accountId,accountCatalogue)).willReturn(accountCatalogue);
         accountCatalogue.setDescription("pasivo");
-        accountCatalogue.setFinancialStatus(FinancialStatusEnum.EMPTY);
+        accountCatalogue.setFinancialStatus(FinancialStatusEnum.STATEMENTFINANCIALPOSITION);
         accountCatalogue.setClassification(ClassificationEnum.CURRENTASSETS);
 
         //when
@@ -59,7 +59,7 @@ public class AccountCatalogueUpdateServiceTest {
 
         //then
         assertThat(accountCatalogueUpdate.getDescription()).isEqualTo("pasivo");
-        assertThat(accountCatalogueUpdate.getFinancialStatus()).isEqualTo(FinancialStatusEnum.EMPTY);
+        assertThat(accountCatalogueUpdate.getFinancialStatus()).isEqualTo(FinancialStatusEnum.STATEMENTFINANCIALPOSITION);
         assertThat(accountCatalogueUpdate.getClassification()).isEqualTo(ClassificationEnum.CURRENTASSETS);
     }
 }

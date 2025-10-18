@@ -8,6 +8,7 @@ import com.account_catalogue.catalogue.application.input.IAccountCatalogueDelete
 import com.account_catalogue.catalogue.application.output.IAccountCatalogueDeleteOutputPort;
 import com.account_catalogue.catalogue.application.output.IAccountCatalogueSearchOutputPort;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
+import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueHasChildrenException;
 import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueNotFoundException;
 
 @Service
@@ -37,6 +38,12 @@ public class AccountCatalogueDeleteService implements IAccountCatalogueDeleteInp
         if (accountTreeToDelete == null) {
             throw new AccountCatalogueNotFoundException(
                 "No se encontró una cuenta con el ID '" + id + "'"
+            );
+        }
+        
+        if (accountTreeToDelete.getChildren() != null && !accountTreeToDelete.getChildren().isEmpty()) {
+            throw new AccountCatalogueHasChildrenException(
+                "No se puede eliminar la cuenta '" + accountTreeToDelete.getCode() + "' porque tiene cuentas hijas asociadas."
             );
         }
         

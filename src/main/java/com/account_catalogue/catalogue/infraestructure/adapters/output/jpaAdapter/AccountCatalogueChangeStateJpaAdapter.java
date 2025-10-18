@@ -1,6 +1,9 @@
 package com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter;
 
+import java.util.List;
+
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.account_catalogue.catalogue.application.output.IAccountCatalogueChangeStateOutputPort;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
@@ -24,9 +27,10 @@ public class AccountCatalogueChangeStateJpaAdapter implements IAccountCatalogueC
      * @param status el nuevo estado
      * @return la cuenta actualizada
      */
-        @Override
+    @Override
+    @Transactional
     public AccountCatalogue changeState(Long id, Boolean status) {
-        AccountCatalogueEntity accountCatalogueEntity = accountCatalogueRepository.findByIdWithChildren(id.longValue());
+        AccountCatalogueEntity accountCatalogueEntity = accountCatalogueRepository.findById(id).orElse(null);
 
         if (accountCatalogueEntity == null) {
             return null;
@@ -41,34 +45,13 @@ public class AccountCatalogueChangeStateJpaAdapter implements IAccountCatalogueC
             activateParentHierarchy(accountCatalogueEntity);
         } else {
             // Si se está inactivando, inactivar todos los hijos recursivamente
-            updateChildrenStatusRecursively(accountCatalogueEntity, status);
+            List<Long> descendantIds = accountCatalogueRepository.findDescendantIds(accountCatalogueEntity.getId(), accountCatalogueEntity.getIdEnterprise(), accountCatalogueEntity.getTenantId());
+            if (!descendantIds.isEmpty()) {
+                accountCatalogueRepository.updateStatusByIds(status, descendantIds, accountCatalogueEntity.getIdEnterprise(), accountCatalogueEntity.getTenantId());
+            }
         }
 
         return accountCatalogueUpdateMapper.toAccountCatalogue(accountCatalogueEntity);
-    }
-
-    /**
-     * Actualiza recursivamente el estado de todos los hijos de una cuenta.
-     *
-     * @param parent la cuenta padre
-     * @param status el nuevo estado a aplicar
-     */
-    private void updateChildrenStatusRecursively(AccountCatalogueEntity parent, Boolean status) {
-        if (parent.getChildren() != null && !parent.getChildren().isEmpty()) {
-            for (AccountCatalogueEntity child : parent.getChildren()) {
-                // Asegurarse de que los hijos del hijo estén cargados
-                if (child.getChildren() == null) {
-                    child = accountCatalogueRepository.findByIdWithChildren(child.getId());
-                    if (child == null) continue;
-                }
-
-                child.setStatus(status);
-                accountCatalogueRepository.save(child);
-
-                // Actualizar recursivamente los hijos de este hijo
-                updateChildrenStatusRecursively(child, status);
-            }
-        }
     }
 
     /**

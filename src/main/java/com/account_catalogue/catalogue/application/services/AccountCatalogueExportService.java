@@ -1,6 +1,9 @@
 package com.account_catalogue.catalogue.application.services;
 
 import com.account_catalogue.catalogue.application.input.IAccountCatalogueExportInputPort;
+import com.account_catalogue.catalogue.domain.enums.ClassificationEnum;
+import com.account_catalogue.catalogue.domain.enums.FinancialStatusEnum;
+import com.account_catalogue.catalogue.domain.enums.NatureEnum;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogueTemplateData;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -172,9 +175,9 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
         int colIndex = 0;
         createTemplateCell(row, colIndex++, data.getCode(), style);
         createTemplateCell(row, colIndex++, data.getName(), style);
-        createTemplateCell(row, colIndex++, data.getNature() != null ? data.getNature() : "Seleccionar...", style);
-        createTemplateCell(row, colIndex++, data.getFinancialStatus() != null ? data.getFinancialStatus() : "Seleccionar...", style);
-        createTemplateCell(row, colIndex++, data.getClassification() != null ? data.getClassification() : "Seleccionar...", style);
+        createTemplateCell(row, colIndex++, data.getNature() != null ? data.getNature().getState() : "Seleccionar...", style);
+        createTemplateCell(row, colIndex++, data.getFinancialStatus() != null ? data.getFinancialStatus().getState() : "Seleccionar...", style);
+        createTemplateCell(row, colIndex++, data.getClassification() != null ? data.getClassification().getState() : "Seleccionar...", style);
         createTemplateCell(row, colIndex++, data.getCruce() != null ? (data.getCruce() ? "SI" : "NO") : "", style);
         createTemplateCell(row, colIndex++, data.getCentroCosto() != null ? (data.getCentroCosto() ? "SI" : "NO") : "", style);
     }
@@ -203,9 +206,9 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
         int colIndex = 0;
         row.createCell(colIndex++).setCellValue(data.getCode());
         row.createCell(colIndex++).setCellValue(data.getName());
-        row.createCell(colIndex++).setCellValue(data.getNature());
-        row.createCell(colIndex++).setCellValue(data.getFinancialStatus());
-        row.createCell(colIndex++).setCellValue(data.getClassification());
+        row.createCell(colIndex++).setCellValue(data.getNature().getState());
+        row.createCell(colIndex++).setCellValue(data.getFinancialStatus().getState());
+        row.createCell(colIndex++).setCellValue(data.getClassification().getState());
         row.createCell(colIndex++).setCellValue(data.getCruce() != null ? (data.getCruce() ? "SI" : "NO") : "");
         row.createCell(colIndex++).setCellValue(data.getCentroCosto() != null ? (data.getCentroCosto() ? "SI" : "NO") : "");
 
@@ -249,205 +252,198 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
             AccountCatalogueTemplateData.builder()
                 .code("1")
                 .name("Activos")
-                .nature("Debito")
-                .financialStatus("Estado de Situación Financiero")
-                .classification("Activo No Corriente")
+                .nature(NatureEnum.DEBIT)
+                .financialStatus(FinancialStatusEnum.INCOMESTATEMENT)
+                .classification(ClassificationEnum.NONCURRENTLIABILITIES)
                 .build(),
             AccountCatalogueTemplateData.builder()
                 .code("11")
                 .name("Efectivo y equivalentes de efectivo")
-                .nature("Credito")
-                .financialStatus("Estado de Situación Financiero")
-                .classification("Activo Corriente")
+                .nature(NatureEnum.CREDIT)
+                .financialStatus(FinancialStatusEnum.STATEMENTFINANCIALPOSITION)
+                .classification(ClassificationEnum.CURRENTASSETS)
                 .build(),
             AccountCatalogueTemplateData.builder()
                 .code("1105")
                 .name("Caja")
-                .nature("Debito")
-                .financialStatus("Estado de Situación Financiero")
-                .classification("Activo Corriente")
+                .nature(NatureEnum.DEBIT)
+                .financialStatus(FinancialStatusEnum.STATEMENTFINANCIALPOSITION)
+                .classification(ClassificationEnum.CURRENTLIABILITIES)
                 .build(),
             AccountCatalogueTemplateData.builder()
                 .code("110501")
                 .name("Caja principal")
-                .nature("Credito")
-                .financialStatus("Estado de Situación Financiero")
-                .classification("Activo Corriente")
+                .nature(NatureEnum.CREDIT)
+                .financialStatus(FinancialStatusEnum.INCOMESTATEMENT)
+                .classification(ClassificationEnum.NONCURRENTLIABILITIES)
                 .build(),
             AccountCatalogueTemplateData.builder()
                 .code("11050101")
                 .name("Banco menor")
-                .nature("Debito")
-                .financialStatus("Estado de Situación Financiero")
-                .classification("Gastos Operacionales")
+                .nature(NatureEnum.DEBIT)
+                .financialStatus(FinancialStatusEnum.STATEMENTFINANCIALPOSITION)
+                .classification(ClassificationEnum.OPERATINGEXPENSES)
                 .build(),
             AccountCatalogueTemplateData.builder()
                 .code("11050102")
                 .name("Banco")
-                .nature("Credito")
-                .financialStatus("Estado de Situación Financiero")
-                .classification("Activo Corriente")
+                .nature(NatureEnum.CREDIT)
+                .financialStatus(FinancialStatusEnum.INCOMESTATEMENT)
+                .classification(ClassificationEnum.NONCURRENTLIABILITIES)
                 .build(),
             AccountCatalogueTemplateData.builder()
                 .code("110502")
                 .name("Caja menor")
-                .nature("Debito")
-                .financialStatus("Estado de Situación Financiero")
-                .classification("Activo Corriente")
+                .nature(NatureEnum.DEBIT)
+                .financialStatus(FinancialStatusEnum.INCOMESTATEMENT)
+                .classification(ClassificationEnum.NONCURRENTLIABILITIES)
                 .build(),
             AccountCatalogueTemplateData.builder()
                 .code("1106")
                 .name("Reservas internacionales")
-                .nature("Credito")
-                .financialStatus("Estado de Situación Financiero")
-                .classification("Activo Corriente")
+                .nature(NatureEnum.CREDIT)
+                .financialStatus(FinancialStatusEnum.INCOMESTATEMENT)
+                .classification(ClassificationEnum.OPERATINGEXPENSES)
                 .build(),
             AccountCatalogueTemplateData.builder()
                 .code("12")
                 .name("Inversiones e instrumentos derivados")
-                .nature("Debito")
-                .financialStatus("Estado de Situación Financiero")
-                .classification("Activo No Corriente")
+                .nature(NatureEnum.DEBIT)
+                .financialStatus(FinancialStatusEnum.STATEMENTFINANCIALPOSITION)
+                .classification(ClassificationEnum.NONCURRENTLIABILITIES)
                 .build(),
             AccountCatalogueTemplateData.builder()
                 .code("1205")
                 .name("Propiedades, planta y equipo")
-                .nature("Credito")
-                .financialStatus("Estado de Situación Financiero")
-                .classification("Activo No Corriente")
+                .nature(NatureEnum.CREDIT)
+                .financialStatus(FinancialStatusEnum.INCOMESTATEMENT)
+                .classification(ClassificationEnum.NONCURRENTLIABILITIES)
                 .build(),
             AccountCatalogueTemplateData.builder()
                 .code("1206")
                 .name("Activos intangibles")
-                .nature("Debito")
-                .financialStatus("Estado de Situación Financiero")
-                .classification("Activo No Corriente")
+                .nature(NatureEnum.DEBIT)
+                .financialStatus(FinancialStatusEnum.STATEMENTFINANCIALPOSITION)
+                .classification(ClassificationEnum.OPERATINGEXPENSES)
                 .build(),
             AccountCatalogueTemplateData.builder()
                 .code("2")
                 .name("Pasivos")
-                .nature("Credito")
-                .financialStatus("Estado de Situación Financiero")
-                .classification("Pasivo No Corriente")
+                .nature(NatureEnum.CREDIT)
+                .financialStatus(FinancialStatusEnum.INCOMESTATEMENT)
+                .classification(ClassificationEnum.NONCURRENTLIABILITIES)
                 .build(),
             AccountCatalogueTemplateData.builder()
                 .code("21")
                 .name("Operaciones de banca central e instituciones financieras")
-                .nature("Debito")
-                .financialStatus("Estado de Situación Financiero")
-                .classification("Pasivo Corriente")
+                .nature(NatureEnum.DEBIT)
+                .financialStatus(FinancialStatusEnum.STATEMENTFINANCIALPOSITION)
+                .classification(ClassificationEnum.NONCURRENTLIABILITIES)
                 .build(),
             AccountCatalogueTemplateData.builder()
                 .code("2105")
                 .name("Cuentas por pagar")
-                .nature("Credito")
-                .financialStatus("Estado de Situación Financiero")
-                .classification("Pasivo Corriente")
+                .nature(NatureEnum.CREDIT)
+                .financialStatus(FinancialStatusEnum.INCOMESTATEMENT)
+                .classification(ClassificationEnum.NONCURRENTASSETS)
                 .build(),
             AccountCatalogueTemplateData.builder()
                 .code("2106")
                 .name("Obligaciones financieras corrientes")
-                .nature("Debito")
-                .financialStatus("Estado de Situación Financiero")
-                .classification("Pasivo Corriente")
+                .nature(NatureEnum.DEBIT)
+                .financialStatus(FinancialStatusEnum.STATEMENTFINANCIALPOSITION)
+                .classification(ClassificationEnum.OPERATINGREVENUES)
                 .build(),
             AccountCatalogueTemplateData.builder()
                 .code("22")
                 .name("Emisión y colocación de títulos de deuda")
-                .nature("Credito")
-                .financialStatus("Estado de Situación Financiero")
-                .classification("Pasivo No Corriente")
+                .nature(NatureEnum.CREDIT)
+                .financialStatus(FinancialStatusEnum.INCOMESTATEMENT)
+                .classification(ClassificationEnum.NONCURRENTLIABILITIES)
                 .build(),
             AccountCatalogueTemplateData.builder()
                 .code("2205")
                 .name("Obligaciones financieras no corrientes")
-                .nature("Debito")
-                .financialStatus("Estado de Situación Financiero")
-                .classification("Pasivo No Corriente")
+                .nature(NatureEnum.DEBIT)
+                .financialStatus(FinancialStatusEnum.STATEMENTFINANCIALPOSITION)
+                .classification(ClassificationEnum.OPERATINGREVENUES)
                 .build(),
             AccountCatalogueTemplateData.builder()
                 .code("2206")
                 .name("Beneficios a empleados a largo plazo")
-                .nature("Credito")
-                .financialStatus("Estado de Situación Financiero")
-                .classification("Pasivo No Corriente")
+                .nature(NatureEnum.CREDIT)
+                .financialStatus(FinancialStatusEnum.INCOMESTATEMENT)
+                .classification(ClassificationEnum.NONCURRENTLIABILITIES)
                 .build(),
             AccountCatalogueTemplateData.builder()
                 .code("3")
                 .name("Patrimonio")
-                .nature("Debito")
-                .financialStatus("Estado de Situación Financiero")
-                .classification("Patrimonio")
+                .nature(NatureEnum.DEBIT)
+                .financialStatus(FinancialStatusEnum.STATEMENTFINANCIALPOSITION)
+                .classification(ClassificationEnum.NONCURRENTLIABILITIES)
                 .build(),
             AccountCatalogueTemplateData.builder()
                 .code("31")
                 .name("Capital social")
-                .nature("Credito")
-                .financialStatus("Estado de Situación Financiero")
-                .classification("Patrimonio")
+                .nature(NatureEnum.CREDIT)
+                .financialStatus(FinancialStatusEnum.INCOMESTATEMENT)
+                .classification(ClassificationEnum.OPERATINGREVENUES)
                 .build(),
             AccountCatalogueTemplateData.builder()
                 .code("32")
                 .name("Utilidades acumuladas")
-                .nature("Debito")
-                .financialStatus("Estado de Situación Financiero")
-                .classification("Patrimonio")
+                .nature(NatureEnum.DEBIT)
+                .financialStatus(FinancialStatusEnum.STATEMENTFINANCIALPOSITION)
+                .classification(ClassificationEnum.NONCURRENTLIABILITIES)
                 .build(),
             AccountCatalogueTemplateData.builder()
                 .code("33")
                 .name("Utilidades NO acumuladas")
-                .nature("Credito")
-                .financialStatus("Estado de Situación Financiero")
-                .classification("Patrimonio")
+                .nature(NatureEnum.CREDIT)
+                .financialStatus(FinancialStatusEnum.INCOMESTATEMENT)
+                .classification(ClassificationEnum.OPERATINGREVENUES)
                 .build(),
             AccountCatalogueTemplateData.builder()
                 .code("4")
                 .name("Ingresos")
-                .nature("Debito")
-                .financialStatus("Estado de Resultados")
-                .classification("Ingresos Operacionales")
-                .cruce(true)
+                .nature(NatureEnum.DEBIT)
+                .financialStatus(FinancialStatusEnum.INCOMESTATEMENT)
+                .classification(ClassificationEnum.NONCURRENTLIABILITIES)
                 .build(),
             AccountCatalogueTemplateData.builder()
                 .code("5")
                 .name("Gastos")
-                .nature("Credito")
-                .financialStatus("Estado de Resultados")
-                .classification("Gastos Operacionales")
-                .cruce(true)
-                .centroCosto(true)
+                .nature(NatureEnum.DEBIT)
+                .financialStatus(FinancialStatusEnum.INCOMESTATEMENT)
+                .classification(ClassificationEnum.NONCURRENTLIABILITIES)
                 .build(),
             AccountCatalogueTemplateData.builder()
                 .code("6")
                 .name("Costos de ventas")
-                .nature("Debito")
-                .financialStatus("Estado de Resultados")
-                .classification("Gastos Operacionales")
-                .cruce(true)
-                .centroCosto(true)
+                .nature(NatureEnum.CREDIT)
+                .financialStatus(FinancialStatusEnum.STATEMENTFINANCIALPOSITION)
+                .classification(ClassificationEnum.OPERATINGREVENUES)
                 .build(),
             AccountCatalogueTemplateData.builder()
                 .code("7")
                 .name("Costos de transformación")
-                .nature("Credito")
-                .financialStatus("Estado de Resultados")
-                .classification("Gastos Operacionales")
-                .cruce(true)
-                .centroCosto(true)
+                .nature(NatureEnum.DEBIT)
+                .financialStatus(FinancialStatusEnum.STATEMENTFINANCIALPOSITION)
+                .classification(ClassificationEnum.OPERATINGREVENUES)
                 .build(),
             AccountCatalogueTemplateData.builder()
                 .code("8")
                 .name("Cuentas de orden deudoras")
-                .nature("Debito")
-                .financialStatus("Estado de Situación Financiero")
-                .classification("ingresos Operacionales")
+                .nature(NatureEnum.CREDIT)
+                .financialStatus(FinancialStatusEnum.INCOMESTATEMENT)
+                .classification(ClassificationEnum.OPERATINGREVENUES)
                 .build(),
             AccountCatalogueTemplateData.builder()
                 .code("9")
                 .name("Cuentas de orden acreedoras")
-                .nature("Credito")
-                .financialStatus("Estado de Situación Financiero")
-                .classification("Ingresos Operacionales")
+                .nature(NatureEnum.DEBIT)
+                .financialStatus(FinancialStatusEnum.STATEMENTFINANCIALPOSITION)
+                .classification(ClassificationEnum.OPERATINGREVENUES)
                 .build()
         );
     }

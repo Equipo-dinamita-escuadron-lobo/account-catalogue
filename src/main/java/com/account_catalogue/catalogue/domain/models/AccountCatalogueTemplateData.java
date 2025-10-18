@@ -1,5 +1,8 @@
 package com.account_catalogue.catalogue.domain.models;
 
+import com.account_catalogue.catalogue.domain.enums.ClassificationEnum;
+import com.account_catalogue.catalogue.domain.enums.FinancialStatusEnum;
+import com.account_catalogue.catalogue.domain.enums.NatureEnum;
 import lombok.Builder;
 import lombok.Data;
 
@@ -11,9 +14,9 @@ import lombok.Data;
 public class AccountCatalogueTemplateData {
     private String code;
     private String name;
-    private String nature;
-    private String financialStatus;
-    private String classification;
+    private NatureEnum nature;
+    private FinancialStatusEnum financialStatus;
+    private ClassificationEnum classification;
     private Boolean cruce;
     private Boolean centroCosto;
 }

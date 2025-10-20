@@ -173,13 +173,20 @@ public class AccountCatalogueSearchJpaAdapter implements IAccountCatalogueSearch
             // Otros campos: nature, financial_status, etc.
             // Asumir orden: id, code, description, parent_id, nature, financial_status, classification, crossing, cost_center, status, id_enterprise
             
+            Short natureOrdinal = (Short) row[4];
+            Short financialStatusOrdinal = (Short) row[5];
+            Short classificationOrdinal = (Short) row[6];
+
             AccountCatalogue node = AccountCatalogue.builder()
                     .id(id)
                     .code(code)
                     .description(description)
-                    .nature((NatureEnum) row[4])
-                    .financialStatus((FinancialStatusEnum) row[5])
-                    .classification((ClassificationEnum) row[6])
+                    .nature(natureOrdinal != null && natureOrdinal >= 0 && natureOrdinal < NatureEnum.values().length ? 
+                            NatureEnum.values()[natureOrdinal] : null)
+                    .financialStatus(financialStatusOrdinal != null && financialStatusOrdinal >= 0 && financialStatusOrdinal < FinancialStatusEnum.values().length ? 
+                            FinancialStatusEnum.values()[financialStatusOrdinal] : null)
+                    .classification(classificationOrdinal != null && classificationOrdinal >= 0 && classificationOrdinal < ClassificationEnum.values().length ? 
+                            ClassificationEnum.values()[classificationOrdinal] : null)
                     .crossing((Boolean) row[7])
                     .costCenter((Boolean) row[8])
                     .status((Boolean) row[9])

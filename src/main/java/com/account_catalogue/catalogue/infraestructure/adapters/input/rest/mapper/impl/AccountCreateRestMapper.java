@@ -36,14 +36,13 @@ public class AccountCreateRestMapper implements IAccountCreateRestMapper {
                 .id(accountCatalogueRes.getId())
                 .code(accountCatalogueRes.getCode())
                 .description(accountCatalogueRes.getDescription())
-                .financialStatus(accountCatalogueRes.getFinancialStatus().getState())
-                .nature(accountCatalogueRes.getNature().getState())
-                .classification(accountCatalogueRes.getClassification().getState())
+                .financialStatus(accountCatalogueRes.getFinancialStatus() != null ? accountCatalogueRes.getFinancialStatus().getState() : null)
+                .nature(accountCatalogueRes.getNature() != null ? accountCatalogueRes.getNature().getState() : null)
+                .classification(accountCatalogueRes.getClassification() != null ? accountCatalogueRes.getClassification().getState() : null)
                 .crossing(accountCatalogueRes.getCrossing())
                 .costCenter(accountCatalogueRes.getCostCenter())
                 .status(accountCatalogueRes.getStatus())
-                .parent(accountCatalogueRes.getParent().getCode() == null ? null
-                        : accountCatalogueRes.getParent().getCode())
+                .parent(accountCatalogueRes.getParent() != null ? accountCatalogueRes.getParent().getCode() : null)
                 .build();
 
         return accountCatalogue;

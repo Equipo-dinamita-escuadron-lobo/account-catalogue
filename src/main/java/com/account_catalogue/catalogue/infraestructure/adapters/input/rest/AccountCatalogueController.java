@@ -2,7 +2,6 @@ package com.account_catalogue.catalogue.infraestructure.adapters.input.rest;
 
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

@@ -1,7 +1,8 @@
 package com.account_catalogue.catalogue.infraestructure.adapters.input.rest;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -113,30 +114,13 @@ public class AccountCatalogueController {
     @GetMapping("/trees/{idEnterprise}")
     public ResponseEntity<List<AccountCatalogueListRes>> getAccountCatalogueTrees(
             @PathVariable String idEnterprise) {
-        List<AccountCatalogueListRes> accountCatalogueListRes = new ArrayList<>();
-        for (int i = 1; i <= 9; i++) {
-            try {
-                AccountCatalogue accountCatalogue = accountCatalogueSearchInputPort
-                        .getAccountCatalogueTree(String.valueOf(i), idEnterprise);
-                if (accountCatalogue != null) {
-                    accountCatalogueListRes.add(accountSearchRestMapper.toAccountCatalogueListRes(accountCatalogue));
-                }
-            } catch (Exception e) {
-                // Si la cuenta con código 'i' no existe, simplemente continúa con el siguiente
-                // No lanza excepción, solo omite la cuenta inexistente
-            }
-        }
-        return ResponseEntity.ok(accountCatalogueListRes);
+        List<AccountCatalogue> accountCatalogueTrees = accountCatalogueSearchInputPort.getAccountCatalogueTrees(idEnterprise);
+        List<AccountCatalogueListRes> response = accountCatalogueTrees.stream()
+                .map(accountSearchRestMapper::toAccountCatalogueListRes)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(response);
     }
 
-    /**
-     * Cambia el estado (activo/inactivo) de una cuenta del catálogo.
-     * 
-     * @param id el ID de la cuenta
-     * @param enterpriseId el ID de la empresa
-     * @param status el nuevo estado (true = activo, false = inactivo)
-     * @return respuesta con el estado actualizado
-     */
     @PatchMapping("/changeState/{id}/{enterpriseId}")
     public ResponseEntity<AccountCatalogueChangeStateRes> changeState(
             @PathVariable Long id,
@@ -155,12 +139,7 @@ public class AccountCatalogueController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * Obtiene todas las cuentas auxiliares (8 dígitos) activas para una empresa específica.
-     * 
-     * @param idEnterprise el ID de la empresa
-     * @return lista de cuentas auxiliares ordenadas por código
-     */
+   
     @GetMapping("/auxiliary/{idEnterprise}")
     public ResponseEntity<AuxiliaryAccountListRes> getAuxiliaryAccounts(
             @PathVariable String idEnterprise) {
@@ -171,12 +150,7 @@ public class AccountCatalogueController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * Obtiene todas las cuentas auxiliares (8 dígitos) activas que tienen el campo crossing activo para una empresa específica.
-     * 
-     * @param idEnterprise el ID de la empresa
-     * @return lista de cuentas auxiliares con crossing activo ordenadas por código
-     */
+   
     @GetMapping("/auxiliary/crossing/{idEnterprise}")
     public ResponseEntity<AuxiliaryAccountListRes> getAuxiliaryAccountsWithCrossing(
             @PathVariable String idEnterprise) {
@@ -187,12 +161,7 @@ public class AccountCatalogueController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * Exporta una plantilla de catálogo de cuentas con validaciones.
-     *
-     * @param entId ID de la entidad
-     * @return Archivo Excel con la plantilla
-     */
+    
     @GetMapping("/template/excel")
     public ResponseEntity<Resource> exportAccountCatalogueTemplate(
             @RequestParam String entId) {
@@ -206,13 +175,6 @@ public class AccountCatalogueController {
                 .body(templateFile);
     }
 
-    /**
-     * Exporta el catálogo de cuentas con validaciones a formato Excel.
-     *
-     * @param entId ID de la entidad
-     * @param companyName Nombre de la empresa (opcional)
-     * @return Archivo Excel con los datos del catálogo
-     */
     @GetMapping("/export/excel")
     public ResponseEntity<Resource> exportAccountCatalogueWithValidations(
             @RequestParam String entId,

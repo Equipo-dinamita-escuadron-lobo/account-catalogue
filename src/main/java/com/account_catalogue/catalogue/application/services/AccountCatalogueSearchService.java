@@ -1,5 +1,6 @@
 package com.account_catalogue.catalogue.application.services;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -8,6 +9,7 @@ import org.springframework.data.domain.Pageable;
 import com.account_catalogue.catalogue.application.input.IAccountCatalogueSearchInputPort;
 import com.account_catalogue.catalogue.application.output.IAccountCatalogueSearchOutputPort;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
+import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueNotFoundException;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -46,6 +48,32 @@ public class AccountCatalogueSearchService implements IAccountCatalogueSearchInp
         validationService.validateAccountExists(code, idEnterprise);
         // Luego obtener el árbol
         return accountCatalogueSearchOutputPort.getAccountCatalogueTreeByCode(code, idEnterprise);
+    }
+
+    /**
+     * Obtiene los árboles de catálogo de cuentas para los códigos raíz (1-9) de una empresa específica.
+     * Solo incluye cuentas que existen, omitiendo las que no se encuentren.
+     *
+     * @param idEnterprise el ID de la empresa
+     * @return lista de árboles de catálogos de cuentas para códigos 1-9 existentes
+     */
+    @Override
+    public List<AccountCatalogue> getAccountCatalogueTrees(String idEnterprise) {
+        if (idEnterprise == null || idEnterprise.trim().isEmpty()) {
+            throw new IllegalArgumentException("El ID de empresa es requerido para buscar árboles de catálogos");
+        }
+
+        List<AccountCatalogue> trees = new ArrayList<>();
+        for (int i = 1; i <= 9; i++) {
+            try {
+                AccountCatalogue tree = getAccountCatalogueTree(String.valueOf(i), idEnterprise.trim());
+                trees.add(tree);
+            } catch (AccountCatalogueNotFoundException e) {
+                // Si la cuenta con código 'i' no existe, simplemente continúa con el siguiente
+                // No lanza excepción, solo omite la cuenta inexistente
+            }
+        }
+        return trees;
     }
 
     /**

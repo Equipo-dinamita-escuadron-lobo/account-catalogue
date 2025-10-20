@@ -47,7 +47,7 @@ public class AccountCatalogueChangeStateJpaAdapter implements IAccountCatalogueC
             // Si se está inactivando, inactivar todos los hijos recursivamente
             List<Long> descendantIds = accountCatalogueRepository.findDescendantIds(accountCatalogueEntity.getId(), accountCatalogueEntity.getIdEnterprise(), accountCatalogueEntity.getTenantId());
             if (!descendantIds.isEmpty()) {
-                accountCatalogueRepository.updateStatusByIds(status, descendantIds, accountCatalogueEntity.getIdEnterprise(), accountCatalogueEntity.getTenantId());
+                updateStatusInBatches(status, descendantIds, accountCatalogueEntity.getIdEnterprise(), accountCatalogueEntity.getTenantId());
             }
         }
 
@@ -71,6 +71,23 @@ public class AccountCatalogueChangeStateJpaAdapter implements IAccountCatalogueC
                 // Continuar activando recursivamente hacia arriba
                 activateParentHierarchy(parent);
             }
+        }
+    }
+
+    /**
+     * Actualiza el estado de cuentas en batches para evitar problemas con listas grandes en IN clauses.
+     *
+     * @param status el nuevo estado.
+     * @param ids lista de IDs a actualizar.
+     * @param idEnterprise el id de la empresa.
+     * @param tenantId el id del tenant.
+     */
+    private void updateStatusInBatches(Boolean status, List<Long> ids, String idEnterprise, String tenantId) {
+        int batchSize = 500; // Tamaño del batch, ajustable
+        for (int i = 0; i < ids.size(); i += batchSize) {
+            int end = Math.min(i + batchSize, ids.size());
+            List<Long> batch = ids.subList(i, end);
+            accountCatalogueRepository.updateStatusByIds(status, batch, idEnterprise, tenantId);
         }
     }
 }

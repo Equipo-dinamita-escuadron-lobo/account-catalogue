@@ -1,9 +1,15 @@
 package com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.account_catalogue.catalogue.application.output.IAccountCatalogueSearchOutputPort;
+import com.account_catalogue.catalogue.domain.enums.ClassificationEnum;
+import com.account_catalogue.catalogue.domain.enums.FinancialStatusEnum;
+import com.account_catalogue.catalogue.domain.enums.NatureEnum;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
 import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.entity.AccountCatalogueEntity;
 import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.mapper.IItemAccountCatalogueSearchMapper;
@@ -43,8 +49,11 @@ public class AccountCatalogueSearchJpaAdapter implements IAccountCatalogueSearch
      */
     @Override
     public AccountCatalogue getAccountCatalogueTreeByCode(String code, String idEnterprise) {
-        AccountCatalogueEntity accountCatalogue = accountCatalogueRepository.findByCode(code, idEnterprise);
-        return itemAccountCatalogueSearchMapper.toDomainTree(accountCatalogue);
+        List<Object[]> hierarchyData = accountCatalogueRepository.findHierarchyByCode(code, idEnterprise);
+        if (hierarchyData.isEmpty()) {
+            return null;
+        }
+        return buildTreeFromHierarchyData(hierarchyData);
     }
 
     /**
@@ -144,5 +153,57 @@ public class AccountCatalogueSearchJpaAdapter implements IAccountCatalogueSearch
     public Page<AccountCatalogue> getAllAccountCataloguesByIdEnterprise(String idEnterprise, Pageable pageable) {
         Page<AccountCatalogueEntity> entities = accountCatalogueRepository.findAllByIdEnterpriseOrderByCode(idEnterprise, pageable);
         return entities.map(itemAccountCatalogueSearchMapper::toDomain);
+    }
+
+    /**
+     * Construye el árbol de AccountCatalogue a partir de los datos de jerarquía obtenidos de la consulta nativa.
+     * 
+     * @param hierarchyData lista de Object[] con los datos de la jerarquía.
+     * @return el AccountCatalogue raíz con su jerarquía completa.
+     */
+    private AccountCatalogue buildTreeFromHierarchyData(List<Object[]> hierarchyData) {
+        Map<Long, AccountCatalogue> nodeMap = new HashMap<>();
+        Map<Long, List<AccountCatalogue>> childrenMap = new HashMap<>();
+        
+        for (Object[] row : hierarchyData) {
+            Long id = (Long) row[0];
+            String code = (String) row[1];
+            String description = (String) row[2];
+            Long parentId = (Long) row[3];
+            // Otros campos: nature, financial_status, etc.
+            // Asumir orden: id, code, description, parent_id, nature, financial_status, classification, crossing, cost_center, status, id_enterprise
+            
+            AccountCatalogue node = AccountCatalogue.builder()
+                    .id(id)
+                    .code(code)
+                    .description(description)
+                    .nature((NatureEnum) row[4])
+                    .financialStatus((FinancialStatusEnum) row[5])
+                    .classification((ClassificationEnum) row[6])
+                    .crossing((Boolean) row[7])
+                    .costCenter((Boolean) row[8])
+                    .status((Boolean) row[9])
+                    .idEnterprise((String) row[10])
+                    .children(new ArrayList<>())
+                    .build();
+            
+            nodeMap.put(id, node);
+            childrenMap.computeIfAbsent(parentId, k -> new ArrayList<>()).add(node);
+        }
+        
+        // Asignar children a parents
+        for (Map.Entry<Long, List<AccountCatalogue>> entry : childrenMap.entrySet()) {
+            Long parentId = entry.getKey();
+            if (parentId != null && nodeMap.containsKey(parentId)) {
+                nodeMap.get(parentId).setChildren(entry.getValue());
+            }
+        }
+        
+        // Encontrar la raíz (el que no tiene parent)
+        return hierarchyData.stream()
+                .filter(row -> row[3] == null) // parent_id null
+                .findFirst()
+                .map(row -> nodeMap.get((Long) row[0]))
+                .orElse(null);
     }
 }

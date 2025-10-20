@@ -69,7 +69,7 @@ public class AccountCatalogueController {
 
     @PostMapping("/")
     public ResponseEntity<AccountCatalogueCreateRes> createAccountCatalogue(
-            @RequestBody AccountCatalogueCreateReq accountCatalogueCreateReq) {
+            @Valid @RequestBody AccountCatalogueCreateReq accountCatalogueCreateReq) {
         AccountCatalogue padre = null;
         if (accountCatalogueCreateReq.getParent() != null) {
             padre = accountCatalogueSearchInputPort.getAccountCatalogueById(accountCatalogueCreateReq.getParent(), accountCatalogueCreateReq.getIdEnterprise());
@@ -125,11 +125,6 @@ public class AccountCatalogueController {
             @PathVariable Long id,
             @PathVariable String enterpriseId,
             @RequestParam Boolean status) {
-        
-        // Validación manual del parámetro status
-        if (status == null) {
-            throw new IllegalArgumentException("El parámetro 'status' es requerido");
-        }
         
         AccountCatalogue updatedAccount = accountCatalogueChangeStateInputPort.changeState(
                 id, enterpriseId, status);

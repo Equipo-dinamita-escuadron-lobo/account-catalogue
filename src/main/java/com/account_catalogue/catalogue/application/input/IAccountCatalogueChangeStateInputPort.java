@@ -9,8 +9,9 @@ public interface IAccountCatalogueChangeStateInputPort {
      * 
      * @param id el ID de la cuenta
      * @param idEnterprise el ID de la empresa
-     * @param status el nuevo estado (true = activo, false = inactivo)
+     * @param status el nuevo estado (true = activo, false = inactivo) - requerido
      * @return la cuenta actualizada
+     * @throws IllegalArgumentException si status es null
      */
     AccountCatalogue changeState(Long id, String idEnterprise, Boolean status);
 }

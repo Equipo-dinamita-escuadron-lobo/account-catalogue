@@ -1,6 +1,8 @@
 package com.account_catalogue.catalogue.application.services;
 
 import com.account_catalogue.catalogue.domain.models.AccountCatalogueExcelData;
+import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueErrorCode;
+import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueImportException;
 import com.account_catalogue.catalogue.domain.models.ImportErrorDetail;
 import com.account_catalogue.catalogue.domain.utils.StringNormalizer;
 import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.entity.AccountCatalogueEntity;
@@ -14,7 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -22,6 +23,37 @@ import java.util.stream.Collectors;
 public class AccountCatalogueDuplicateDetectionService {
 
     private final IAccountCatalogueRepository accountCatalogueRepository;
+
+    /**
+     * Procesa un registro individual para determinar si es duplicado.
+     */
+    private boolean isDuplicateRecord(AccountCatalogueExcelData accountData, String entId,
+            Set<String> seenCodes, Set<String> seenDescriptions,
+            Map<String, AccountCatalogueEntity> dbDuplicatesByCode,
+            Map<String, AccountCatalogueEntity> dbDuplicatesByDescription) {
+
+        String code = accountData.getCode();
+        String description = accountData.getDescription();
+        String normalizedDescription = StringNormalizer.normalizeForComparison(description);
+        normalizedDescription = normalizedDescription != null ? normalizedDescription : "";
+        String codeKey = code + "_" + entId;
+        String descKey = normalizedDescription + "_" + entId;
+
+        // Verificar duplicados internos
+        if (seenCodes.contains(codeKey)) {
+            return true;
+        }
+        seenCodes.add(codeKey);
+
+        if (seenDescriptions.contains(descKey)) {
+            return true;
+        }
+        seenDescriptions.add(descKey);
+
+        // Verificar duplicados en BD
+        return dbDuplicatesByCode.containsKey(code) ||
+               dbDuplicatesByDescription.containsKey(normalizedDescription);
+    }
 
     /**
      * Detecta duplicados internos en el Excel y contra la base de datos.
@@ -40,7 +72,7 @@ public class AccountCatalogueDuplicateDetectionService {
                 .map(AccountCatalogueExcelData::getCode)
                 .filter(Objects::nonNull)
                 .distinct()
-                .collect(Collectors.toList());
+                .toList();
 
         List<String> descriptions = accountsData.stream()
                 .map(AccountCatalogueExcelData::getDescription)
@@ -48,7 +80,7 @@ public class AccountCatalogueDuplicateDetectionService {
                 .map(String::trim)
                 .filter(desc -> !desc.isEmpty())
                 .distinct()
-                .collect(Collectors.toList());
+                .toList();
 
         // 2. Detectar duplicados en base de datos
         Map<String, AccountCatalogueEntity> dbDuplicatesByCode = detectDatabaseDuplicatesByCode(codes, entId);
@@ -56,42 +88,14 @@ public class AccountCatalogueDuplicateDetectionService {
                 descriptions, entId);
 
         // 3. Procesar cada registro y filtrar duplicados silenciosamente
-        for (AccountCatalogueExcelData record : accountsData) {
-            String code = record.getCode();
-            String description = record.getDescription();
-            String normalizedDescription = StringNormalizer.normalizeForComparison(description);
-            if (normalizedDescription == null) {
-                normalizedDescription = "";
-            }
-            String codeKey = code + "_" + entId;
-            String descKey = normalizedDescription + "_" + entId;
-
-            boolean isDuplicate = false;
-
-            if (seenCodes.contains(codeKey)) {
-                isDuplicate = true;
-            } else {
-                seenCodes.add(codeKey);
-            }
-
-            if (!isDuplicate && seenDescriptions.contains(descKey)) {
-                isDuplicate = true;
-            } else if (!isDuplicate) {
-                seenDescriptions.add(descKey);
-            }
-
-            if (!isDuplicate && dbDuplicatesByCode.containsKey(code)) {
-                isDuplicate = true;
-            }
-
-            if (!isDuplicate && dbDuplicatesByDescription.containsKey(normalizedDescription)) {
-                isDuplicate = true;
-            }
+        for (AccountCatalogueExcelData accountData : accountsData) {
+            boolean isDuplicate = isDuplicateRecord(accountData, entId, seenCodes, seenDescriptions,
+                    dbDuplicatesByCode, dbDuplicatesByDescription);
 
             if (isDuplicate) {
                 duplicateCount++;
             } else {
-                uniqueRecords.add(record);
+                uniqueRecords.add(accountData);
             }
         }
 
@@ -123,7 +127,11 @@ public class AccountCatalogueDuplicateDetectionService {
                     duplicates.put(code, existing);
                 }
             } catch (Exception e) {
-                throw new RuntimeException("Error al consultar duplicado por código", e);
+                throw new AccountCatalogueImportException(
+                    AccountCatalogueErrorCode.ACCOUNT_IMPORT_ERROR,
+                    "Error al consultar duplicado por código: " + code,
+                    e
+                );
             }
         }
 
@@ -155,7 +163,11 @@ public class AccountCatalogueDuplicateDetectionService {
                     duplicates.put(normalized, existing);
                 }
             } catch (Exception e) {
-                throw new RuntimeException("Error al consultar duplicado por descripción", e);
+                throw new AccountCatalogueImportException(
+                    AccountCatalogueErrorCode.ACCOUNT_IMPORT_ERROR,
+                    "Error al consultar duplicado por descripción: " + description,
+                    e
+                );
             }
         }
 

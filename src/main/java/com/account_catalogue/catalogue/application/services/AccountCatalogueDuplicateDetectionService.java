@@ -1,9 +1,7 @@
 package com.account_catalogue.catalogue.application.services;
 
-import com.account_catalogue.catalogue.domain.enums.ImportErrorType;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogueExcelData;
 import com.account_catalogue.catalogue.domain.models.ImportErrorDetail;
-import com.account_catalogue.catalogue.domain.utils.ImportConstants;
 import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.entity.AccountCatalogueEntity;
 import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.repository.IAccountCatalogueRepository;
 import lombok.AllArgsConstructor;
@@ -18,10 +16,7 @@ import java.text.Normalizer;
 import java.util.*;
 import java.util.stream.Collectors;
 
-/**
- * Servicio especializado en detección de duplicados para importación de catálogo de cuentas.
- * Detecta duplicados tanto internos (dentro del Excel) como en la base de datos.
- */
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -32,12 +27,13 @@ public class AccountCatalogueDuplicateDetectionService {
     /**
      * Detecta duplicados internos en el Excel y contra la base de datos.
      * Los duplicados se detectan por código Y descripción (case-insensitive sin acentos).
+     * Los duplicados se omiten silenciosamente sin generar errores.
      */
     public DuplicateDetectionResult detectDuplicates(List<AccountCatalogueExcelData> accountsData, String entId) {
-        List<ImportErrorDetail> errors = new ArrayList<>();
         Set<String> seenCodes = new HashSet<>();
         Set<String> seenDescriptions = new HashSet<>();
         List<AccountCatalogueExcelData> uniqueRecords = new ArrayList<>();
+        int duplicateCount = 0;
 
         // 1. Obtener códigos y descripciones para consultar en BD
         List<String> codes = accountsData.stream()
@@ -60,7 +56,7 @@ public class AccountCatalogueDuplicateDetectionService {
         Map<String, AccountCatalogueEntity> dbDuplicatesByDescription = 
                 detectDatabaseDuplicatesByDescription(descriptions, entId);
 
-        // 3. Procesar cada registro y filtrar duplicados
+        // 3. Procesar cada registro y filtrar duplicados silenciosamente
         for (AccountCatalogueExcelData record : accountsData) {
             String code = record.getCode();
             String description = record.getDescription();
@@ -72,101 +68,48 @@ public class AccountCatalogueDuplicateDetectionService {
 
             // Verificar duplicado interno por código
             if (seenCodes.contains(codeKey)) {
-                errors.add(createDuplicateError(record.getRowNumber(), ImportConstants.CODE_COLUMN, code,
-                        "Código duplicado dentro del archivo Excel"));
                 isDuplicate = true;
             } else {
                 seenCodes.add(codeKey);
             }
 
             // Verificar duplicado interno por descripción
-            if (seenDescriptions.contains(descKey)) {
-                errors.add(createDuplicateError(record.getRowNumber(), ImportConstants.NAME_COLUMN, description,
-                        "Descripción duplicada dentro del archivo Excel"));
+            if (!isDuplicate && seenDescriptions.contains(descKey)) {
                 isDuplicate = true;
-            } else {
+            } else if (!isDuplicate) {
                 seenDescriptions.add(descKey);
             }
 
             // Verificar duplicado en BD por código
-            if (dbDuplicatesByCode.containsKey(code)) {
-                errors.add(createDuplicateError(record.getRowNumber(), ImportConstants.CODE_COLUMN, code,
-                        String.format("El código '%s' ya existe en el sistema", code)));
+            if (!isDuplicate && dbDuplicatesByCode.containsKey(code)) {
                 isDuplicate = true;
             }
 
             // Verificar duplicado en BD por descripción
-            if (dbDuplicatesByDescription.containsKey(normalizedDescription)) {
-                AccountCatalogueEntity existingAccount = dbDuplicatesByDescription.get(normalizedDescription);
-                errors.add(createDuplicateError(record.getRowNumber(), ImportConstants.NAME_COLUMN, description,
-                        String.format("La descripción '%s' ya existe en el sistema (código: %s)", 
-                                description, existingAccount.getCode())));
+            if (!isDuplicate && dbDuplicatesByDescription.containsKey(normalizedDescription)) {
                 isDuplicate = true;
             }
 
-            // Solo agregar a únicos si no es duplicado
-            if (!isDuplicate) {
+            // Contar duplicados y solo agregar únicos
+            if (isDuplicate) {
+                duplicateCount++;
+                log.debug("Duplicado omitido en fila {}: código={}, descripción={}", 
+                        record.getRowNumber(), code, description);
+            } else {
                 uniqueRecords.add(record);
             }
         }
 
+        log.info("Detección de duplicados completada: {} únicos, {} duplicados omitidos", 
+                uniqueRecords.size(), duplicateCount);
+
         return DuplicateDetectionResult.builder()
                 .uniqueRecords(uniqueRecords)
-                .errors(errors)
+                .errors(new ArrayList<>()) // Sin errores, solo omisión silenciosa
                 .totalAnalyzed(accountsData.size())
-                .duplicateCount(accountsData.size() - uniqueRecords.size())
+                .duplicateCount(duplicateCount)
                 .uniqueCount(uniqueRecords.size())
                 .build();
-    }
-
-    /**
-     * Detecta duplicados internos por código dentro del Excel.
-     */
-    private Map<String, AccountCatalogueExcelData> detectInternalDuplicatesByCode(
-            List<AccountCatalogueExcelData> accountsData) {
-        Map<String, AccountCatalogueExcelData> firstOccurrences = new HashMap<>();
-        Map<String, AccountCatalogueExcelData> duplicates = new HashMap<>();
-
-        for (AccountCatalogueExcelData record : accountsData) {
-            String code = record.getCode();
-            if (code == null || code.trim().isEmpty()) {
-                continue;
-            }
-
-            if (firstOccurrences.containsKey(code)) {
-                duplicates.put(code, record);
-            } else {
-                firstOccurrences.put(code, record);
-            }
-        }
-
-        return duplicates;
-    }
-
-    /**
-     * Detecta duplicados internos por descripción dentro del Excel.
-     * Usa normalización case-insensitive sin acentos.
-     */
-    private Map<String, AccountCatalogueExcelData> detectInternalDuplicatesByDescription(
-            List<AccountCatalogueExcelData> accountsData) {
-        Map<String, AccountCatalogueExcelData> firstOccurrences = new HashMap<>();
-        Map<String, AccountCatalogueExcelData> duplicates = new HashMap<>();
-
-        for (AccountCatalogueExcelData record : accountsData) {
-            String description = record.getDescription();
-            if (description == null || description.trim().isEmpty()) {
-                continue;
-            }
-
-            String normalized = normalizeString(description);
-            if (firstOccurrences.containsKey(normalized)) {
-                duplicates.put(normalized, record);
-            } else {
-                firstOccurrences.put(normalized, record);
-            }
-        }
-
-        return duplicates;
     }
 
     /**
@@ -244,21 +187,6 @@ public class AccountCatalogueDuplicateDetectionService {
         normalized = normalized.replaceAll("\\p{M}", "");
 
         return normalized;
-    }
-
-    /**
-     * Crea un error de duplicado.
-     */
-    private ImportErrorDetail createDuplicateError(int rowNumber, String columnName, 
-                                                   String fieldValue, String message) {
-        return ImportErrorDetail.builder()
-                .rowNumber(rowNumber)
-                .columnName(columnName)
-                .fieldValue(fieldValue)
-                .errorCode(ImportConstants.ErrorCodes.DUPLICATE_CODE)
-                .errorMessage(message)
-                .errorType(ImportErrorType.DUPLICATE_ERROR)
-                .build();
     }
 
     /**

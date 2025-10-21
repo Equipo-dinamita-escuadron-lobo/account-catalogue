@@ -80,8 +80,6 @@ public final class ImportConstants {
         public static final String INVALID_ENUM_VALUE = "INVALID_ENUM_VALUE";
         public static final String INVALID_BOOLEAN_VALUE = "INVALID_BOOLEAN_VALUE";
         public static final String BUSINESS_RULE_VIOLATION = "BUSINESS_RULE_VIOLATION";
-        public static final String DUPLICATE_CODE = "DUPLICATE_CODE";
-        public static final String DUPLICATE_DESCRIPTION = "DUPLICATE_DESCRIPTION";
         public static final String ORPHAN_ACCOUNT = "ORPHAN_ACCOUNT";
         public static final String PARENT_NOT_FOUND = "PARENT_NOT_FOUND";
         public static final String SYSTEM_ERROR = "SYSTEM_ERROR";

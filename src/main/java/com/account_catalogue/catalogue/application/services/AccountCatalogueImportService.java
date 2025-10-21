@@ -11,17 +11,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
-/**
- * Servicio orquestador principal para importación de catálogo de cuentas desde Excel.
- * Implementa el patrón Pipeline para procesar la importación en 6 fases:
- * 1. Validación de archivo
- * 2. Parseo de Excel
- * 3. Validación de datos
- * 4. Detección de duplicados
- * 5. Ordenamiento y validación jerárquica
- * 6. Procesamiento en lotes
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -124,10 +115,46 @@ public class AccountCatalogueImportService implements IAccountCatalogueImportInp
 
             // ===== FASE 5: ORDENAMIENTO Y VALIDACIÓN JERÁRQUICA =====
             log.info("Fase 5: Validando y ordenando jerarquía...");
+            log.info("→ Validando que todas las cuentas tengan padre (en Excel o en el sistema)");
+            
+            // Ordenar por jerarquía
             List<AccountCatalogueExcelData> sortedAccounts = 
-                    hierarchyProcessor.sortAndValidateHierarchy(duplicateResult.getUniqueRecords(), entId);
+                    hierarchyProcessor.sortByHierarchy(duplicateResult.getUniqueRecords());
+            
+            // Validar jerarquía y obtener errores individuales
+            List<ImportErrorDetail> hierarchyErrors = 
+                    hierarchyProcessor.validateHierarchyWithDetails(sortedAccounts, entId);
+            
+            allErrors.addAll(hierarchyErrors);
+            
+            if (!hierarchyErrors.isEmpty()) {
+                log.error("✗ Se encontraron {} cuentas huérfanas", hierarchyErrors.size());
+                
+                // Si CONTINUE_ON_ERROR es false, detener
+                if (!com.account_catalogue.catalogue.domain.utils.ImportConstants.Defaults.CONTINUE_ON_ERROR) {
+                    log.error("✗ Deteniendo importación por errores de jerarquía (CONTINUE_ON_ERROR=false)");
+                    return responseBuilder.buildFailedResponse(entId, fileName, 
+                            parsingResult.getTotalRows(), allErrors);
+                }
+                
+                // Si continúa con errores, filtrar cuentas con errores de jerarquía
+                Set<Integer> errorRows = hierarchyErrors.stream()
+                        .map(ImportErrorDetail::getRowNumber)
+                        .collect(java.util.stream.Collectors.toSet());
+                
+                sortedAccounts = sortedAccounts.stream()
+                        .filter(account -> !errorRows.contains(account.getRowNumber()))
+                        .collect(java.util.stream.Collectors.toList());
+            }
+            
+            if (sortedAccounts.isEmpty()) {
+                log.warn("✗ No hay cuentas válidas para importar después de validar jerarquía");
+                return responseBuilder.buildFailedResponse(entId, fileName, 
+                        parsingResult.getTotalRows(), allErrors);
+            }
             
             log.info("✓ Jerarquía validada y ordenada: {} cuentas listas para procesar", sortedAccounts.size());
+            log.info("  → Las cuentas hijas se vincularán automáticamente a sus padres existentes en el sistema");
 
             // ===== FASE 6: PROCESAMIENTO EN LOTES =====
             log.info("Fase 6: Procesando cuentas en lotes...");

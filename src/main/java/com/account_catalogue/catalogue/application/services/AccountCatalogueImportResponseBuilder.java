@@ -8,10 +8,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-/**
- * Servicio especializado en construir respuestas de importación.
- * Centraliza la lógica de determinación de estado y construcción de métricas.
- */
 @Slf4j
 @Service
 public class AccountCatalogueImportResponseBuilder {
@@ -56,24 +52,35 @@ public class AccountCatalogueImportResponseBuilder {
      * 
      * @param entId identificador de la empresa
      * @param fileName nombre del archivo
-     * @param totalRecords total de registros
+     * @param totalRecords total de registros en el archivo
      * @param errors lista de errores
      * @return respuesta indicando fallo
      */
     public AccountCatalogueImportResponse buildFailedResponse(String entId, String fileName, 
                                                               int totalRecords, List<ImportErrorDetail> errors) {
+        // Calcular registros fallidos: contar filas únicas con errores
+        long failedRecordsCount = errors.stream()
+                .map(ImportErrorDetail::getRowNumber)
+                .filter(rowNum -> rowNum != null)
+                .distinct()
+                .count();
+        
+        int failedImports = failedRecordsCount > 0 ? (int) failedRecordsCount : 
+                           (totalRecords > 0 ? totalRecords : errors.size());
+        
         AccountCatalogueImportResponse response = AccountCatalogueImportResponse.builder()
                 .entId(entId)
                 .fileName(fileName)
                 .status(ImportStatus.FAILED)
                 .totalRecords(totalRecords)
                 .successfulImports(0)
-                .failedImports(totalRecords)
+                .failedImports(failedImports)
                 .duplicatesSkipped(0)
                 .errors(errors)
                 .build();
 
-        log.error("Importación fallida: Total: {}, Errores: {}", totalRecords, errors.size());
+        log.error("Importación fallida: Total: {}, Fallidos: {}, Errores únicos: {}", 
+                totalRecords, failedImports, errors.size());
 
         return response;
     }

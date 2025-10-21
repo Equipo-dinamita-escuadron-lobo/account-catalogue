@@ -145,18 +145,37 @@ public class AccountCatalogueBatchProcessor {
                 AccountCatalogue accountCatalogue = dataConverter.convertToAccountCatalogue(
                         excelData, parentsMap, processedAccountsMap);
 
+                // Verificar parent antes de crear
+                if (accountCatalogue.getParent() != null) {
+                    log.debug("Creando cuenta '{}' con parent: código='{}', id={}", 
+                            accountCatalogue.getCode(), 
+                            accountCatalogue.getParent().getCode(),
+                            accountCatalogue.getParent().getId());
+                } else {
+                    log.debug("Creando cuenta raíz '{}'", accountCatalogue.getCode());
+                }
+
                 // Crear usando el servicio existente (ya tiene validaciones)
                 AccountCatalogue created = createService.createAccountCatalogue(accountCatalogue);
+
+                // Verificar que se haya asignado ID
+                if (created.getId() == null) {
+                    log.error("CRÍTICO: Cuenta creada sin ID - código: {}", created.getCode());
+                }
 
                 // Almacenar en mapa de procesados para usar como padre en siguientes registros
                 processedAccountsMap.put(created.getCode(), created);
 
                 successCount++;
-                log.debug("Cuenta '{}' creada exitosamente en fila {}", created.getCode(), excelData.getRowNumber());
+                log.info("✓ Cuenta '{}' creada exitosamente (fila {}, id={}, parent_id={})", 
+                        created.getCode(), 
+                        excelData.getRowNumber(), 
+                        created.getId(),
+                        created.getParent() != null ? created.getParent().getId() : "null");
 
             } catch (Exception e) {
                 failureCount++;
-                log.error("Error creando cuenta en fila {}: {}", excelData.getRowNumber(), e.getMessage());
+                log.error("✗ Error creando cuenta en fila {}: {}", excelData.getRowNumber(), e.getMessage(), e);
                 
                 errors.add(ImportErrorDetail.builder()
                         .rowNumber(excelData.getRowNumber())

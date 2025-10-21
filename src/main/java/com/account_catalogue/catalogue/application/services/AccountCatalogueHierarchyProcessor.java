@@ -2,7 +2,6 @@ package com.account_catalogue.catalogue.application.services;
 
 import com.account_catalogue.catalogue.domain.models.AccountCatalogueExcelData;
 import com.account_catalogue.catalogue.domain.utils.AccountCodeUtils;
-import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueHierarchyException;
 import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.entity.AccountCatalogueEntity;
 import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.repository.IAccountCatalogueRepository;
 import lombok.RequiredArgsConstructor;
@@ -12,10 +11,6 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.stream.Collectors;
 
-/**
- * Servicio especializado en el procesamiento jerárquico de cuentas contables.
- * Ordena cuentas por jerarquía y valida que no existan cuentas huérfanas.
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -24,45 +19,41 @@ public class AccountCatalogueHierarchyProcessor {
     private final IAccountCatalogueRepository accountCatalogueRepository;
 
     /**
-     * Ordena y valida la jerarquía de cuentas.
-     * Asegura que todas las cuentas tengan su padre correspondiente.
+     * Ordena cuentas por jerarquía.
+     * IMPORTANTE: Permite importar solo cuentas hijas si sus padres ya existen en el sistema.
      * 
      * @param accountsData lista de cuentas a procesar
-     * @param entId identificador de la empresa
      * @return lista ordenada por jerarquía
-     * @throws AccountCatalogueHierarchyException si existen cuentas huérfanas
      */
-    public List<AccountCatalogueExcelData> sortAndValidateHierarchy(List<AccountCatalogueExcelData> accountsData, 
-                                                                     String entId) {
+    public List<AccountCatalogueExcelData> sortByHierarchy(List<AccountCatalogueExcelData> accountsData) {
         if (accountsData == null || accountsData.isEmpty()) {
             return new ArrayList<>();
         }
 
-        // 1. Ordenar por jerarquía (código natural)
-        List<AccountCatalogueExcelData> sortedAccounts = AccountCodeUtils.sortByHierarchy(accountsData);
-
-        // 2. Validar que no haya cuentas huérfanas
-        validateHierarchy(sortedAccounts, entId);
-
-        return sortedAccounts;
+        // Ordenar por jerarquía (código natural)
+        return AccountCodeUtils.sortByHierarchy(accountsData);
     }
 
     /**
      * Valida que todas las cuentas tengan su padre correspondiente.
      * El padre puede estar en el Excel o en la base de datos.
+     * Esto permite importar solo cuentas hijas que se vincularán a padres existentes en el sistema.
+     * 
+     * @return lista de errores individuales para cada cuenta huérfana
      */
-    private void validateHierarchy(List<AccountCatalogueExcelData> accountsData, String entId) {
+    public List<com.account_catalogue.catalogue.domain.models.ImportErrorDetail> validateHierarchyWithDetails(
+            List<AccountCatalogueExcelData> accountsData, String entId) {
+        List<com.account_catalogue.catalogue.domain.models.ImportErrorDetail> errors = new ArrayList<>();
+        
         // Construir mapa de cuentas en el Excel para búsqueda rápida
         Map<String, AccountCatalogueExcelData> accountMap = buildHierarchyMap(accountsData);
-
-        // Lista de errores de jerarquía
-        List<String> orphanErrors = new ArrayList<>();
 
         for (AccountCatalogueExcelData account : accountsData) {
             String code = account.getCode();
             
             // Si es cuenta raíz (1 dígito), no necesita padre
             if (AccountCodeUtils.isRootAccount(code)) {
+                log.debug("Cuenta raíz detectada: {}", code);
                 continue;
             }
 
@@ -70,6 +61,7 @@ public class AccountCatalogueHierarchyProcessor {
             String parentCode = AccountCodeUtils.extractParentCode(code);
             if (parentCode == null) {
                 // No debería llegar aquí si no es cuenta raíz, pero por seguridad
+                log.warn("No se pudo extraer código padre para cuenta: {}", code);
                 continue;
             }
 
@@ -80,23 +72,35 @@ public class AccountCatalogueHierarchyProcessor {
             boolean parentInDatabase = false;
             if (!parentInExcel) {
                 parentInDatabase = existsInDatabase(parentCode, entId);
+                if (parentInDatabase) {
+                    log.debug("Cuenta hija '{}' se vinculará a padre existente en BD: '{}'", 
+                            code, parentCode);
+                }
             }
 
-            // Si no está en ningún lugar, es cuenta huérfana
+            // Si no está en ningún lugar, crear error individual
             if (!parentInExcel && !parentInDatabase) {
-                orphanErrors.add(String.format(
-                    "Fila %d: La cuenta '%s' requiere una cuenta padre '%s' que no existe ni en el Excel ni en el sistema",
-                    account.getRowNumber(), code, parentCode
-                ));
+                errors.add(com.account_catalogue.catalogue.domain.models.ImportErrorDetail.builder()
+                        .rowNumber(account.getRowNumber())
+                        .columnNumber(1) // Columna de Código
+                        .columnName("Código")
+                        .fieldValue(code)
+                        .errorCode(com.account_catalogue.catalogue.domain.utils.ImportConstants.ErrorCodes.ORPHAN_ACCOUNT)
+                        .errorMessage(String.format(
+                                "La cuenta '%s' requiere una cuenta padre '%s' que no existe ni en el Excel ni en el sistema",
+                                code, parentCode))
+                        .errorType(com.account_catalogue.catalogue.domain.enums.ImportErrorType.HIERARCHY_ERROR)
+                        .build());
             }
         }
-
-        // Si hay errores de jerarquía, lanzar excepción
-        if (!orphanErrors.isEmpty()) {
-            String errorMessage = "Se encontraron cuentas huérfanas:\n" + 
-                    String.join("\n", orphanErrors);
-            throw new AccountCatalogueHierarchyException(errorMessage);
+        
+        if (errors.isEmpty()) {
+            log.info("Validación de jerarquía exitosa: {} cuentas validadas", accountsData.size());
+        } else {
+            log.warn("Se encontraron {} cuentas huérfanas", errors.size());
         }
+        
+        return errors;
     }
 
     /**
@@ -128,28 +132,34 @@ public class AccountCatalogueHierarchyProcessor {
     /**
      * Crea un mapa de padres desde la base de datos para las cuentas dadas.
      * Útil para el procesamiento por lotes cuando se necesitan los padres.
+     * IMPORTANTE: Permite vincular cuentas hijas importadas a padres existentes en el sistema.
      * 
-     * @param codes códigos de cuentas que potencialmente necesitan padres
+     * @param parentCodes códigos de los PADRES que se necesitan buscar en BD
      * @param entId identificador de la empresa
-     * @return mapa de código -> entidad de cuenta padre
+     * @return mapa de código padre -> entidad de cuenta padre
      */
-    public Map<String, AccountCatalogueEntity> buildParentMapFromDatabase(Set<String> codes, String entId) {
+    public Map<String, AccountCatalogueEntity> buildParentMapFromDatabase(Set<String> parentCodes, String entId) {
         Map<String, AccountCatalogueEntity> parentMap = new HashMap<>();
 
-        for (String code : codes) {
-            String parentCode = AccountCodeUtils.extractParentCode(code);
+        log.debug("Buscando {} códigos padre en BD: {}", parentCodes.size(), parentCodes);
+
+        for (String parentCode : parentCodes) {
             if (parentCode != null && !parentMap.containsKey(parentCode)) {
                 try {
                     AccountCatalogueEntity parent = accountCatalogueRepository.findByCode(parentCode, entId);
                     if (parent != null) {
                         parentMap.put(parentCode, parent);
+                        log.info("✓ Padre de BD cargado: código='{}', id={}", parentCode, parent.getId());
+                    } else {
+                        log.warn("✗ Padre NO encontrado en BD: código='{}'", parentCode);
                     }
                 } catch (Exception e) {
-                    log.warn("Error obteniendo cuenta padre {}: {}", parentCode, e.getMessage());
+                    log.error("✗ Error obteniendo cuenta padre '{}': {}", parentCode, e.getMessage(), e);
                 }
             }
         }
 
+        log.info("Mapa de padres construido: {} de {} padres encontrados en BD", parentMap.size(), parentCodes.size());
         return parentMap;
     }
 }

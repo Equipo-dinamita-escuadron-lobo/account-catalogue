@@ -116,6 +116,22 @@ public class AccountCatalogueController {
         return ResponseEntity.ok(accountSearchRestMapper.toAccountCatalogueListRes(accountCatalogue));
     }
 
+    @GetMapping("/search/{idEnterprise}")
+    public ResponseEntity<List<ItemAccountCatalogueSearchRes>> searchAccountCatalogues(
+            @PathVariable String idEnterprise,
+            @RequestParam(required = false) String search) {
+
+        List<AccountCatalogue> accounts = (search != null && !search.trim().isEmpty())
+                ? accountCatalogueSearchInputPort.getAccountsByCodeOrDescription(idEnterprise, search)
+                : accountCatalogueSearchInputPort.getAllAccountsByEnterprise(idEnterprise);
+
+        List<ItemAccountCatalogueSearchRes> response = accounts.stream()
+                .map(itemAccountSearchRestMapper::toItemAccountCatalogueSearch)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/trees/{idEnterprise}")
     public ResponseEntity<List<AccountCatalogueListRes>> getAccountCatalogueTrees(
             @PathVariable String idEnterprise) {
@@ -199,7 +215,7 @@ public class AccountCatalogueController {
     @PostMapping("/import/excel")
     public ResponseEntity<AccountCatalogueImportResponse> importFromExcel(
             @RequestParam String entId,
-            @RequestParam("file") MultipartFile file) {
+            @RequestParam MultipartFile file) {
 
         // Construir request
         AccountCatalogueImportRequest request = AccountCatalogueImportRequest.from(entId, file);

@@ -24,6 +24,7 @@ public enum AccountCatalogueErrorCode implements ErrorCodeDefinition {
     EXCEL_CONDITIONAL_VALIDATION_ERROR("EXCEL_CONDITIONAL_VALIDATION_ERROR", "Error aplicando validación condicional en columna"),
     ACCOUNT_IMPORT_ERROR("ACCOUNT_IMPORT_ERROR", "Error durante la importación de catálogo de cuentas"),
     ACCOUNT_IMPORT_NO_DATA("ACCOUNT_IMPORT_NO_DATA", "No hay datos válidos para importar en el archivo"),
+    ACCOUNT_EXPORT_NO_DATA("ACCOUNT_EXPORT_NO_DATA", "No hay cuentas contables para exportar"),
     ACCOUNT_HIERARCHY_ERROR("ACCOUNT_HIERARCHY_ERROR", "Error en la jerarquía de cuentas"),
     FILE_SIZE_EXCEEDED("FILE_SIZE_EXCEEDED", "El archivo excede el tamaño máximo permitido");
 

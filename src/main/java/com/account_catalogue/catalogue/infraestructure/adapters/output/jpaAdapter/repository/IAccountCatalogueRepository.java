@@ -135,4 +135,24 @@ public interface IAccountCatalogueRepository extends JpaRepository<AccountCatalo
         SELECT * FROM hierarchy
         """, nativeQuery = true)
     List<Object[]> findHierarchyByCode(@Param("code") String code, @Param("idEnterprise") String idEnterprise);
+
+    /**
+     * Encuentra todas las cuentas para una empresa específica ordenadas por código.
+     *
+     * @param idEnterprise el id de la empresa.
+     * @return lista de AccountCatalogueEntity ordenadas por código.
+     */
+    @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.idEnterprise = ?1 ORDER BY a.code ASC")
+    List<AccountCatalogueEntity> findByIdEnterpriseOrderByCode(String idEnterprise);
+
+    /**
+     * Encuentra cuentas que coinciden con el criterio de búsqueda (código o descripción) para una empresa específica.
+     * Búsqueda inteligente por código o descripción, ordenada por código ascendente.
+     *
+     * @param idEnterprise el id de la empresa.
+     * @param search el término de búsqueda.
+     * @return lista de AccountCatalogueEntity que coinciden con la búsqueda.
+     */
+    @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.idEnterprise = ?1 AND (a.code LIKE %?2% OR UPPER(a.description) LIKE UPPER(CONCAT('%', ?2, '%'))) ORDER BY a.code ASC")
+    List<AccountCatalogueEntity> findByIdEnterpriseAndCodeOrDescription(String idEnterprise, String search);
 }

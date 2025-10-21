@@ -138,4 +138,39 @@ public class AccountCatalogueSearchService implements IAccountCatalogueSearchInp
         return accountCatalogueSearchOutputPort.getAllAccountCataloguesByIdEnterprise(idEnterprise.trim(), pageable);
     }
 
+    /**
+     * Obtiene todas las cuentas para una empresa específica ordenadas por código.
+     *
+     * @param idEnterprise el ID de la empresa
+     * @return lista de todas las cuentas ordenadas por código
+     */
+    @Override
+    public List<AccountCatalogue> getAllAccountsByEnterprise(String idEnterprise) {
+        if (idEnterprise == null || idEnterprise.trim().isEmpty()) {
+            throw new IllegalArgumentException("El ID de empresa es requerido para obtener cuentas");
+        }
+
+        return accountCatalogueSearchOutputPort.getAllAccountsByEnterprise(idEnterprise.trim());
+    }
+
+    /**
+     * Obtiene las cuentas que coinciden con el criterio de búsqueda (código o descripción) para una empresa específica.
+     * Búsqueda inteligente por código o descripción, ordenada por código ascendente.
+     *
+     * @param idEnterprise el ID de la empresa
+     * @param search el término de búsqueda (código o descripción)
+     * @return lista de cuentas que coinciden con el criterio de búsqueda
+     */
+    @Override
+    public List<AccountCatalogue> getAccountsByCodeOrDescription(String idEnterprise, String search) {
+        if (idEnterprise == null || idEnterprise.trim().isEmpty()) {
+            throw new IllegalArgumentException("El ID de empresa es requerido para buscar cuentas");
+        }
+        if (search == null || search.trim().isEmpty()) {
+            throw new IllegalArgumentException("El término de búsqueda es requerido");
+        }
+
+        return accountCatalogueSearchOutputPort.getAccountsByCodeOrDescription(idEnterprise.trim(), search.trim());
+    }
+
 }

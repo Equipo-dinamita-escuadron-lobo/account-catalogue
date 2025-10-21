@@ -156,6 +156,36 @@ public class AccountCatalogueSearchJpaAdapter implements IAccountCatalogueSearch
     }
 
     /**
+     * Obtiene todas las cuentas (activas e inactivas) para una empresa específica ordenadas por código.
+     *
+     * @param idEnterprise el ID de la empresa
+     * @return lista de todas las cuentas ordenadas por código
+     */
+    @Override
+    public List<AccountCatalogue> getAllAccountsByEnterprise(String idEnterprise) {
+        List<AccountCatalogueEntity> entities = accountCatalogueRepository.findByIdEnterpriseOrderByCode(idEnterprise);
+        return entities.stream()
+                .map(itemAccountCatalogueSearchMapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Obtiene las cuentas (activas e inactivas) que coinciden con el criterio de búsqueda (código o descripción) para una empresa específica.
+     * Búsqueda inteligente por código o descripción, ordenada por código ascendente.
+     *
+     * @param idEnterprise el ID de la empresa
+     * @param search el término de búsqueda (código o descripción)
+     * @return lista de cuentas que coinciden con el criterio de búsqueda
+     */
+    @Override
+    public List<AccountCatalogue> getAccountsByCodeOrDescription(String idEnterprise, String search) {
+        List<AccountCatalogueEntity> entities = accountCatalogueRepository.findByIdEnterpriseAndCodeOrDescription(idEnterprise, search);
+        return entities.stream()
+                .map(itemAccountCatalogueSearchMapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    /**
      * Construye el árbol de AccountCatalogue a partir de los datos de jerarquía obtenidos de la consulta nativa.
      * 
      * @param hierarchyData lista de Object[] con los datos de la jerarquía.

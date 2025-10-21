@@ -7,6 +7,7 @@ import com.account_catalogue.catalogue.domain.enums.FinancialStatusEnum;
 import com.account_catalogue.catalogue.domain.enums.NatureEnum;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogueTemplateData;
+import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueExportException;
 import com.account_catalogue.commons.exceptions.catalogue.ExcelValidationException;
 
 import lombok.RequiredArgsConstructor;
@@ -24,7 +25,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Servicio para la exportación del catálogo de cuentas a formato Excel.
@@ -38,6 +38,7 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
     private final IAccountCatalogueSearchInputPort accountCatalogueSearchInputPort;
 
     private static final int EXPORT_PAGE_SIZE = 5000;
+    private static final String TEMPLATE_PLACEHOLDER_TEXT = "Seleccionar...";
 
     @Override
     public Resource exportAccountCatalogueTemplate(String entId) {
@@ -56,13 +57,18 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
         try {
             // Obtener todos los datos reales con paginación y orden jerárquico
             List<AccountCatalogue> accountCatalogues = getAllAccountCataloguesWithPagination(entId);
-            
+
+            // Verificar que haya datos para exportar
+            if (accountCatalogues.isEmpty()) {
+                throw AccountCatalogueExportException.forNoData();
+            }
+
             // Convertir a template data para compatibilidad con el método existente
             List<AccountCatalogueTemplateData> templateData = convertToTemplateData(accountCatalogues);
-            
+
             byte[] excelData = generateExcelFileWithValidations(templateData);
             return new ByteArrayResource(excelData);
-        } catch (ExcelValidationException e) {
+        } catch (AccountCatalogueExportException | ExcelValidationException e) {
             throw e;
         } catch (Exception e) {
             throw new RuntimeException("Error al generar archivo de exportación", e);
@@ -219,11 +225,11 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
         int colIndex = 0;
         createTemplateCell(row, colIndex++, data.getCode(), style);
         createTemplateCell(row, colIndex++, data.getName(), style);
-        createTemplateCell(row, colIndex++, data.getNature() != null ? data.getNature().getState() : "Seleccionar...", style);
-        createTemplateCell(row, colIndex++, data.getFinancialStatus() != null ? data.getFinancialStatus().getState() : "Seleccionar...", style);
-        createTemplateCell(row, colIndex++, data.getClassification() != null ? data.getClassification().getState() : "Seleccionar...", style);
-        createTemplateCell(row, colIndex++, data.getCruce() != null ? (data.getCruce() ? "SI" : "NO") : "", style);
-        createTemplateCell(row, colIndex++, data.getCentroCosto() != null ? (data.getCentroCosto() ? "SI" : "NO") : "", style);
+        createTemplateCell(row, colIndex++, data.getNature() != null ? data.getNature().getState() : TEMPLATE_PLACEHOLDER_TEXT, style);
+        createTemplateCell(row, colIndex++, data.getFinancialStatus() != null ? data.getFinancialStatus().getState() : TEMPLATE_PLACEHOLDER_TEXT, style);
+        createTemplateCell(row, colIndex++, data.getClassification() != null ? data.getClassification().getState() : TEMPLATE_PLACEHOLDER_TEXT, style);
+        createTemplateCell(row, colIndex++, "", style);
+        createTemplateCell(row, colIndex++, "", style);
     }
 
     private void createTemplateCell(Row row, int colIndex, String value, CellStyle style) {
@@ -247,13 +253,20 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
         row.createCell(colIndex++).setCellValue(data.getNature().getState());
         row.createCell(colIndex++).setCellValue(data.getFinancialStatus().getState());
         row.createCell(colIndex++).setCellValue(data.getClassification().getState());
-        row.createCell(colIndex++).setCellValue(data.getCruce() != null ? (data.getCruce() ? "SI" : "NO") : "");
-        row.createCell(colIndex++).setCellValue(data.getCentroCosto() != null ? (data.getCentroCosto() ? "SI" : "NO") : "");
+        row.createCell(colIndex++).setCellValue(formatBooleanValue(data.getCruce()));
+        row.createCell(colIndex++).setCellValue(formatBooleanValue(data.getCentroCosto()));
 
         // Aplicar estilo a todas las celdas
         for (int i = 0; i < colIndex; i++) {
             row.getCell(i).setCellStyle(style);
         }
+    }
+
+    private String formatBooleanValue(Boolean value) {
+        if (value == null) {
+            return "";
+        }
+        return value ? "SI" : "NO";
     }
 
     private void applyValidationsToTemplate(Sheet sheet) throws ExcelValidationException {
@@ -513,7 +526,7 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
     private List<AccountCatalogueTemplateData> convertToTemplateData(List<AccountCatalogue> accounts) {
         return accounts.stream()
             .map(this::convertAccountToTemplateData)
-            .collect(Collectors.toList());
+            .toList();
     }
 
     private AccountCatalogueTemplateData convertAccountToTemplateData(AccountCatalogue account) {

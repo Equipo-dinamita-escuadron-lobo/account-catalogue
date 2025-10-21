@@ -22,4 +22,10 @@ public interface IAccountCatalogueSearchInputPort {
     List<AccountCatalogue> getAuxiliaryAccountsWithCrossing(String idEnterprise);
 
     Page<AccountCatalogue> getAllAccountCatalogues(String idEnterprise, Pageable pageable);
+
+
+    List<AccountCatalogue> getAllAccountsByEnterprise(String idEnterprise);
+
+    
+    List<AccountCatalogue> getAccountsByCodeOrDescription(String idEnterprise, String search);
 }

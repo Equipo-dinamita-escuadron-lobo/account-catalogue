@@ -10,7 +10,9 @@ import com.account_catalogue.taxes.domain.models.Tax;
 import com.account_catalogue.taxes.infraestructure.adapters.input.rest.data.request.TaxCreateReq;
 import com.account_catalogue.taxes.infraestructure.adapters.input.rest.data.request.TaxUpdateReq;
 import com.account_catalogue.taxes.infraestructure.adapters.input.rest.data.response.TaxChangeStateRes;
+import com.account_catalogue.taxes.infraestructure.adapters.input.rest.data.response.TaxCreateRes;
 import com.account_catalogue.taxes.infraestructure.adapters.input.rest.data.response.TaxSearchRes;
+import com.account_catalogue.taxes.infraestructure.adapters.input.rest.data.response.TaxUpdateRes;
 import com.account_catalogue.taxes.infraestructure.adapters.input.rest.mapper.ITaxChangeStateRestMapper;
 import com.account_catalogue.taxes.infraestructure.adapters.input.rest.mapper.ITaxCreateRestMapper;
 import com.account_catalogue.taxes.infraestructure.adapters.input.rest.mapper.ITaxSearchRestMapper;
@@ -48,14 +50,14 @@ public class TaxController {
     private final PaginationHelper paginationHelper;
 
     @PostMapping("/")
-    ResponseEntity<?> createTax(@RequestBody @Valid TaxCreateReq taxCreateReq) {
+    ResponseEntity<TaxCreateRes> createTax(@RequestBody @Valid TaxCreateReq taxCreateReq) {
         TaxDTO taxDTO = taxCreateRestMapper.toDomain(taxCreateReq);
         Tax tax = taxCreateInputPort.createTax(taxDTO);
         return ResponseEntity.ok(taxCreateRestMapper.toCreateResponse(tax));
     }
 
     @GetMapping("/{code}/{idEnterprise}")
-    ResponseEntity<?> getTax(@PathVariable String code, @PathVariable String idEnterprise) {
+    ResponseEntity<TaxSearchRes> getTax(@PathVariable String code, @PathVariable String idEnterprise) {
         Tax tax = taxSearchInputPort.getTax(code, idEnterprise);
         return ResponseEntity.ok(taxSearchRestMapper.toSearchResponse(tax));
     }
@@ -91,14 +93,14 @@ public class TaxController {
     }
 
     @PutMapping("/{id}")
-    ResponseEntity<?> updateTax(@PathVariable long id, @RequestBody @Valid TaxUpdateReq taxUpdateReq) {
+    ResponseEntity<TaxUpdateRes> updateTax(@PathVariable long id, @RequestBody @Valid TaxUpdateReq taxUpdateReq) {
         TaxDTO taxDTO = taxUpdateRestMapper.toDomain(taxUpdateReq);
         Tax tax = taxUpdateInputPort.update(taxDTO, id);
         return ResponseEntity.ok(taxUpdateRestMapper.toCreateResponse(tax));
     }
 
     @DeleteMapping("/{id}/{enterpriseId}")
-    ResponseEntity<?> deleteByCode(@PathVariable long id, @PathVariable String enterpriseId) {
+    ResponseEntity<String> deleteByCode(@PathVariable long id, @PathVariable String enterpriseId) {
         if (taxDeleteInputPort.deleteByCode(id, enterpriseId)) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } else {

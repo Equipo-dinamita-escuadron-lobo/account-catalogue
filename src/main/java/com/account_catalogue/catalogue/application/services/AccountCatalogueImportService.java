@@ -51,12 +51,6 @@ public class AccountCatalogueImportService implements IAccountCatalogueImportInp
                                 return responseBuilder.buildEmptyFileResponse(entId, fileName);
                         }
 
-                if (!parsingResult.getErrors().isEmpty() &&
-                                !ImportConstants.Defaults.CONTINUE_ON_ERROR) {
-                        return responseBuilder.buildFailedResponse(entId, fileName,
-                                        parsingResult.getTotalRows(), allErrors);
-                }
-
                         AccountCatalogueBatchValidationService.BatchValidationResult validationResult = batchValidationService
                                         .validateBatch(
                                                         parsingResult.getAccountsData(), entId,
@@ -69,18 +63,45 @@ public class AccountCatalogueImportService implements IAccountCatalogueImportInp
                                                 parsingResult.getTotalRows(), allErrors);
                         }
 
-                if (!validationResult.getErrors().isEmpty() &&
-                                !ImportConstants.Defaults.CONTINUE_ON_ERROR) {
-                        return responseBuilder.buildFailedResponse(entId, fileName,
-                                        parsingResult.getTotalRows(), allErrors);
-                }
-
                         AccountCatalogueDuplicateDetectionService.DuplicateDetectionResult duplicateResult = duplicateDetectionService
                                         .detectDuplicates(validationResult.getValidRecords(), entId);
 
                         allErrors.addAll(duplicateResult.getErrors());
 
+                        // Si no hay registros únicos
                         if (duplicateResult.getUniqueRecords().isEmpty()) {
+                                if (duplicateResult.getDuplicateCount() > 0) {
+                                        // Hay duplicados (con o sin errores de validación)
+                                        if (allErrors.isEmpty()) {
+                                                // Todos son duplicados, sin errores
+                                                return responseBuilder.buildSuccessResponse(
+                                                                entId,
+                                                                fileName,
+                                                                parsingResult.getTotalRows(),
+                                                                0, // successCount
+                                                                0, // failureCount
+                                                                duplicateResult.getDuplicateCount(),
+                                                                allErrors);
+                                        } else {
+                                                // Hay duplicados Y errores de validación
+                                                // Reportar duplicados + errores
+                                                long failedRecords = allErrors.stream()
+                                                                .map(ImportErrorDetail::getRowNumber)
+                                                                .filter(rowNum -> rowNum != null)
+                                                                .distinct()
+                                                                .count();
+
+                                                return responseBuilder.buildSuccessResponse(
+                                                                entId,
+                                                                fileName,
+                                                                parsingResult.getTotalRows(),
+                                                                0, // successCount
+                                                                (int) failedRecords, // failureCount
+                                                                duplicateResult.getDuplicateCount(),
+                                                                allErrors);
+                                        }
+                                }
+                                // No hay duplicados ni registros únicos, entonces falló
                                 return responseBuilder.buildFailedResponse(entId, fileName,
                                                 parsingResult.getTotalRows(), allErrors);
                         }
@@ -93,23 +114,42 @@ public class AccountCatalogueImportService implements IAccountCatalogueImportInp
 
                         allErrors.addAll(hierarchyErrors);
 
-                if (!hierarchyErrors.isEmpty()) {
+                        if (!hierarchyErrors.isEmpty()) {
 
-                        if (!ImportConstants.Defaults.CONTINUE_ON_ERROR) {
-                                return responseBuilder.buildFailedResponse(entId, fileName,
-                                                parsingResult.getTotalRows(), allErrors);
+                                if (!ImportConstants.Defaults.CONTINUE_ON_ERROR) {
+                                        return responseBuilder.buildFailedResponse(entId, fileName,
+                                                        parsingResult.getTotalRows(), allErrors);
+                                }
+
+                                Set<Integer> errorRows = hierarchyErrors.stream()
+                                                .map(ImportErrorDetail::getRowNumber)
+                                                .collect(Collectors.toSet());
+
+                                sortedAccounts = sortedAccounts.stream()
+                                                .filter(account -> !errorRows.contains(account.getRowNumber()))
+                                                .collect(Collectors.toList());
                         }
 
-                        Set<Integer> errorRows = hierarchyErrors.stream()
-                                        .map(ImportErrorDetail::getRowNumber)
-                                        .collect(Collectors.toSet());
-
-                        sortedAccounts = sortedAccounts.stream()
-                                        .filter(account -> !errorRows.contains(account.getRowNumber()))
-                                        .collect(Collectors.toList());
-                }
-
+                        // Si no quedan cuentas después de filtrar errores de jerarquía
                         if (sortedAccounts.isEmpty()) {
+                                if (duplicateResult.getDuplicateCount() > 0) {
+                                        // Hay duplicados (con o sin otros errores)
+                                        long failedRecords = allErrors.stream()
+                                                        .map(ImportErrorDetail::getRowNumber)
+                                                        .filter(rowNum -> rowNum != null)
+                                                        .distinct()
+                                                        .count();
+
+                                        return responseBuilder.buildSuccessResponse(
+                                                        entId,
+                                                        fileName,
+                                                        parsingResult.getTotalRows(),
+                                                        0, // successCount
+                                                        (int) failedRecords, // failureCount
+                                                        duplicateResult.getDuplicateCount(),
+                                                        allErrors);
+                                }
+                                // No hay duplicados ni registros válidos
                                 return responseBuilder.buildFailedResponse(entId, fileName,
                                                 parsingResult.getTotalRows(), allErrors);
                         }
@@ -130,14 +170,14 @@ public class AccountCatalogueImportService implements IAccountCatalogueImportInp
 
                         return response;
 
-        } catch (Exception e) {
-                allErrors.add(ImportErrorDetail.builder()
-                                .errorCode("SYSTEM_ERROR")
-                                .errorMessage("Error del sistema: " + e.getMessage())
-                                .errorType(ImportErrorType.SYSTEM_ERROR)
-                                .build());
+                } catch (Exception e) {
+                        allErrors.add(ImportErrorDetail.builder()
+                                        .errorCode("SYSTEM_ERROR")
+                                        .errorMessage("Error del sistema: " + e.getMessage())
+                                        .errorType(ImportErrorType.SYSTEM_ERROR)
+                                        .build());
 
-                return responseBuilder.buildFailedResponse(entId, fileName, 0, allErrors);
-        }
+                        return responseBuilder.buildFailedResponse(entId, fileName, 0, allErrors);
+                }
         }
 }

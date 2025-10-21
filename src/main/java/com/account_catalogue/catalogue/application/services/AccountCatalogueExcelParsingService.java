@@ -190,8 +190,13 @@ public class AccountCatalogueExcelParsingService {
             return null;
         }
 
+        // Normalizar valor de entrada (sin acentos, minúsculas)
+        String normalizedInput = StringNormalizer.normalizeForComparison(value);
+        
         for (NatureEnum nature : NatureEnum.values()) {
-            if (nature.getState().equalsIgnoreCase(value.trim())) {
+            // Normalizar valor del enum para comparación
+            String normalizedEnum = StringNormalizer.normalizeForComparison(nature.getState());
+            if (normalizedEnum != null && normalizedEnum.equals(normalizedInput)) {
                 return nature;
             }
         }
@@ -203,6 +208,7 @@ public class AccountCatalogueExcelParsingService {
 
     /**
      * Parsea el enum FinancialStatus desde String.
+     * Usa comparación sin acentos para permitir variaciones con/sin tildes.
      */
     private FinancialStatusEnum parseFinancialStatus(String value, int rowNumber, List<ImportErrorDetail> errors,
                                                     Map<String, Integer> columnMap) {
@@ -210,8 +216,13 @@ public class AccountCatalogueExcelParsingService {
             return null;
         }
 
+        // Normalizar valor de entrada (sin acentos, minúsculas)
+        String normalizedInput = StringNormalizer.normalizeForComparison(value);
+        
         for (FinancialStatusEnum status : FinancialStatusEnum.values()) {
-            if (status.getState().equalsIgnoreCase(value.trim())) {
+            // Normalizar valor del enum para comparación
+            String normalizedEnum = StringNormalizer.normalizeForComparison(status.getState());
+            if (normalizedEnum != null && normalizedEnum.equals(normalizedInput)) {
                 return status;
             }
         }
@@ -223,6 +234,7 @@ public class AccountCatalogueExcelParsingService {
 
     /**
      * Parsea el enum Classification desde String.
+     * Usa comparación sin acentos para permitir variaciones con/sin tildes.
      */
     private ClassificationEnum parseClassification(String value, int rowNumber, List<ImportErrorDetail> errors,
                                                   Map<String, Integer> columnMap) {
@@ -230,8 +242,13 @@ public class AccountCatalogueExcelParsingService {
             return null;
         }
 
+        // Normalizar valor de entrada (sin acentos, minúsculas)
+        String normalizedInput = StringNormalizer.normalizeForComparison(value);
+        
         for (ClassificationEnum classification : ClassificationEnum.values()) {
-            if (classification.getState().equalsIgnoreCase(value.trim())) {
+            // Normalizar valor del enum para comparación
+            String normalizedEnum = StringNormalizer.normalizeForComparison(classification.getState());
+            if (normalizedEnum != null && normalizedEnum.equals(normalizedInput)) {
                 return classification;
             }
         }

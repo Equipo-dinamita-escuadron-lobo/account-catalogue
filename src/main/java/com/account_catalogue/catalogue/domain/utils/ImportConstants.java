@@ -109,7 +109,7 @@ public final class ImportConstants {
         public static final int COLUMN_START_INDEX = 1;
         public static final int BATCH_SIZE = 500;
         public static final boolean SKIP_DUPLICATES = true;
-        public static final boolean CONTINUE_ON_ERROR = false;
+        public static final boolean CONTINUE_ON_ERROR = true;
         
         private Defaults() {}
     }

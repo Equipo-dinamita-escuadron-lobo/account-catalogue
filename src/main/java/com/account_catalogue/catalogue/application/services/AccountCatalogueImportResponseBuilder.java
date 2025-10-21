@@ -13,11 +13,31 @@ import java.util.List;
 @Service
 public class AccountCatalogueImportResponseBuilder {
 
+    /**
+     * Construye una respuesta exitosa de importación.
+     * 
+     * IMPORTANTE: 
+     * - totalRecords = registros únicos leídos del Excel (sin duplicados internos)
+     * - successfulImports = registros insertados exitosamente
+     * - failedImports = registros con errores (contar filas únicas, no cantidad de errores)
+     * - duplicatesSkipped = duplicados omitidos (en Excel y en BD)
+     * - Validación: totalRecords = successfulImports + failedImports + duplicatesSkipped
+     */
     public AccountCatalogueImportResponse buildSuccessResponse(String entId, String fileName,
             int totalRecords, int successCount,
             int failureCount, int duplicatesSkipped,
             List<ImportErrorDetail> errors) {
-        ImportStatus status = determineImportStatus(successCount, failureCount);
+        // Calcular failedImports como filas únicas con errores (no cantidad de errores)
+        long uniqueErrorRows = errors.stream()
+                .map(ImportErrorDetail::getRowNumber)
+                .filter(rowNum -> rowNum != null)
+                .distinct()
+                .count();
+        
+        int adjustedFailedImports = uniqueErrorRows > 0 ? (int) uniqueErrorRows : failureCount;
+        
+        // Determinar status considerando también los duplicados
+        ImportStatus status = determineImportStatus(successCount, adjustedFailedImports, duplicatesSkipped);
 
         AccountCatalogueImportResponse response = AccountCatalogueImportResponse.builder()
                 .entId(entId)
@@ -25,10 +45,13 @@ public class AccountCatalogueImportResponseBuilder {
                 .status(status)
                 .totalRecords(totalRecords)
                 .successfulImports(successCount)
-                .failedImports(failureCount)
+                .failedImports(adjustedFailedImports)
                 .duplicatesSkipped(duplicatesSkipped)
                 .errors(errors)
                 .build();
+
+        log.info("Importación completada - Total: {}, Exitosos: {}, Fallidos: {}, Duplicados: {}, Status: {}", 
+                totalRecords, successCount, adjustedFailedImports, duplicatesSkipped, status);
 
         return response;
     }
@@ -59,15 +82,31 @@ public class AccountCatalogueImportResponseBuilder {
         return response;
     }
 
-    private ImportStatus determineImportStatus(int successCount, int failureCount) {
+    /**
+     * Determina el estado de la importación basado en los resultados.
+     * 
+     * Casos:
+     * 1. Solo éxitos → COMPLETED
+     * 2. Éxitos + fallos → COMPLETED_WITH_ERRORS
+     * 3. Solo fallos → FAILED
+     * 4. Solo duplicados (sin éxitos ni fallos) → COMPLETED
+     * 5. Sin datos → FAILED
+     */
+    private ImportStatus determineImportStatus(int successCount, int failureCount, int duplicatesSkipped) {
         if (failureCount == 0 && successCount > 0) {
+            // Caso 1: Solo registros exitosos (puede tener duplicados también)
             return ImportStatus.COMPLETED;
         } else if (successCount > 0 && failureCount > 0) {
+            // Caso 2: Mezcla de éxitos y fallos
             return ImportStatus.COMPLETED_WITH_ERRORS;
         } else if (successCount == 0 && failureCount > 0) {
+            // Caso 3: Solo fallos
             return ImportStatus.FAILED;
+        } else if (successCount == 0 && failureCount == 0 && duplicatesSkipped > 0) {
+            // Caso 4: Solo duplicados (importación exitosa sin nuevos registros)
+            return ImportStatus.COMPLETED;
         } else {
-            // Caso especial: no hay registros
+            // Caso 5: Sin datos procesados
             return ImportStatus.FAILED;
         }
     }

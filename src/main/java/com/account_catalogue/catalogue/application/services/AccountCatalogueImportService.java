@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -30,8 +31,79 @@ public class AccountCatalogueImportService implements IAccountCatalogueImportInp
         private final AccountCatalogueImportResponseBuilder responseBuilder;
 
         /**
+         * Maneja la lógica de duplicados cuando no hay registros únicos.
+         */
+        private AccountCatalogueImportResponse handleNoUniqueRecords(String entId, String fileName,
+                        AccountCatalogueExcelParsingService.ExcelParsingResult parsingResult,
+                        AccountCatalogueDuplicateDetectionService.DuplicateDetectionResult duplicateResult,
+                        List<ImportErrorDetail> allErrors) {
+
+                if (duplicateResult.getDuplicateCount() > 0) {
+                        if (allErrors.isEmpty()) {
+                                // Todos son duplicados, sin errores
+                                return responseBuilder.buildSuccessResponse(
+                                                entId,
+                                                fileName,
+                                                parsingResult.getTotalRows(),
+                                                0, // successCount
+                                                0, // failureCount
+                                                duplicateResult.getDuplicateCount(),
+                                                allErrors);
+                        } else {
+                                // Hay duplicados Y errores de validación
+                                long failedRecords = allErrors.stream()
+                                                .map(ImportErrorDetail::getRowNumber)
+                                                .filter(Objects::nonNull)
+                                                .distinct()
+                                                .count();
+
+                                return responseBuilder.buildSuccessResponse(
+                                                entId,
+                                                fileName,
+                                                parsingResult.getTotalRows(),
+                                                0, // successCount
+                                                (int) failedRecords, // failureCount
+                                                duplicateResult.getDuplicateCount(),
+                                                allErrors);
+                        }
+                }
+                // No hay duplicados ni registros únicos, entonces falló
+                return responseBuilder.buildFailedResponse(entId, fileName,
+                                parsingResult.getTotalRows(), allErrors);
+        }
+
+        /**
+         * Maneja la lógica cuando no quedan cuentas después de filtrar errores de jerarquía.
+         */
+        private AccountCatalogueImportResponse handleEmptyAccountsAfterHierarchyFilter(String entId, String fileName,
+                        AccountCatalogueExcelParsingService.ExcelParsingResult parsingResult,
+                        AccountCatalogueDuplicateDetectionService.DuplicateDetectionResult duplicateResult,
+                        List<ImportErrorDetail> allErrors) {
+
+                if (duplicateResult.getDuplicateCount() > 0) {
+                        // Hay duplicados (con o sin otros errores)
+                        long failedRecords = allErrors.stream()
+                                        .map(ImportErrorDetail::getRowNumber)
+                                        .filter(Objects::nonNull)
+                                        .distinct()
+                                        .count();
+
+                        return responseBuilder.buildSuccessResponse(
+                                        entId,
+                                        fileName,
+                                        parsingResult.getTotalRows(),
+                                        0, // successCount
+                                        (int) failedRecords, // failureCount
+                                        duplicateResult.getDuplicateCount(),
+                                        allErrors);
+                }
+                // No hay duplicados ni registros válidos
+                return responseBuilder.buildFailedResponse(entId, fileName,
+                                parsingResult.getTotalRows(), allErrors);
+        }
+
+        /**
          * Importa catálogo de cuentas desde un archivo Excel.
-         * Orquesta todo el proceso de importación en fases.
          */
         @Override
         public AccountCatalogueImportResponse importAccountCatalogueFromExcel(AccountCatalogueImportRequest request) {
@@ -70,40 +142,7 @@ public class AccountCatalogueImportService implements IAccountCatalogueImportInp
 
                         // Si no hay registros únicos
                         if (duplicateResult.getUniqueRecords().isEmpty()) {
-                                if (duplicateResult.getDuplicateCount() > 0) {
-                                        // Hay duplicados (con o sin errores de validación)
-                                        if (allErrors.isEmpty()) {
-                                                // Todos son duplicados, sin errores
-                                                return responseBuilder.buildSuccessResponse(
-                                                                entId,
-                                                                fileName,
-                                                                parsingResult.getTotalRows(),
-                                                                0, // successCount
-                                                                0, // failureCount
-                                                                duplicateResult.getDuplicateCount(),
-                                                                allErrors);
-                                        } else {
-                                                // Hay duplicados Y errores de validación
-                                                // Reportar duplicados + errores
-                                                long failedRecords = allErrors.stream()
-                                                                .map(ImportErrorDetail::getRowNumber)
-                                                                .filter(rowNum -> rowNum != null)
-                                                                .distinct()
-                                                                .count();
-
-                                                return responseBuilder.buildSuccessResponse(
-                                                                entId,
-                                                                fileName,
-                                                                parsingResult.getTotalRows(),
-                                                                0, // successCount
-                                                                (int) failedRecords, // failureCount
-                                                                duplicateResult.getDuplicateCount(),
-                                                                allErrors);
-                                        }
-                                }
-                                // No hay duplicados ni registros únicos, entonces falló
-                                return responseBuilder.buildFailedResponse(entId, fileName,
-                                                parsingResult.getTotalRows(), allErrors);
+                                return handleNoUniqueRecords(entId, fileName, parsingResult, duplicateResult, allErrors);
                         }
 
                         List<AccountCatalogueExcelData> sortedAccounts = hierarchyProcessor
@@ -127,31 +166,12 @@ public class AccountCatalogueImportService implements IAccountCatalogueImportInp
 
                                 sortedAccounts = sortedAccounts.stream()
                                                 .filter(account -> !errorRows.contains(account.getRowNumber()))
-                                                .collect(Collectors.toList());
+                                                .toList();
                         }
 
                         // Si no quedan cuentas después de filtrar errores de jerarquía
                         if (sortedAccounts.isEmpty()) {
-                                if (duplicateResult.getDuplicateCount() > 0) {
-                                        // Hay duplicados (con o sin otros errores)
-                                        long failedRecords = allErrors.stream()
-                                                        .map(ImportErrorDetail::getRowNumber)
-                                                        .filter(rowNum -> rowNum != null)
-                                                        .distinct()
-                                                        .count();
-
-                                        return responseBuilder.buildSuccessResponse(
-                                                        entId,
-                                                        fileName,
-                                                        parsingResult.getTotalRows(),
-                                                        0, // successCount
-                                                        (int) failedRecords, // failureCount
-                                                        duplicateResult.getDuplicateCount(),
-                                                        allErrors);
-                                }
-                                // No hay duplicados ni registros válidos
-                                return responseBuilder.buildFailedResponse(entId, fileName,
-                                                parsingResult.getTotalRows(), allErrors);
+                                return handleEmptyAccountsAfterHierarchyFilter(entId, fileName, parsingResult, duplicateResult, allErrors);
                         }
 
                         AccountCatalogueBatchProcessor.BatchProcessingResult processingResult = batchProcessor
@@ -159,7 +179,7 @@ public class AccountCatalogueImportService implements IAccountCatalogueImportInp
 
                         allErrors.addAll(processingResult.getErrors());
 
-                        AccountCatalogueImportResponse response = responseBuilder.buildSuccessResponse(
+                        return responseBuilder.buildSuccessResponse(
                                         entId,
                                         fileName,
                                         parsingResult.getTotalRows(),
@@ -167,8 +187,6 @@ public class AccountCatalogueImportService implements IAccountCatalogueImportInp
                                         processingResult.getFailureCount(),
                                         duplicateResult.getDuplicateCount(),
                                         allErrors);
-
-                        return response;
 
                 } catch (Exception e) {
                         allErrors.add(ImportErrorDetail.builder()

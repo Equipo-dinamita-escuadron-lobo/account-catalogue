@@ -45,10 +45,8 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
             byte[] templateData = generateTemplateWithValidations(entId);
             return new ByteArrayResource(templateData);
         } catch (ExcelValidationException e) {
-            log.error("Error de validación generando plantilla de catálogo de cuentas", e);
             throw e;
         } catch (Exception e) {
-            log.error("Error generando plantilla de catálogo de cuentas", e);
             throw new RuntimeException("Error al generar plantilla", e);
         }
     }
@@ -65,10 +63,8 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
             byte[] excelData = generateExcelFileWithValidations(templateData);
             return new ByteArrayResource(excelData);
         } catch (ExcelValidationException e) {
-            log.error("Error de validación generando archivo de exportación de catálogo de cuentas", e);
             throw e;
         } catch (Exception e) {
-            log.error("Error generando archivo de exportación de catálogo de cuentas", e);
             throw new RuntimeException("Error al generar archivo de exportación", e);
         }
     }

@@ -7,6 +7,8 @@ import com.account_catalogue.catalogue.domain.enums.NatureEnum;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogueExcelData;
 import com.account_catalogue.catalogue.domain.models.ImportErrorDetail;
 import com.account_catalogue.catalogue.domain.utils.ImportConstants;
+import com.account_catalogue.catalogue.domain.utils.StringNormalizer;
+import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueErrorCode;
 import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueImportException;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -73,7 +75,7 @@ public class AccountCatalogueExcelParsingService {
 
         } catch (IOException e) {
             throw new AccountCatalogueImportException(
-                    com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueErrorCode.EXCEL_VALIDATION_ERROR,
+                    AccountCatalogueErrorCode.EXCEL_VALIDATION_ERROR,
                     "Error leyendo archivo Excel: " + e.getMessage(),
                     e);
         }
@@ -110,8 +112,8 @@ public class AccountCatalogueExcelParsingService {
             if (cell != null && cell.getCellType() == CellType.STRING) {
                 String headerValue = cell.getStringCellValue();
                 if (headerValue != null) {
-                    String header = normalizeHeaderName(headerValue.trim());
-                    if (!header.isEmpty()) {
+                    String header = StringNormalizer.normalizeHeaderName(headerValue.trim());
+                    if (header != null && !header.isEmpty()) {
                         columnMap.put(header, i);
                         foundHeaders.add(header);
                     }
@@ -135,25 +137,6 @@ public class AccountCatalogueExcelParsingService {
         return columnMap;
     }
 
-    /**
-     * Normaliza el nombre del encabezado eliminando texto entre paréntesis y saltos de línea.
-     */
-    private String normalizeHeaderName(String headerName) {
-        if (headerName == null) {
-            return "";
-        }
-
-        // Eliminar saltos de línea y caracteres de retorno de carro
-        String normalized = headerName.replaceAll("[\n\r]+", " ");
-
-        // Eliminar texto entre paréntesis (indicativos de requerimiento)
-        normalized = normalized.replaceAll("\\s*\\([^)]*\\)\\s*", "");
-
-        // Limpiar espacios múltiples y trim
-        normalized = normalized.replaceAll("\\s+", " ").trim();
-
-        return normalized;
-    }
 
     /**
      * Parsea una fila individual del Excel.
@@ -305,9 +288,6 @@ public class AccountCatalogueExcelParsingService {
                 .build();
     }
 
-    /**
-     * Obtiene el valor de una celda como String.
-     */
     private String getCellValueAsString(Row row, Integer columnIndex) {
         if (columnIndex == null) {
             return null;
@@ -331,9 +311,6 @@ public class AccountCatalogueExcelParsingService {
         }
     }
 
-    /**
-     * Verifica si una fila está completamente vacía.
-     */
     private boolean isEmptyRow(Row row) {
         for (int i = 0; i < row.getLastCellNum(); i++) {
             Cell cell = row.getCell(i);

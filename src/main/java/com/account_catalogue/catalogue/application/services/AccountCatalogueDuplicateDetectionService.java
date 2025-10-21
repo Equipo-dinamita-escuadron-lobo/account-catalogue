@@ -2,6 +2,7 @@ package com.account_catalogue.catalogue.application.services;
 
 import com.account_catalogue.catalogue.domain.models.AccountCatalogueExcelData;
 import com.account_catalogue.catalogue.domain.models.ImportErrorDetail;
+import com.account_catalogue.catalogue.domain.utils.StringNormalizer;
 import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.entity.AccountCatalogueEntity;
 import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.repository.IAccountCatalogueRepository;
 import lombok.AllArgsConstructor;
@@ -12,10 +13,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.text.Normalizer;
 import java.util.*;
 import java.util.stream.Collectors;
-
 
 @Slf4j
 @Service
@@ -26,7 +25,8 @@ public class AccountCatalogueDuplicateDetectionService {
 
     /**
      * Detecta duplicados internos en el Excel y contra la base de datos.
-     * Los duplicados se detectan por código Y descripción (case-insensitive sin acentos).
+     * Los duplicados se detectan por código Y descripción (case-insensitive sin
+     * acentos).
      * Los duplicados se omiten silenciosamente sin generar errores.
      */
     public DuplicateDetectionResult detectDuplicates(List<AccountCatalogueExcelData> accountsData, String entId) {
@@ -51,57 +51,49 @@ public class AccountCatalogueDuplicateDetectionService {
                 .collect(Collectors.toList());
 
         // 2. Detectar duplicados en base de datos
-        Map<String, AccountCatalogueEntity> dbDuplicatesByCode = 
-                detectDatabaseDuplicatesByCode(codes, entId);
-        Map<String, AccountCatalogueEntity> dbDuplicatesByDescription = 
-                detectDatabaseDuplicatesByDescription(descriptions, entId);
+        Map<String, AccountCatalogueEntity> dbDuplicatesByCode = detectDatabaseDuplicatesByCode(codes, entId);
+        Map<String, AccountCatalogueEntity> dbDuplicatesByDescription = detectDatabaseDuplicatesByDescription(
+                descriptions, entId);
 
         // 3. Procesar cada registro y filtrar duplicados silenciosamente
         for (AccountCatalogueExcelData record : accountsData) {
             String code = record.getCode();
             String description = record.getDescription();
-            String normalizedDescription = normalizeString(description);
+            String normalizedDescription = StringNormalizer.normalizeForComparison(description);
+            if (normalizedDescription == null) {
+                normalizedDescription = "";
+            }
             String codeKey = code + "_" + entId;
             String descKey = normalizedDescription + "_" + entId;
 
             boolean isDuplicate = false;
 
-            // Verificar duplicado interno por código
             if (seenCodes.contains(codeKey)) {
                 isDuplicate = true;
             } else {
                 seenCodes.add(codeKey);
             }
 
-            // Verificar duplicado interno por descripción
             if (!isDuplicate && seenDescriptions.contains(descKey)) {
                 isDuplicate = true;
             } else if (!isDuplicate) {
                 seenDescriptions.add(descKey);
             }
 
-            // Verificar duplicado en BD por código
             if (!isDuplicate && dbDuplicatesByCode.containsKey(code)) {
                 isDuplicate = true;
             }
 
-            // Verificar duplicado en BD por descripción
             if (!isDuplicate && dbDuplicatesByDescription.containsKey(normalizedDescription)) {
                 isDuplicate = true;
             }
 
-            // Contar duplicados y solo agregar únicos
             if (isDuplicate) {
                 duplicateCount++;
-                log.debug("Duplicado omitido en fila {}: código={}, descripción={}", 
-                        record.getRowNumber(), code, description);
             } else {
                 uniqueRecords.add(record);
             }
         }
-
-        log.info("Detección de duplicados completada: {} únicos, {} duplicados omitidos", 
-                uniqueRecords.size(), duplicateCount);
 
         return DuplicateDetectionResult.builder()
                 .uniqueRecords(uniqueRecords)
@@ -131,7 +123,7 @@ public class AccountCatalogueDuplicateDetectionService {
                     duplicates.put(code, existing);
                 }
             } catch (Exception e) {
-                log.warn("Error verificando duplicado para código {}: {}", code, e.getMessage());
+                throw new RuntimeException("Error al consultar duplicado por código", e);
             }
         }
 
@@ -156,37 +148,18 @@ public class AccountCatalogueDuplicateDetectionService {
                 AccountCatalogueEntity existing = accountCatalogueRepository
                         .findByDescriptionIgnoreCaseAndIdEnterprise(description, entId);
                 if (existing != null) {
-                    String normalized = normalizeString(description);
+                    String normalized = StringNormalizer.normalizeForComparison(description);
+                    if (normalized == null) {
+                        normalized = "";
+                    }
                     duplicates.put(normalized, existing);
                 }
             } catch (Exception e) {
-                log.warn("Error verificando duplicado para descripción {}: {}", description, e.getMessage());
+                throw new RuntimeException("Error al consultar duplicado por descripción", e);
             }
         }
 
         return duplicates;
-    }
-
-    /**
-     * Normaliza un string removiendo acentos y convirtiendo a minúsculas.
-     * Usado para comparaciones case-insensitive sin acentos.
-     */
-    private String normalizeString(String input) {
-        if (input == null) {
-            return "";
-        }
-
-        // Eliminar espacios extra y trim
-        String normalized = input.trim().replaceAll("\\s+", " ");
-
-        // Convertir a minúsculas
-        normalized = normalized.toLowerCase();
-
-        // Remover acentos
-        normalized = Normalizer.normalize(normalized, Normalizer.Form.NFD);
-        normalized = normalized.replaceAll("\\p{M}", "");
-
-        return normalized;
     }
 
     /**
@@ -204,4 +177,3 @@ public class AccountCatalogueDuplicateDetectionService {
         private int uniqueCount;
     }
 }
-

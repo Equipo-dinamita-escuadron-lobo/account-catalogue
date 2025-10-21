@@ -18,10 +18,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Servicio especializado en validaciones en lotes para importación de catálogo de cuentas.
- * Valida campos requeridos, formatos y reglas de negocio.
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -72,22 +68,14 @@ public class AccountCatalogueBatchValidationService {
                                                          Map<String, Integer> columnMap) {
         List<ImportErrorDetail> errors = new ArrayList<>();
 
-        // 1. Validar campos requeridos
         validateRequiredFields(excelData, errors, columnMap);
 
-        // 2. Validar formato del código
         validateCodeFormat(excelData, errors, columnMap);
 
-        // 3. Validar formato de descripción
         validateDescriptionFormat(excelData, errors, columnMap);
 
-        // 4. Validar enums
-        validateEnumFields(excelData, errors, columnMap);
-
-        // 5. Validar campo crossing
         validateCrossingField(excelData, errors, columnMap);
 
-        // 6. Validar campo costCenter
         validateCostCenterField(excelData, errors, columnMap);
 
         return errors;
@@ -187,16 +175,7 @@ public class AccountCatalogueBatchValidationService {
         }
     }
 
-    /**
-     * Valida que los campos enum tengan valores válidos.
-     * Esta validación es redundante con el parseo, pero asegura integridad.
-     */
-    private void validateEnumFields(AccountCatalogueExcelData excelData, List<ImportErrorDetail> errors,
-                                   Map<String, Integer> columnMap) {
-        // Nature, FinancialStatus y Classification ya fueron validados durante el parseo
-        // Si llegaron aquí como null cuando eran requeridos, ya se registró el error
-    }
-
+    
     /**
      * Valida el campo crossing.
      * Solo permitido en cuentas auxiliares (8 dígitos).

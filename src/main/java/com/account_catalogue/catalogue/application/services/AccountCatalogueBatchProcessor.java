@@ -4,6 +4,7 @@ import com.account_catalogue.catalogue.domain.enums.ImportErrorType;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogueExcelData;
 import com.account_catalogue.catalogue.domain.models.ImportErrorDetail;
+import com.account_catalogue.catalogue.domain.utils.AccountCodeUtils;
 import com.account_catalogue.catalogue.domain.utils.ImportConstants;
 import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.entity.AccountCatalogueEntity;
 import lombok.AllArgsConstructor;
@@ -47,9 +48,6 @@ public class AccountCatalogueBatchProcessor {
         // Dividir en lotes de tamaño BATCH_SIZE
         List<List<AccountCatalogueExcelData>> batches = partitionList(accountsData, ImportConstants.Defaults.BATCH_SIZE);
 
-        log.info("Procesando {} cuentas en {} lotes de máximo {} registros cada uno", 
-                accountsData.size(), batches.size(), ImportConstants.Defaults.BATCH_SIZE);
-
         // Mapa para almacenar cuentas ya procesadas y poder usarlas como padres
         Map<String, AccountCatalogue> processedAccountsMap = new HashMap<>();
 
@@ -67,9 +65,7 @@ public class AccountCatalogueBatchProcessor {
 
                 // Si CONTINUE_ON_ERROR es false y hubo errores, detener procesamiento
                 if (!ImportConstants.Defaults.CONTINUE_ON_ERROR && !batchResult.getErrors().isEmpty()) {
-                    log.warn("Deteniendo importación en lote {} debido a errores (CONTINUE_ON_ERROR=false)", 
-                            batchIndex + 1);
-                    
+
                     // Marcar registros restantes como omitidos
                     for (int i = batchIndex + 1; i < batches.size(); i++) {
                         skippedCount += batches.get(i).size();
@@ -79,7 +75,6 @@ public class AccountCatalogueBatchProcessor {
                 }
 
             } catch (Exception e) {
-                log.error("Error procesando lote {}: {}", batchIndex + 1, e.getMessage(), e);
                 
                 // Registrar error para todos los registros del lote
                 for (AccountCatalogueExcelData record : batch) {
@@ -95,7 +90,6 @@ public class AccountCatalogueBatchProcessor {
 
                 // Si CONTINUE_ON_ERROR es false, detener
                 if (!ImportConstants.Defaults.CONTINUE_ON_ERROR) {
-                    log.warn("Deteniendo importación debido a error en lote {}", batchIndex + 1);
                     
                     // Marcar registros restantes como omitidos
                     for (int i = batchIndex + 1; i < batches.size(); i++) {
@@ -136,8 +130,6 @@ public class AccountCatalogueBatchProcessor {
         Map<String, AccountCatalogueEntity> parentsMap = 
                 hierarchyProcessor.buildParentMapFromDatabase(missingParentCodes, entId);
 
-        log.debug("Procesando lote {} con {} registros", batchNumber, batch.size());
-
         // Procesar cada registro del lote
         for (AccountCatalogueExcelData excelData : batch) {
             try {
@@ -145,37 +137,16 @@ public class AccountCatalogueBatchProcessor {
                 AccountCatalogue accountCatalogue = dataConverter.convertToAccountCatalogue(
                         excelData, parentsMap, processedAccountsMap);
 
-                // Verificar parent antes de crear
-                if (accountCatalogue.getParent() != null) {
-                    log.debug("Creando cuenta '{}' con parent: código='{}', id={}", 
-                            accountCatalogue.getCode(), 
-                            accountCatalogue.getParent().getCode(),
-                            accountCatalogue.getParent().getId());
-                } else {
-                    log.debug("Creando cuenta raíz '{}'", accountCatalogue.getCode());
-                }
-
                 // Crear usando el servicio existente (ya tiene validaciones)
                 AccountCatalogue created = createService.createAccountCatalogue(accountCatalogue);
-
-                // Verificar que se haya asignado ID
-                if (created.getId() == null) {
-                    log.error("CRÍTICO: Cuenta creada sin ID - código: {}", created.getCode());
-                }
 
                 // Almacenar en mapa de procesados para usar como padre en siguientes registros
                 processedAccountsMap.put(created.getCode(), created);
 
                 successCount++;
-                log.info("✓ Cuenta '{}' creada exitosamente (fila {}, id={}, parent_id={})", 
-                        created.getCode(), 
-                        excelData.getRowNumber(), 
-                        created.getId(),
-                        created.getParent() != null ? created.getParent().getId() : "null");
-
+         
             } catch (Exception e) {
                 failureCount++;
-                log.error("✗ Error creando cuenta en fila {}: {}", excelData.getRowNumber(), e.getMessage(), e);
                 
                 errors.add(ImportErrorDetail.builder()
                         .rowNumber(excelData.getRowNumber())
@@ -208,8 +179,7 @@ public class AccountCatalogueBatchProcessor {
         Set<String> parentCodes = new HashSet<>();
         
         for (AccountCatalogueExcelData data : batch) {
-            String parentCode = com.account_catalogue.catalogue.domain.utils.AccountCodeUtils
-                    .extractParentCode(data.getCode());
+            String parentCode = AccountCodeUtils.extractParentCode(data.getCode());
             if (parentCode != null) {
                 parentCodes.add(parentCode);
             }

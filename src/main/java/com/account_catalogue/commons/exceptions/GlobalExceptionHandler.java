@@ -15,6 +15,8 @@ import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueImport
 import com.account_catalogue.commons.exceptions.catalogue.FileSizeExceededException;
 import com.account_catalogue.commons.exceptions.catalogue.FileValidationException;
 
+import com.account_catalogue.catalogue.domain.utils.ImportConstants;
+
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 
@@ -113,17 +115,23 @@ public class GlobalExceptionHandler {
 
     /**
      * Maneja excepciones de tamaño de archivo excedido por Spring Boot.
+     * Esta excepción es lanzada por Spring antes de que llegue al controlador.
+     * Delega a FileSizeExceededException para reutilizar la lógica de formateo.
      */
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<ErrorResponse> handleMaxUploadSizeExceededException(
             MaxUploadSizeExceededException ex, WebRequest request) {
 
+        // Crear una instancia de FileSizeExceededException para reutilizar su mensaje formateado
+        long maxSize = ImportConstants.MAX_FILE_SIZE;
+        FileSizeExceededException fileSizeException = new FileSizeExceededException(maxSize);
+        
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .timestamp(LocalDateTime.now())
                 .status(HttpStatus.PAYLOAD_TOO_LARGE.value())
                 .error("Payload Too Large")
-                .message("El archivo excede el tamaño máximo permitido")
-                .code(AccountCatalogueErrorCode.FILE_SIZE_EXCEEDED.getCode())
+                .message(fileSizeException.getMessage())
+                .code(fileSizeException.getErrorCode().getCode())
                 .path(request.getDescription(false).replace("uri=", ""))
                 .build();
 

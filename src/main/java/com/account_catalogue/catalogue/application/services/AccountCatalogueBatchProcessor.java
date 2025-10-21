@@ -63,17 +63,6 @@ public class AccountCatalogueBatchProcessor {
                 skippedCount += batchResult.getSkippedCount();
                 errors.addAll(batchResult.getErrors());
 
-                // Si CONTINUE_ON_ERROR es false y hubo errores, detener procesamiento
-                if (!ImportConstants.Defaults.CONTINUE_ON_ERROR && !batchResult.getErrors().isEmpty()) {
-
-                    // Marcar registros restantes como omitidos
-                    for (int i = batchIndex + 1; i < batches.size(); i++) {
-                        skippedCount += batches.get(i).size();
-                    }
-                    
-                    break;
-                }
-
             } catch (Exception e) {
                 
                 // Registrar error para todos los registros del lote

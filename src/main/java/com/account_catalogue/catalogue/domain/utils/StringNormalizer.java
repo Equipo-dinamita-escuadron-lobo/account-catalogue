@@ -101,7 +101,7 @@ public final class StringNormalizer {
         String normalized = headerName.replaceAll("[\n\r]+", " ");
         
         // Eliminar texto entre paréntesis (indicativos de requerimiento)
-        normalized = normalized.replaceAll("\\s*\\([^)]*\\)\\s*", "");
+        normalized = normalized.replaceAll("\\s*\\([^)]+\\)\\s*", "");
         
         // Limpiar espacios múltiples y trim
         normalized = normalized.replaceAll("\\s+", " ").trim();

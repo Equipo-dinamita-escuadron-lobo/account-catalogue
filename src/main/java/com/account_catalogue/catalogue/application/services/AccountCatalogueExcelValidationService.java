@@ -15,14 +15,11 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-/**
- * Servicio centralizado para validaciones de Excel específicas del catálogo de cuentas.
- */
 @Slf4j
 @Service
 public class AccountCatalogueExcelValidationService {
 
-    // ========== MÉTODOS DE OBTENCIÓN DE DATOS ==========
+    // ========== MÉTODOS PARA GENERACIÓN DE EXCEL ==========
 
     /**
      * Obtiene todas las opciones de naturaleza.

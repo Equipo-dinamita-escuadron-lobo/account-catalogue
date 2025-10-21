@@ -19,19 +19,24 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.account_catalogue.catalogue.application.input.IAccountCatalogueChangeStateInputPort;
 import com.account_catalogue.catalogue.application.input.IAccountCatalogueCreateInputPort;
 import com.account_catalogue.catalogue.application.input.IAccountCatalogueDeleteInputPort;
 import com.account_catalogue.catalogue.application.input.IAccountCatalogueExportInputPort;
+import com.account_catalogue.catalogue.application.input.IAccountCatalogueImportInputPort;
 import com.account_catalogue.catalogue.application.input.IAccountCatalogueSearchInputPort;
 import com.account_catalogue.catalogue.application.input.IAccountCatalogueUpdateInputPort;
+import com.account_catalogue.catalogue.domain.enums.ImportStatus;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
 
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.request.AccountCatalogueCreateReq;
+import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.request.AccountCatalogueImportRequest;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.request.AccountCatalogueUpdateReq;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.response.AccountCatalogueChangeStateRes;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.response.AccountCatalogueCreateRes;
+import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.response.AccountCatalogueImportResponse;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.response.AccountCatalogueListRes;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.response.AccountCatalogueUpdateRes;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.response.AuxiliaryAccountListRes;
@@ -64,6 +69,7 @@ public class AccountCatalogueController {
     private final IAccountChangeStateRestMapper accountChangeStateRestMapper;
     private final IAuxiliaryAccountRestMapper auxiliaryAccountRestMapper;
     private final IAccountCatalogueExportInputPort accountCatalogueExportInputPort;
+    private final IAccountCatalogueImportInputPort accountCatalogueImportInputPort;
     private final AccountCatalogueExcelFileNameGenerator fileNameGenerator;
 
 
@@ -181,6 +187,43 @@ public class AccountCatalogueController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
                 .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
                 .body(excelFile);
+    }
+
+    /**
+     * Endpoint para importar catálogo de cuentas desde archivo Excel.
+     * 
+     * @param entId identificador de la empresa
+     * @param file archivo Excel con las cuentas a importar
+     * @return respuesta con estadísticas y errores de la importación
+     */
+    @PostMapping("/import/excel")
+    public ResponseEntity<AccountCatalogueImportResponse> importFromExcel(
+            @RequestParam String entId,
+            @RequestParam("file") MultipartFile file) {
+
+        // Construir request
+        AccountCatalogueImportRequest request = AccountCatalogueImportRequest.from(entId, file);
+
+        // Ejecutar importación
+        AccountCatalogueImportResponse response = accountCatalogueImportInputPort
+                .importAccountCatalogueFromExcel(request);
+
+        // Mapear estado a código HTTP apropiado
+        HttpStatus httpStatus = mapImportStatusToHttpStatus(response.getStatus());
+
+        return ResponseEntity.status(httpStatus).body(response);
+    }
+
+    /**
+     * Mapea el estado de importación a código HTTP apropiado.
+     */
+    private HttpStatus mapImportStatusToHttpStatus(ImportStatus status) {
+        return switch (status) {
+            case COMPLETED -> HttpStatus.OK;
+            case COMPLETED_WITH_ERRORS -> HttpStatus.ACCEPTED;
+            case FAILED -> HttpStatus.BAD_REQUEST;
+            default -> HttpStatus.INTERNAL_SERVER_ERROR;
+        };
     }
 
 }

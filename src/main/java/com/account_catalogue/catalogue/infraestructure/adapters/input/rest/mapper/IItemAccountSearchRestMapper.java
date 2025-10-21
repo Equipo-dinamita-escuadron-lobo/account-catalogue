@@ -25,13 +25,13 @@ public interface IItemAccountSearchRestMapper {
                .id(accountCatalogue.getId())
                .code(accountCatalogue.getCode())
                .description(accountCatalogue.getDescription())
-               .nature(accountCatalogue.getNature().getState())
-               .financialStatus(accountCatalogue.getFinancialStatus().getState())
-               .classification(accountCatalogue.getClassification().getState())
+               .nature(accountCatalogue.getNature() != null ? accountCatalogue.getNature().getState() : null)
+               .financialStatus(accountCatalogue.getFinancialStatus() != null ? accountCatalogue.getFinancialStatus().getState() : null)
+               .classification(accountCatalogue.getClassification() != null ? accountCatalogue.getClassification().getState() : null)
                .crossing(accountCatalogue.getCrossing())
                .costCenter(accountCatalogue.getCostCenter())
                .status(accountCatalogue.getStatus())
-               .parent(accountCatalogue.getParent().getCode() == null ? null : accountCatalogue.getParent().getCode())
+               .parent(accountCatalogue.getParent() != null ? accountCatalogue.getParent().getCode() : null)
                .build();
    }
 }

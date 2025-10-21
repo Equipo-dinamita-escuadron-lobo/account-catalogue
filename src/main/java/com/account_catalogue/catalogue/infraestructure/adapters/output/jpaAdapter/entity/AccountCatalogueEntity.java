@@ -1,6 +1,7 @@
 package com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.entity;
 
 import java.util.List;
+import org.hibernate.annotations.Formula;
 import org.hibernate.annotations.TenantId;
 
 import com.account_catalogue.catalogue.domain.enums.ClassificationEnum;
@@ -26,7 +27,8 @@ import lombok.NoArgsConstructor;
         @Index(name = "idx_account_id_enterprise", columnList = "idEnterprise"),
         @Index(name = "idx_account_code", columnList = "code"),
         @Index(name = "idx_account_status", columnList = "status"),
-        @Index(name = "idx_account_enterprise_status", columnList = "idEnterprise, status")
+        @Index(name = "idx_account_enterprise_status", columnList = "idEnterprise, status"),
+        @Index(name = "idx_account_code_length", columnList = "codeLength")
     }
 )
 public class AccountCatalogueEntity {
@@ -49,10 +51,10 @@ public class AccountCatalogueEntity {
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
     private List<AccountCatalogueEntity> children;
 
-   @OneToMany(mappedBy = "depositAccount", fetch = FetchType.EAGER)
+   @OneToMany(mappedBy = "depositAccount", fetch = FetchType.LAZY)
    private List<TaxEntity> depositAccounts;
 
-   @OneToMany(mappedBy = "refundAccount", fetch = FetchType.EAGER)
+   @OneToMany(mappedBy = "refundAccount", fetch = FetchType.LAZY)
    private List<TaxEntity>  refundAccounts;
 
     private String idEnterprise;
@@ -67,4 +69,6 @@ public class AccountCatalogueEntity {
     @Builder.Default
     private Boolean status = true;
 
+    @Formula("LENGTH(code)")
+    private Integer codeLength;
 }

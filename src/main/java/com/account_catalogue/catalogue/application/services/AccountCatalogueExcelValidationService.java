@@ -15,14 +15,13 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-/**
- * Servicio centralizado para validaciones de Excel específicas del catálogo de cuentas.
- */
 @Slf4j
 @Service
 public class AccountCatalogueExcelValidationService {
 
-    // ========== MÉTODOS DE OBTENCIÓN DE DATOS ==========
+    private static final String VALIDATION_ERROR_TITLE = "Error de Validación";
+
+    // ========== MÉTODOS PARA GENERACIÓN DE EXCEL ==========
 
     /**
      * Obtiene todas las opciones de naturaleza.
@@ -117,7 +116,7 @@ public class AccountCatalogueExcelValidationService {
 
             validation.setShowErrorBox(true);
             validation.setErrorStyle(DataValidation.ErrorStyle.STOP);
-            validation.createErrorBox("Error de Validación",
+            validation.createErrorBox(VALIDATION_ERROR_TITLE,
                     "El código debe ser un número positivo con exactamente 1, 2, 4, 6 u 8 dígitos");
 
             validation.setShowPromptBox(true);
@@ -153,7 +152,7 @@ public class AccountCatalogueExcelValidationService {
 
             validation.setShowErrorBox(true);
             validation.setErrorStyle(DataValidation.ErrorStyle.STOP);
-            validation.createErrorBox("Error de Validación", errorMessage);
+            validation.createErrorBox(VALIDATION_ERROR_TITLE, errorMessage);
 
             validation.setShowPromptBox(true);
             validation.createPromptBox("Selección", "Seleccione una opción de la lista");
@@ -172,8 +171,7 @@ public class AccountCatalogueExcelValidationService {
      */
     public void applyCruceValidation(Sheet sheet, int columnIndex, int startRow, int endRow) throws ExcelValidationException {
         applyConditionalDropdownValidation(sheet, columnIndex, startRow, endRow,
-                "LEN(TEXT(A{row}, \"0\")) = 8", 
-                List.of("SI", "NO"),
+                "LEN(TEXT(A{row}, \"0\")) = 8",
                 "Seleccione SI/NO. Valor permitido en cuenta auxiliar.",
                 "¿Permitir asociar Cruce?");
     }
@@ -186,7 +184,6 @@ public class AccountCatalogueExcelValidationService {
     public void applyCentroCostoValidation(Sheet sheet, int columnIndex, int startRow, int endRow) throws ExcelValidationException {
         applyConditionalDropdownValidation(sheet, columnIndex, startRow, endRow,
                 "AND(LEN(TEXT(A{row}, \"0\")) = 8, D{row} = \"" + FinancialStatusEnum.INCOMESTATEMENT.getState() + "\")",
-                List.of("SI", "NO"),
                 "Seleccione SI/NO. Valor permitido en cuenta auxiliar y Estado de Resultados.",
                 "¿Permitir asociar Centro de Costo?");
     }
@@ -196,7 +193,7 @@ public class AccountCatalogueExcelValidationService {
      * Muestra lista desplegable SI/NO solo cuando se cumple la condición.
      */
     private void applyConditionalDropdownValidation(Sheet sheet, int columnIndex, int startRow, int endRow,
-            String conditionFormula, List<String> options, String errorMessage, String promptMessage) throws ExcelValidationException {
+            String conditionFormula, String errorMessage, String promptMessage) throws ExcelValidationException {
         try {
             XSSFSheet xssfSheet = (XSSFSheet) sheet;
             XSSFWorkbook workbook = xssfSheet.getWorkbook();
@@ -231,7 +228,7 @@ public class AccountCatalogueExcelValidationService {
 
                 validation.setShowErrorBox(true);
                 validation.setErrorStyle(DataValidation.ErrorStyle.STOP);
-                validation.createErrorBox("Error de Validación", errorMessage);
+                validation.createErrorBox(VALIDATION_ERROR_TITLE, errorMessage);
 
                 validation.setShowPromptBox(true);
                 validation.createPromptBox("Selección", promptMessage);

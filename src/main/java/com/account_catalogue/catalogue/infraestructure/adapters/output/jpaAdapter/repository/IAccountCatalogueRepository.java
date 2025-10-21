@@ -52,7 +52,7 @@ public interface IAccountCatalogueRepository extends JpaRepository<AccountCatalo
      * @param idEnterprise el id de la empresa.
      * @return lista de AccountCatalogueEntity con códigos de 8 dígitos para la empresa dada.
      */
-    @Query("SELECT a FROM AccountCatalogueEntity a WHERE LENGTH(a.code) = 8 AND a.idEnterprise = ?1 AND a.status = true ORDER BY a.code ASC")
+    @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.codeLength = 8 AND a.idEnterprise = ?1 AND a.status = true ORDER BY a.code ASC")
     List<AccountCatalogueEntity> findAuxiliaryAccountsByIdEnterprise(String idEnterprise);
 
     /**
@@ -61,7 +61,7 @@ public interface IAccountCatalogueRepository extends JpaRepository<AccountCatalo
      * @param idEnterprise el id de la empresa.
      * @return lista de AccountCatalogueEntity con códigos de 8 dígitos y crossing = true para la empresa dada.
      */
-    @Query("SELECT a FROM AccountCatalogueEntity a WHERE LENGTH(a.code) = 8 AND a.idEnterprise = ?1 AND a.status = true AND a.crossing = true ORDER BY a.code ASC")
+    @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.codeLength = 8 AND a.idEnterprise = ?1 AND a.status = true AND a.crossing = true ORDER BY a.code ASC")
     List<AccountCatalogueEntity> findAuxiliaryAccountsWithCrossingByIdEnterprise(String idEnterprise);
 
     /**
@@ -111,4 +111,48 @@ public interface IAccountCatalogueRepository extends JpaRepository<AccountCatalo
      */
     @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.idEnterprise = ?1 AND a.status = true ORDER BY a.code ASC")
     Page<AccountCatalogueEntity> findAllByIdEnterpriseOrderByCode(String idEnterprise, Pageable pageable);
+
+
+    /**
+     * Encuentra toda la jerarquía de una cuenta por código e id de empresa usando consulta recursiva nativa.
+     * Devuelve una lista de arrays con [id, code, description, parent_id, ...] para construir el árbol.
+     * 
+     * @param code el código de la cuenta raíz.
+     * @param idEnterprise el id de la empresa.
+     * @return lista de Object[] con los datos de la jerarquía.
+     */
+    @Query(value = """
+        WITH RECURSIVE hierarchy AS (
+            SELECT id, code, description, parent_id, nature, financial_status, classification, crossing, cost_center, status, id_enterprise
+            FROM account
+            WHERE code = :code AND id_enterprise = :idEnterprise
+            UNION ALL
+            SELECT a.id, a.code, a.description, a.parent_id, a.nature, a.financial_status, a.classification, a.crossing, a.cost_center, a.status, a.id_enterprise
+            FROM account a
+            INNER JOIN hierarchy h ON a.parent_id = h.id
+            WHERE a.id_enterprise = :idEnterprise
+        )
+        SELECT * FROM hierarchy
+        """, nativeQuery = true)
+    List<Object[]> findHierarchyByCode(@Param("code") String code, @Param("idEnterprise") String idEnterprise);
+
+    /**
+     * Encuentra todas las cuentas para una empresa específica ordenadas por código.
+     *
+     * @param idEnterprise el id de la empresa.
+     * @return lista de AccountCatalogueEntity ordenadas por código.
+     */
+    @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.idEnterprise = ?1 ORDER BY a.code ASC")
+    List<AccountCatalogueEntity> findByIdEnterpriseOrderByCode(String idEnterprise);
+
+    /**
+     * Encuentra cuentas que coinciden con el criterio de búsqueda (código o descripción) para una empresa específica.
+     * Búsqueda inteligente por código o descripción, ordenada por código ascendente.
+     *
+     * @param idEnterprise el id de la empresa.
+     * @param search el término de búsqueda.
+     * @return lista de AccountCatalogueEntity que coinciden con la búsqueda.
+     */
+    @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.idEnterprise = ?1 AND (a.code LIKE %?2% OR UPPER(a.description) LIKE UPPER(CONCAT('%', ?2, '%'))) ORDER BY a.code ASC")
+    List<AccountCatalogueEntity> findByIdEnterpriseAndCodeOrDescription(String idEnterprise, String search);
 }

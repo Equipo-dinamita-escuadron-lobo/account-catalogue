@@ -50,13 +50,13 @@ public class AccountUpdateRestMapper implements IAccountUpdateRestMapper {
                 .id(accountCatalogue.getId())
                 .code(accountCatalogue.getCode())
                 .description(accountCatalogue.getDescription())
-                .financialStatus(accountCatalogue.getFinancialStatus().getState())
-                .nature(accountCatalogue.getNature().getState())
-                .classification(accountCatalogue.getClassification().getState())
+                .financialStatus(accountCatalogue.getFinancialStatus() != null ? accountCatalogue.getFinancialStatus().getState() : null)
+                .nature(accountCatalogue.getNature() != null ? accountCatalogue.getNature().getState() : null)
+                .classification(accountCatalogue.getClassification() != null ? accountCatalogue.getClassification().getState() : null)
                 .crossing(accountCatalogue.getCrossing())
                 .costCenter(accountCatalogue.getCostCenter())
                 .status(accountCatalogue.getStatus())
-                .parent(accountCatalogue.getParent().getCode() == null ? null : accountCatalogue.getParent().getCode())
+                .parent(accountCatalogue.getParent() != null ? accountCatalogue.getParent().getCode() : null)
                 .build();
     }
     

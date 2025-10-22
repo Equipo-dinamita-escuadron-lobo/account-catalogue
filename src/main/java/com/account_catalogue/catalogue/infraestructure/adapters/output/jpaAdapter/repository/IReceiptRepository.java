@@ -10,4 +10,6 @@ import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapte
 @Repository
 public interface IReceiptRepository extends JpaRepository<ReceiptEntity, Long> {
     Optional<ReceiptEntity> findByOriginalReceiptId(Long originalReceiptId);
+    Optional<ReceiptEntity> findByReceiptCode(String receiptCode);
+    boolean existsByReceiptCode(String receiptCode);
 }

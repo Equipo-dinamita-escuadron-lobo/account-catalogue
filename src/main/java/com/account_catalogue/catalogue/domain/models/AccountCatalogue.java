@@ -1,5 +1,6 @@
 package com.account_catalogue.catalogue.domain.models;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import com.account_catalogue.catalogue.domain.enums.ClassificationEnum;
@@ -36,4 +37,6 @@ public class AccountCatalogue {
     private Boolean costCenter;
     private Boolean status;
     private Boolean isDeleted;
+    @Builder.Default
+    private BigDecimal amount = BigDecimal.ZERO;
 }

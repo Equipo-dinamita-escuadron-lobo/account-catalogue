@@ -3,11 +3,11 @@ package com.account_catalogue.catalogue.application.services;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
+import com.account_catalogue.catalogue.application.input.IAccountBalanceUpdateInputPort;
 import com.account_catalogue.catalogue.application.input.IReceiptProcessInputPort;
 import com.account_catalogue.catalogue.application.output.IAccountCatalogueSearchOutputPort;
 import com.account_catalogue.catalogue.application.output.IAccountingEntryPersistenceOutputPort;
@@ -31,18 +31,17 @@ public class ReceiptProcessService implements IReceiptProcessInputPort {
         private final IReceiptPersistenceOutputPort receiptPersistenceOutputPort;
         private final IAccountingEntryPersistenceOutputPort accountingEntryPersistenceOutputPort;
         private final IAccountCatalogueSearchOutputPort accountCatalogueSearchOutputPort;
+        private final IAccountBalanceUpdateInputPort accountBalanceUpdateInputPort;
 
         @Override
         public void processReceiptCreation(Receipt receipt) {
                 log.info("Iniciando procesamiento de creacion para recibo de origen ID: {}", receipt.getReceiptCode());
 
-                Optional<Receipt> existingReceipt = receiptPersistenceOutputPort
-                                .findByOriginalReceiptId(receipt.getOriginalReceiptId());
-
-                if (existingReceipt.isPresent()) {
-                        log.info("El recibo de origen con ID {} ya ha sido procesado. Ignorando mensaje duplicado.",
-                                        receipt.getOriginalReceiptId());
-                        return; 
+                // Verifica si ya existe un recibo con este código de negocio único.
+                if (receiptPersistenceOutputPort.existsByReceiptCode(receipt.getReceiptCode())) {
+                        log.warn("El recibo con código {} ya ha sido procesado. Ignorando mensaje duplicado.",
+                                        receipt.getReceiptCode());
+                        return; // Termina la ejecución. Spring AMQP enviará el ack.
                 }
 
                 receipt.setProcessingStatus(ProcessingStatus.PENDING);
@@ -56,12 +55,17 @@ public class ReceiptProcessService implements IReceiptProcessInputPort {
                         log.info("Asiento contable {} generado para el recibo {}", accountingEntry.getCode(),
                                         savedReceipt.getId());
 
+                        // Actualizar saldos de cuentas involucradas
+                        accountBalanceUpdateInputPort.updateBalancesFromAccountingEntry(accountingEntry);
+
                         savedReceipt.setProcessingStatus(ProcessingStatus.PROCESSED);
                         receiptPersistenceOutputPort.save(savedReceipt);
 
                 } catch (Exception e) {
-                        log.error("Error crítico al procesar el asiento contable para recibo {}. .",
+                        log.error("Error crítico al procesar el asiento contable para recibo {}. Se hará rollback.",
                                         savedReceipt.getId(), e);
+                        // La anotación @Transactional se encargará de revertir los cambios en la BD.
+                        // Lanzamos una excepción para que Spring AMQP mueva el mensaje a la DLQ.
                         throw new IllegalStateException(
                                         "Fallo al procesar el asiento contable para el recibo " + savedReceipt.getId(),
                                         e);
@@ -146,24 +150,25 @@ public class ReceiptProcessService implements IReceiptProcessInputPort {
 
         @Override
         public void processReceiptVoid(Receipt receiptEventData) {
-                log.info("Iniciando procesamiento de ANULACIÓN para recibo de origen ID: {}",
-                                receiptEventData.getOriginalReceiptId());
+                log.info("Iniciando procesamiento de ANULACIÓN para recibo con código: {}",
+                                receiptEventData.getReceiptCode());
 
-                // 1. BUSCAR EL RECIBO LOCAL
+                // 1. BUSCAR EL RECIBO LOCAL por su identificador de negocio.
                 Receipt localReceipt = receiptPersistenceOutputPort
-                                .findByOriginalReceiptId(receiptEventData.getId())
+                                .findByReceiptCode(receiptEventData.getReceiptCode())
                                 .orElseThrow(() -> {
-                                        log.error(
-                                                        "Se recibió un evento de anulación para el recibo de origen ID {}, pero no se encontró un registro local.",
-                                                        receiptEventData.getOriginalReceiptId());
+                                        log.error("Se recibió un evento de anulación para el recibo {}, pero no se encontró un registro local. El mensaje será descartado.",
+                                                        receiptEventData.getReceiptCode());
+                                        // Es un estado irrecuperable. Lanzamos excepción para mover a DLQ.
                                         return new IllegalStateException(
-                                                        "No se puede anular un recibo que no fue procesado previamente.");
+                                                        "No se puede anular un recibo que no fue procesado previamente: "
+                                                                        + receiptEventData.getReceiptCode());
                                 });
 
                 // 2. VERIFICAR IDEMPOTENCIA: ¿Ya fue anulado?
                 if (localReceipt.getProcessingStatus() == ProcessingStatus.VOIDED) {
-                        log.warn("El recibo con ID de origen {} ya ha sido anulado previamente. Omitiendo mensaje duplicado.",
-                                        localReceipt.getOriginalReceiptId());
+                        log.warn("El recibo {} ya ha sido anulado previamente. Omitiendo mensaje duplicado.",
+                                        localReceipt.getReceiptCode());
                         return;
                 }
 
@@ -171,31 +176,35 @@ public class ReceiptProcessService implements IReceiptProcessInputPort {
                 AccountingEntry originalEntry = accountingEntryPersistenceOutputPort
                                 .findBySourceDocumentId(localReceipt.getId())
                                 .orElseThrow(() -> {
-                                        log.error(
-                                                        "Se encontró el recibo local ID {}, pero no su asiento contable asociado. La data es inconsistente.",
+                                        log.error("Se encontró el recibo local ID {}, pero no su asiento contable asociado. La data es inconsistente.",
                                                         localReceipt.getId());
                                         return new IllegalStateException(
                                                         "Inconsistencia de datos: no se encontró el asiento contable original.");
                                 });
 
-                // 4. CREAR EL ASIENTO DE REVERSIÓN
+                // 4. VERIFICAR IDEMPOTENCIA (capa extra): ¿El asiento ya está anulado?
+                if (originalEntry.getStatus() == AccountingEntryStatus.VOIDED) {
+                        log.warn("El asiento contable original {} ya estaba VOIDED. Sincronizando estado del recibo y finalizando.",
+                                        originalEntry.getCode());
+                        localReceipt.setProcessingStatus(ProcessingStatus.VOIDED);
+                        localReceipt.setStatus("VOIDED");
+                        receiptPersistenceOutputPort.save(localReceipt);
+                        return;
+                }
+
+                // 5. CREAR EL ASIENTO DE REVERSIÓN
                 AccountingEntry reversalEntry = createReversalEntry(originalEntry, receiptEventData);
 
-                // 5. ACTUALIZAR ESTADOS Y PERSISTIR
-                // Marcar el asiento original como anulado
+                // 6. ACTUALIZAR ESTADOS Y PERSISTIR (todo dentro de una transacción)
                 originalEntry.setStatus(AccountingEntryStatus.VOIDED);
                 accountingEntryPersistenceOutputPort.save(originalEntry);
                 log.info("Asiento contable original {} marcado como VOIDED.", originalEntry.getCode());
 
-                // Guardar el nuevo asiento de reversión
                 accountingEntryPersistenceOutputPort.save(reversalEntry);
                 log.info("Nuevo asiento de reversión {} generado y guardado.", reversalEntry.getCode());
 
-                // Actualizar el estado del recibo local
                 localReceipt.setProcessingStatus(ProcessingStatus.VOIDED);
                 localReceipt.setStatus("VOIDED");
-                // Opcional: actualizar con la información del evento de anulación si es
-                // relevante (ej. fecha de anulación)
                 receiptPersistenceOutputPort.save(localReceipt);
                 log.info("Recibo local {} actualizado a estado VOIDED.", localReceipt.getId());
         }

@@ -51,4 +51,15 @@ public class ReceiptPersistenceJpaAdapter implements IReceiptPersistenceOutputPo
                 .map(receiptMapper::toDomain);
     }
 
+    @Override
+    public Optional<Receipt> findByReceiptCode(String receiptCode) {
+        return receiptRepository.findByReceiptCode(receiptCode)
+                .map(receiptMapper::toDomain);
+    }
+
+    @Override
+    public boolean existsByReceiptCode(String receiptCode) {
+        return receiptRepository.existsByReceiptCode(receiptCode);
+    }
+
 }

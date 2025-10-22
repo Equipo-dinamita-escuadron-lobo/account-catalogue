@@ -39,6 +39,7 @@ public interface IItemAccountCatalogueSearchMapper {
                 .isDeleted(accountCatalogueEntity.getIsDeleted())
                 .depositAccounts(accountCatalogueEntity.getDepositAccounts())
                 .refundAccounts(accountCatalogueEntity.getRefundAccounts())
+                .amount(accountCatalogueEntity.getAmount())
                 .parent(auxParent(
                         accountCatalogueEntity.getParent() == null ? null : accountCatalogueEntity.getParent()))
                 .build();

@@ -45,13 +45,17 @@ public class TaxCreateJpaAdapter implements ITaxCreateOutputPort {
         taxValidationService.validateAccountDigits(tax.getSalesTaxId(), tax.getPurchaseTaxId(), tax.getIdEnterprise());
         taxValidationService.validateDifferentTaxAccounts(tax.getSalesTaxId(), tax.getPurchaseTaxId());
 
-        AccountCatalogueEntity salesTax = accountCatalogueRepository.findByIdAndIdEnterprise(tax.getSalesTaxId(),
-                tax.getIdEnterprise());
+        AccountCatalogueEntity salesTax = null;
+        if (tax.getSalesTaxId() != null) {
+            salesTax = accountCatalogueRepository.findByIdAndIdEnterprise(tax.getSalesTaxId(),
+                    tax.getIdEnterprise());
+        }
 
-
-        AccountCatalogueEntity purchaseTax = accountCatalogueRepository.findByIdAndIdEnterprise(tax.getPurchaseTaxId(),
-                tax.getIdEnterprise());
-
+        AccountCatalogueEntity purchaseTax = null;
+        if (tax.getPurchaseTaxId() != null) {
+            purchaseTax = accountCatalogueRepository.findByIdAndIdEnterprise(tax.getPurchaseTaxId(),
+                    tax.getIdEnterprise());
+        }
 
         Tax taxAux = Tax.builder()
                 .code(tax.getCode())
@@ -63,8 +67,14 @@ public class TaxCreateJpaAdapter implements ITaxCreateOutputPort {
                 .build();
 
         TaxEntity taxEntity = taxCreateMapper.toEntity(taxAux);
-        salesTax.getSalesTaxes().add(taxEntity);
-        purchaseTax.getPurchaseTaxes().add(taxEntity);
+
+        // Solo agregar a las listas si las entidades no son null
+        if (salesTax != null) {
+            salesTax.getSalesTaxes().add(taxEntity);
+        }
+        if (purchaseTax != null) {
+            purchaseTax.getPurchaseTaxes().add(taxEntity);
+        }
         taxEntity = taxRepository.save(taxEntity);
         return taxCreateMapper.toModel(taxEntity);
     }

@@ -50,16 +50,25 @@ public class TaxUpdateJpaAdapter implements ITaxUpdateOutputPort {
         taxValidationService.validateAccountDigits(taxDTO.getSalesTaxId(), taxDTO.getPurchaseTaxId(), taxDTO.getIdEnterprise());
         taxValidationService.validateDifferentTaxAccounts(taxDTO.getSalesTaxId(), taxDTO.getPurchaseTaxId());
 
-        if (!taxEntity.getSalesTax().getId().equals(taxDTO.getSalesTaxId())) {
-            salesTax = accountCatalogueRepository.findByIdAndIdEnterprise(taxDTO.getSalesTaxId(),
-                    taxDTO.getIdEnterprise());
-
+        // Manejar salesTax
+        Long currentSalesTaxId = taxEntity.getSalesTax() != null ? taxEntity.getSalesTax().getId() : null;
+        if (!java.util.Objects.equals(currentSalesTaxId, taxDTO.getSalesTaxId())) {
+            salesTax = null;
+            if (taxDTO.getSalesTaxId() != null) {
+                salesTax = accountCatalogueRepository.findByIdAndIdEnterprise(taxDTO.getSalesTaxId(),
+                        taxDTO.getIdEnterprise());
+            }
             taxEntity.setSalesTax(salesTax);
         }
 
-        if (!taxEntity.getPurchaseTax().getId().equals(taxDTO.getPurchaseTaxId())) {
-            purchaseTax = accountCatalogueRepository.findByIdAndIdEnterprise(taxDTO.getPurchaseTaxId(), taxDTO.getIdEnterprise());
-
+        // Manejar purchaseTax
+        Long currentPurchaseTaxId = taxEntity.getPurchaseTax() != null ? taxEntity.getPurchaseTax().getId() : null;
+        if (!java.util.Objects.equals(currentPurchaseTaxId, taxDTO.getPurchaseTaxId())) {
+            purchaseTax = null;
+            if (taxDTO.getPurchaseTaxId() != null) {
+                purchaseTax = accountCatalogueRepository.findByIdAndIdEnterprise(taxDTO.getPurchaseTaxId(),
+                        taxDTO.getIdEnterprise());
+            }
             taxEntity.setPurchaseTax(purchaseTax);
         }
 

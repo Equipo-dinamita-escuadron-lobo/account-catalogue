@@ -35,17 +35,13 @@ public class BankAccountServiceImpl implements IBankAccountService {
 
     @Transactional
     public BankAccount create(BankAccountCreateReq request) {
-        // Validar formato del número de cuenta
         validateAccountNumber(request.getAccountNumber());
 
-        // Validar que el banco existe y está activo
         Bank bank = validateBankExists(request.getBankId(), request.getIdEnterprise());
 
-        // Validar que la cuenta contable existe y es auxiliar
         validateAccountingAccount(request.getCuentaContable(), request.getIdEnterprise());
 
-        // Validar unicidad del número de cuenta por empresa
-        if (repository.existsByAccountNumberAndIdEnterpriseAndIsDeletedFalse(request.getAccountNumber(), request.getIdEnterprise())) {
+        if (repository.existsByAccountNumberAndIdEnterprise(request.getAccountNumber(), request.getIdEnterprise())) {
             throw new BankAccountAlreadyExistsException("número de cuenta", request.getAccountNumber().toString(), request.getIdEnterprise());
         }
 
@@ -59,7 +55,7 @@ public class BankAccountServiceImpl implements IBankAccountService {
 
     @Transactional
     public BankAccount update(BankAccountUpdateReq request) {
-        BankAccountEntity current = repository.findByIdAndIdEnterpriseAndIsDeletedFalse(request.getId(), request.getIdEnterprise())
+        BankAccountEntity current = repository.findByIdAndIdEnterprise(request.getId(), request.getIdEnterprise())
                 .orElseThrow(BankAccountNotFoundException::new);
 
         // Validar que no se esté intentando cambiar el número de cuenta
@@ -91,33 +87,33 @@ public class BankAccountServiceImpl implements IBankAccountService {
 
     @Transactional(readOnly = true)
     public BankAccount findById(Long id, String idEnterprise) {
-        return dataMapper.toDomain(repository.findByIdAndIdEnterpriseAndIsDeletedFalse(id, idEnterprise)
+        return dataMapper.toDomain(repository.findByIdAndIdEnterprise(id, idEnterprise)
                 .orElseThrow(BankAccountNotFoundException::new));
     }
 
     @Transactional(readOnly = true)
     public Page<BankAccount> findAllByEnterprise(String idEnterprise, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        return repository.findAllByIdEnterpriseAndIsDeletedFalse(idEnterprise, pageable).map(dataMapper::toDomain);
+        return repository.findAllByIdEnterprise(idEnterprise, pageable).map(dataMapper::toDomain);
     }
 
     @Transactional(readOnly = true)
     public Page<BankAccount> findAllByEnterpriseAndStatus(String idEnterprise, Boolean status, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        return repository.findAllByIdEnterpriseAndStatusAndIsDeletedFalse(idEnterprise, status, pageable)
+        return repository.findAllByIdEnterpriseAndStatus(idEnterprise, status, pageable)
                 .map(dataMapper::toDomain);
     }
 
     @Transactional(readOnly = true)
     public Page<BankAccount> findAllByEnterpriseAndBank(String idEnterprise, Long bankId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        return repository.findAllByIdEnterpriseAndBankIdAndIsDeletedFalse(idEnterprise, bankId, pageable)
+        return repository.findAllByIdEnterpriseAndBankId(idEnterprise, bankId, pageable)
                 .map(dataMapper::toDomain);
     }
 
     @Transactional
     public BankAccount changeState(Long id, String idEnterprise, Boolean newState) {
-        BankAccountEntity current = repository.findByIdAndIdEnterpriseAndIsDeletedFalse(id, idEnterprise)
+        BankAccountEntity current = repository.findByIdAndIdEnterprise(id, idEnterprise)
                 .orElseThrow(BankAccountNotFoundException::new);
 
         current.setStatus(newState);
@@ -126,13 +122,13 @@ public class BankAccountServiceImpl implements IBankAccountService {
     }
 
     @Transactional
-    public BankAccount softDelete(Long id, String idEnterprise) {
-        BankAccountEntity current = repository.findByIdAndIdEnterpriseAndIsDeletedFalse(id, idEnterprise)
+    public BankAccount delete(Long id, String idEnterprise) {
+        BankAccountEntity current = repository.findByIdAndIdEnterprise(id, idEnterprise)
                 .orElseThrow(BankAccountNotFoundException::new);
 
-        current.setIsDeleted(true);
-        BankAccountEntity saved = repository.save(current);
-        return dataMapper.toDomain(saved);
+        BankAccount domain = dataMapper.toDomain(current);
+        repository.delete(current);
+        return domain;
     }
 
     /**

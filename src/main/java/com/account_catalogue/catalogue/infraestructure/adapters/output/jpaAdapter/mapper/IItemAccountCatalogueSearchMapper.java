@@ -36,7 +36,6 @@ public interface IItemAccountCatalogueSearchMapper {
                 .crossing(accountCatalogueEntity.getCrossing())
                 .costCenter(accountCatalogueEntity.getCostCenter())
                 .status(accountCatalogueEntity.getStatus())
-                .isDeleted(accountCatalogueEntity.getIsDeleted())
                 .depositAccounts(accountCatalogueEntity.getDepositAccounts())
                 .refundAccounts(accountCatalogueEntity.getRefundAccounts())
                 .amount(accountCatalogueEntity.getAmount())
@@ -72,7 +71,6 @@ public interface IItemAccountCatalogueSearchMapper {
                 .crossing(accountCatalogueEntity.getCrossing())
                 .costCenter(accountCatalogueEntity.getCostCenter())
                 .status(accountCatalogueEntity.getStatus())
-                .isDeleted(accountCatalogueEntity.getIsDeleted())
                 .depositAccounts(accountCatalogueEntity.getDepositAccounts())
                 .refundAccounts(accountCatalogueEntity.getRefundAccounts())
                 .parent(auxParent(
@@ -81,12 +79,9 @@ public interface IItemAccountCatalogueSearchMapper {
 
         List<AccountCatalogue> children = new ArrayList<>();
         for (AccountCatalogueEntity child : accountCatalogueEntity.getChildren()) {
-            // Solo procesar cuentas hijas que no estén eliminadas
-            if (child.getIsDeleted() == null || !child.getIsDeleted()) {
-                AccountCatalogue childAccountCatalogue = toDomainTree(child);
-                if (childAccountCatalogue != null) {
-                    children.add(childAccountCatalogue);
-                }
+            AccountCatalogue childAccountCatalogue = toDomainTree(child);
+            if (childAccountCatalogue != null) {
+                children.add(childAccountCatalogue);
             }
         }
         accountCatalogue.setChildren(children);

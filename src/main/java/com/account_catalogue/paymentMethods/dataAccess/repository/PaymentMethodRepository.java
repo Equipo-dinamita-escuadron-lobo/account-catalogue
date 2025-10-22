@@ -9,17 +9,17 @@ import java.util.Optional;
 
 public interface PaymentMethodRepository extends JpaRepository<PaymentMethodEntity, Long> {    
    
-    boolean existsByNameAndIdEnterpriseAndIsDeletedFalse(String name, String idEnterprise);
+    boolean existsByNameAndIdEnterprise(String name, String idEnterprise);
     
-    boolean existsByNameAndIdEnterpriseAndIdNotAndIsDeletedFalse(String name, String idEnterprise, Long id);
+    boolean existsByNameAndIdEnterpriseAndIdNot(String name, String idEnterprise, Long id);
     
     @EntityGraph(attributePaths = "accountingAccount")
-    Optional<PaymentMethodEntity> findByIdAndIdEnterpriseAndIsDeletedFalse(Long id, String idEnterprise);
+    Optional<PaymentMethodEntity> findByIdAndIdEnterprise(Long id, String idEnterprise);
 
     @EntityGraph(attributePaths = "accountingAccount")
-    Page<PaymentMethodEntity> findAllByIdEnterpriseAndIsDeletedFalse(String idEnterprise, Pageable pageable);
+    Page<PaymentMethodEntity> findAllByIdEnterprise(String idEnterprise, Pageable pageable);
 
     @EntityGraph(attributePaths = "accountingAccount")
-    Page<PaymentMethodEntity> findAllByIdEnterpriseAndStatusAndIsDeletedFalse(String idEnterprise, Boolean status, Pageable pageable);
+    Page<PaymentMethodEntity> findAllByIdEnterpriseAndStatus(String idEnterprise, Boolean status, Pageable pageable);
 
 }

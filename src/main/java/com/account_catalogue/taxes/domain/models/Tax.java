@@ -8,15 +8,13 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Getter
 public class Tax {
-    private  Long id;
+    private Long id;
     private String idEnterprise;
     private String code;
     private String description;
-    private float interest;
+    private Double interest;
     private AccountCatalogueEntity depositAccount;
-    private  AccountCatalogueEntity refundAccount;
+    private AccountCatalogueEntity refundAccount;
     private Boolean status;
-    private Boolean isDeleted;
 }

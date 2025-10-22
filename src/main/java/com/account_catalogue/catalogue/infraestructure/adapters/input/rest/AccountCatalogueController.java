@@ -1,12 +1,12 @@
 package com.account_catalogue.catalogue.infraestructure.adapters.input.rest;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.core.io.Resource;
 //import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -19,19 +19,24 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.account_catalogue.catalogue.application.input.IAccountCatalogueChangeStateInputPort;
 import com.account_catalogue.catalogue.application.input.IAccountCatalogueCreateInputPort;
 import com.account_catalogue.catalogue.application.input.IAccountCatalogueDeleteInputPort;
-import com.account_catalogue.catalogue.application.input.IAccountCatalogueExportTemplateInputPort;
+import com.account_catalogue.catalogue.application.input.IAccountCatalogueExportInputPort;
+import com.account_catalogue.catalogue.application.input.IAccountCatalogueImportInputPort;
 import com.account_catalogue.catalogue.application.input.IAccountCatalogueSearchInputPort;
 import com.account_catalogue.catalogue.application.input.IAccountCatalogueUpdateInputPort;
+import com.account_catalogue.catalogue.domain.enums.ImportStatus;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
 
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.request.AccountCatalogueCreateReq;
+import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.request.AccountCatalogueImportRequest;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.request.AccountCatalogueUpdateReq;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.response.AccountCatalogueChangeStateRes;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.response.AccountCatalogueCreateRes;
+import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.response.AccountCatalogueImportResponse;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.response.AccountCatalogueListRes;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.response.AccountCatalogueUpdateRes;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.response.AuxiliaryAccountListRes;
@@ -42,6 +47,7 @@ import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.mappe
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.mapper.IAccountUpdateRestMapper;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.mapper.IAuxiliaryAccountRestMapper;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.mapper.IItemAccountSearchRestMapper;
+import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.util.AccountCatalogueExcelFileNameGenerator;
 
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -61,16 +67,18 @@ public class AccountCatalogueController {
     private final IAccountCatalogueUpdateInputPort accountCatalogueUpdateInputPort;
     private final IAccountCatalogueChangeStateInputPort accountCatalogueChangeStateInputPort;
     private final IAccountChangeStateRestMapper accountChangeStateRestMapper;
-    private final IAccountCatalogueExportTemplateInputPort accountCatalogueExportTemplateInputPort;
     private final IAuxiliaryAccountRestMapper auxiliaryAccountRestMapper;
+    private final IAccountCatalogueExportInputPort accountCatalogueExportInputPort;
+    private final IAccountCatalogueImportInputPort accountCatalogueImportInputPort;
+    private final AccountCatalogueExcelFileNameGenerator fileNameGenerator;
 
 
     @PostMapping("/")
     public ResponseEntity<AccountCatalogueCreateRes> createAccountCatalogue(
-            @RequestBody AccountCatalogueCreateReq accountCatalogueCreateReq) {
+            @Valid @RequestBody AccountCatalogueCreateReq accountCatalogueCreateReq) {
         AccountCatalogue padre = null;
         if (accountCatalogueCreateReq.getParent() != null) {
-            padre = accountCatalogueSearchInputPort.getAccountCatalogueById(accountCatalogueCreateReq.getParent());
+            padre = accountCatalogueSearchInputPort.getAccountCatalogueById(accountCatalogueCreateReq.getParent(), accountCatalogueCreateReq.getIdEnterprise());
         }
         AccountCatalogue account = accountCreateRestMapper.toDomain(accountCatalogueCreateReq, padre);
         account = accountCatalogueCreateInputPort.createAccountCatalogue(account);
@@ -89,62 +97,56 @@ public class AccountCatalogueController {
     }
 
     @GetMapping("/accountByCode/{code}/{idEnterprise}")
-    public ResponseEntity<ItemAccountCatalogueSearchRes> getAccountCatalogue(@PathVariable("code") String code,
-            @PathVariable("idEnterprise") String idEnterprise) {
+    public ResponseEntity<ItemAccountCatalogueSearchRes> getAccountCatalogue(@PathVariable String code,
+            @PathVariable String idEnterprise) {
         AccountCatalogue accountCatalogue = accountCatalogueSearchInputPort.getAccountCatalogueByCode(code, idEnterprise);
         return ResponseEntity.ok(itemAccountSearchRestMapper.toItemAccountCatalogueSearch(accountCatalogue));
     }
 
     @DeleteMapping("/{id}/{idEnterprise}")
-    public ResponseEntity<Void> deleteByCode(@PathVariable("id") Long id, @PathVariable("idEnterprise") String idEnterprise) {
+    public ResponseEntity<Void> deleteByCode(@PathVariable Long id, @PathVariable String idEnterprise) {
         accountCatalogueDeleteInputPort.deleteById(id, idEnterprise);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @GetMapping("/tree/{code}/{idEnterprise}")
-    public ResponseEntity<AccountCatalogueListRes> getAccountCatalogueTree(@PathVariable("code") String code,
-            @PathVariable("idEnterprise") String idEnterprise) {
+    public ResponseEntity<AccountCatalogueListRes> getAccountCatalogueTree(@PathVariable String code,
+            @PathVariable String idEnterprise) {
         AccountCatalogue accountCatalogue = accountCatalogueSearchInputPort.getAccountCatalogueTree(code, idEnterprise);
         return ResponseEntity.ok(accountSearchRestMapper.toAccountCatalogueListRes(accountCatalogue));
     }
 
-    @GetMapping("/trees/{idEnterprise}")
-    public ResponseEntity<List<AccountCatalogueListRes>> getAccountCatalogueTrees(
-            @PathVariable("idEnterprise") String idEnterprise) {
-        List<AccountCatalogueListRes> accountCatalogueListRes = new ArrayList<>();
-        for (int i = 1; i <= 9; i++) {
-            try {
-                AccountCatalogue accountCatalogue = accountCatalogueSearchInputPort
-                        .getAccountCatalogueTree(String.valueOf(i), idEnterprise);
-                if (accountCatalogue != null) {
-                    accountCatalogueListRes.add(accountSearchRestMapper.toAccountCatalogueListRes(accountCatalogue));
-                }
-            } catch (Exception e) {
-                // Si la cuenta con código 'i' no existe, simplemente continúa con el siguiente
-                // No lanza excepción, solo omite la cuenta inexistente
-            }
-        }
-        return ResponseEntity.ok(accountCatalogueListRes);
+    @GetMapping("/search/{idEnterprise}")
+    public ResponseEntity<List<ItemAccountCatalogueSearchRes>> searchAccountCatalogues(
+            @PathVariable String idEnterprise,
+            @RequestParam(required = false) String search) {
+
+        List<AccountCatalogue> accounts = (search != null && !search.trim().isEmpty())
+                ? accountCatalogueSearchInputPort.getAccountsByCodeOrDescription(idEnterprise, search)
+                : accountCatalogueSearchInputPort.getAllAccountsByEnterprise(idEnterprise);
+
+        List<ItemAccountCatalogueSearchRes> response = accounts.stream()
+                .map(itemAccountSearchRestMapper::toItemAccountCatalogueSearch)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(response);
     }
 
-    /**
-     * Cambia el estado (activo/inactivo) de una cuenta del catálogo.
-     * 
-     * @param id el ID de la cuenta
-     * @param enterpriseId el ID de la empresa
-     * @param status el nuevo estado (true = activo, false = inactivo)
-     * @return respuesta con el estado actualizado
-     */
+    @GetMapping("/trees/{idEnterprise}")
+    public ResponseEntity<List<AccountCatalogueListRes>> getAccountCatalogueTrees(
+            @PathVariable String idEnterprise) {
+        List<AccountCatalogue> accountCatalogueTrees = accountCatalogueSearchInputPort.getAccountCatalogueTrees(idEnterprise);
+        List<AccountCatalogueListRes> response = accountCatalogueTrees.stream()
+                .map(accountSearchRestMapper::toAccountCatalogueListRes)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(response);
+    }
+
     @PatchMapping("/changeState/{id}/{enterpriseId}")
     public ResponseEntity<AccountCatalogueChangeStateRes> changeState(
-            @PathVariable("id") Long id,
-            @PathVariable("enterpriseId") String enterpriseId,
-            @RequestParam("status") Boolean status) {
-        
-        // Validación manual del parámetro status
-        if (status == null) {
-            throw new IllegalArgumentException("El parámetro 'status' es requerido");
-        }
+            @PathVariable Long id,
+            @PathVariable String enterpriseId,
+            @RequestParam Boolean status) {
         
         AccountCatalogue updatedAccount = accountCatalogueChangeStateInputPort.changeState(
                 id, enterpriseId, status);
@@ -153,48 +155,10 @@ public class AccountCatalogueController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * Descarga la plantilla de catálogo de cuentas en formato Excel.
-     * 
-     * @return la plantilla como archivo descargable
-     */
-    @GetMapping("/template")
-    public ResponseEntity<Resource> downloadTemplate() {
-        Resource resource = accountCatalogueExportTemplateInputPort.getAccountCatalogueTemplate();
-        
-        HttpHeaders headers = new HttpHeaders();
-        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"plantillaCatalogoCuentas.xlsx\"");
-        headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM_VALUE);
-        
-        return ResponseEntity.ok()
-                .headers(headers)
-                .contentLength(getResourceSize(resource))
-                .body(resource);
-    }
-
-    /**
-     * Obtiene el tamaño del recurso de forma segura.
-     * 
-     * @param resource el recurso
-     * @return el tamaño del recurso o -1 si no se puede determinar
-     */
-    private long getResourceSize(Resource resource) {
-        try {
-            return resource.contentLength();
-        } catch (Exception e) {
-            return -1;
-        }
-    }
-
-    /**
-     * Obtiene todas las cuentas auxiliares (8 dígitos) activas para una empresa específica.
-     * 
-     * @param idEnterprise el ID de la empresa
-     * @return lista de cuentas auxiliares ordenadas por código
-     */
+   
     @GetMapping("/auxiliary/{idEnterprise}")
     public ResponseEntity<AuxiliaryAccountListRes> getAuxiliaryAccounts(
-            @PathVariable("idEnterprise") String idEnterprise) {
+            @PathVariable String idEnterprise) {
         
         List<AccountCatalogue> auxiliaryAccounts = accountCatalogueSearchInputPort.getAuxiliaryAccounts(idEnterprise);
         AuxiliaryAccountListRes response = auxiliaryAccountRestMapper.toAuxiliaryAccountListRes(auxiliaryAccounts, idEnterprise);
@@ -202,20 +166,80 @@ public class AccountCatalogueController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * Obtiene todas las cuentas auxiliares (8 dígitos) activas que tienen el campo crossing activo para una empresa específica.
-     * 
-     * @param idEnterprise el ID de la empresa
-     * @return lista de cuentas auxiliares con crossing activo ordenadas por código
-     */
+   
     @GetMapping("/auxiliary/crossing/{idEnterprise}")
     public ResponseEntity<AuxiliaryAccountListRes> getAuxiliaryAccountsWithCrossing(
-            @PathVariable("idEnterprise") String idEnterprise) {
+            @PathVariable String idEnterprise) {
         
         List<AccountCatalogue> auxiliaryAccountsWithCrossing = accountCatalogueSearchInputPort.getAuxiliaryAccountsWithCrossing(idEnterprise);
         AuxiliaryAccountListRes response = auxiliaryAccountRestMapper.toAuxiliaryAccountListRes(auxiliaryAccountsWithCrossing, idEnterprise);
         
         return ResponseEntity.ok(response);
+    }
+
+    
+    @GetMapping("/template/excel")
+    public ResponseEntity<Resource> exportAccountCatalogueTemplate(
+            @RequestParam String entId) {
+
+        Resource templateFile = accountCatalogueExportInputPort.exportAccountCatalogueTemplate(entId);
+        String filename = fileNameGenerator.generateTemplateFileName();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(templateFile);
+    }
+
+    @GetMapping("/export/excel")
+    public ResponseEntity<Resource> exportAccountCatalogueWithValidations(
+            @RequestParam String entId,
+            @RequestParam(required = false) String companyName) {
+
+        Resource excelFile = accountCatalogueExportInputPort.exportAccountCatalogueWithValidations(entId);
+        String filename = fileNameGenerator.generateExportFileName(entId, companyName);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(excelFile);
+    }
+
+    /**
+     * Endpoint para importar catálogo de cuentas desde archivo Excel.
+     * 
+     * @param entId identificador de la empresa
+     * @param file archivo Excel con las cuentas a importar
+     * @return respuesta con estadísticas y errores de la importación
+     */
+    @PostMapping("/import/excel")
+    public ResponseEntity<AccountCatalogueImportResponse> importFromExcel(
+            @RequestParam String entId,
+            @RequestParam MultipartFile file) {
+
+        // Construir request
+        AccountCatalogueImportRequest request = AccountCatalogueImportRequest.from(entId, file);
+
+        // Ejecutar importación
+        AccountCatalogueImportResponse response = accountCatalogueImportInputPort
+                .importAccountCatalogueFromExcel(request);
+
+        // Mapear estado a código HTTP apropiado
+        HttpStatus httpStatus = mapImportStatusToHttpStatus(response.getStatus());
+
+        return ResponseEntity.status(httpStatus).body(response);
+    }
+
+    /**
+     * Mapea el estado de importación a código HTTP apropiado.
+     */
+    private HttpStatus mapImportStatusToHttpStatus(ImportStatus status) {
+        return switch (status) {
+            case COMPLETED -> HttpStatus.OK;
+            case COMPLETED_WITH_ERRORS -> HttpStatus.ACCEPTED;
+            case FAILED -> HttpStatus.BAD_REQUEST;
+            default -> HttpStatus.INTERNAL_SERVER_ERROR;
+        };
     }
 
 }

@@ -1,6 +1,9 @@
 package com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter;
 
+import java.util.List;
+
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.account_catalogue.catalogue.application.output.IAccountCatalogueChangeStateOutputPort;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
@@ -24,48 +27,67 @@ public class AccountCatalogueChangeStateJpaAdapter implements IAccountCatalogueC
      * @param status el nuevo estado
      * @return la cuenta actualizada
      */
-        @Override
+    @Override
+    @Transactional
     public AccountCatalogue changeState(Long id, Boolean status) {
-        AccountCatalogueEntity accountCatalogueEntity = accountCatalogueRepository.findByIdWithChildren(id.longValue());
+        AccountCatalogueEntity accountCatalogueEntity = accountCatalogueRepository.findById(id).orElse(null);
 
         if (accountCatalogueEntity == null) {
             return null;
         }
 
-        // Cambiar el estado de la cuenta padre
+        // Cambiar el estado de la cuenta
         accountCatalogueEntity.setStatus(status);
         accountCatalogueEntity = accountCatalogueRepository.save(accountCatalogueEntity);
 
-        // Actualizar recursivamente el estado de todos los hijos
-        updateChildrenStatusRecursively(accountCatalogueEntity, status);
+        if (status) {
+            // Si se está activando, activar toda la jerarquía de padres
+            activateParentHierarchy(accountCatalogueEntity);
+        } else {
+            // Si se está inactivando, inactivar todos los hijos recursivamente
+            List<Long> descendantIds = accountCatalogueRepository.findDescendantIds(accountCatalogueEntity.getId(), accountCatalogueEntity.getIdEnterprise(), accountCatalogueEntity.getTenantId());
+            if (!descendantIds.isEmpty()) {
+                updateStatusInBatches(status, descendantIds, accountCatalogueEntity.getIdEnterprise(), accountCatalogueEntity.getTenantId());
+            }
+        }
 
         return accountCatalogueUpdateMapper.toAccountCatalogue(accountCatalogueEntity);
     }
 
     /**
-     * Actualiza recursivamente el estado de todos los hijos de una cuenta.
+     * Activa recursivamente toda la jerarquía de padres de una cuenta.
      *
-     * @param parent la cuenta padre
-     * @param status el nuevo estado a aplicar
+     * @param child la cuenta hija desde donde se inicia la activación ascendente
      */
-    private void updateChildrenStatusRecursively(AccountCatalogueEntity parent, Boolean status) {
-        if (parent.getChildren() != null && !parent.getChildren().isEmpty()) {
-            for (AccountCatalogueEntity child : parent.getChildren()) {
-                // Solo actualizar si el hijo no está eliminado
-                if (child.getIsDeleted() == null || !child.getIsDeleted()) {
-                    // Asegurarse de que los hijos del hijo estén cargados
-                    if (child.getChildren() == null) {
-                        child = accountCatalogueRepository.findByIdWithChildren(child.getId());
-                        if (child == null) continue;
-                    }
+    private void activateParentHierarchy(AccountCatalogueEntity child) {
+        if (child.getParent() != null) {
+            AccountCatalogueEntity parent = child.getParent();
 
-                    child.setStatus(status);
-                    accountCatalogueRepository.save(child);
+            // Si el padre no está activo, activarlo
+            if (!parent.getStatus()) {
+                parent.setStatus(true);
+                accountCatalogueRepository.save(parent);
 
-                    // Actualizar recursivamente los hijos de este hijo
-                    updateChildrenStatusRecursively(child, status);
-                }
+                // Continuar activando recursivamente hacia arriba
+                activateParentHierarchy(parent);
             }
+        }
+    }
+
+    /**
+     * Actualiza el estado de cuentas en batches para evitar problemas con listas grandes en IN clauses.
+     *
+     * @param status el nuevo estado.
+     * @param ids lista de IDs a actualizar.
+     * @param idEnterprise el id de la empresa.
+     * @param tenantId el id del tenant.
+     */
+    private void updateStatusInBatches(Boolean status, List<Long> ids, String idEnterprise, String tenantId) {
+        int batchSize = 500; // Tamaño del batch, ajustable
+        for (int i = 0; i < ids.size(); i += batchSize) {
+            int end = Math.min(i + batchSize, ids.size());
+            List<Long> batch = ids.subList(i, end);
+            accountCatalogueRepository.updateStatusByIds(status, batch, idEnterprise, tenantId);
         }
     }
 }

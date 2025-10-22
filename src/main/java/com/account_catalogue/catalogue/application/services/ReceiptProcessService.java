@@ -144,6 +144,7 @@ public class ReceiptProcessService implements IReceiptProcessInputPort {
                                 .status(AccountingEntryStatus.ACTIVE)
                                 .sourceDocumentId(receipt.getId()) // Importante: usamos el ID del recibo guardado
                                                                    // localmente
+                                .idEnterprise(receipt.getEnterpriseId())
                                 .movements(movements)
                                 .build();
         }

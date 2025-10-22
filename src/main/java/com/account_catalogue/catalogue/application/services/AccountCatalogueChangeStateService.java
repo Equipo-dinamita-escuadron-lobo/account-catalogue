@@ -22,16 +22,19 @@ public class AccountCatalogueChangeStateService implements IAccountCatalogueChan
      *
      * @param id el ID de la cuenta
      * @param idEnterprise el ID de la empresa
-     * @param status el nuevo estado (true = activo, false = inactivo)
+     * @param status el nuevo estado (true = activo, false = inactivo) - requerido
      * @return la cuenta actualizada
+     * @throws IllegalArgumentException si status es null
      */
     @Transactional
     @Override
     public AccountCatalogue changeState(Long id, String idEnterprise, Boolean status) {
-        // Validar que la cuenta existe para la empresa específica
+        if (status == null) {
+            throw new IllegalArgumentException("El parámetro 'status' es requerido");
+        }
+        
         validationService.validateAccountExistsByIdAndEnterprise(id, idEnterprise);
 
-        // Cambiar el estado de la cuenta y todos sus descendientes
         return accountCatalogueChangeStateOutputPort.changeState(id, status);
     }
 }

@@ -29,13 +29,14 @@ public class AccountBalanceUpdateService implements IAccountBalanceUpdateInputPo
     public void updateBalancesFromAccountingEntry(AccountingEntry accountingEntry) {
         log.info("Iniciando actualización de saldos para el asiento contable {}", accountingEntry.getCode());
         for (AccountingMovement movement : accountingEntry.getMovements()) {
-            updateSingleAccountHierarchy(movement.getAccount(), movement.getDebit(), movement.getCredit());
+            updateSingleAccountHierarchy(movement.getAccount(), movement.getDebit(), movement.getCredit(), accountingEntry.getIdEnterprise());
         }
     }
 
-    private void updateSingleAccountHierarchy(Long accountId, BigDecimal debit, BigDecimal credit) {
+    private void updateSingleAccountHierarchy(Long accountId, BigDecimal debit, BigDecimal credit, String idEnterprise) {
+        log.info("Actualizando saldos para la cuenta contable {}", idEnterprise);
         // 1. Obtener la cuenta auxiliar (la que recibe el movimiento directo)
-        AccountCatalogue currentAccount = accountCatalogueSearchOutputPort.getAccountCatalogueById(accountId);
+        AccountCatalogue currentAccount = accountCatalogueSearchOutputPort.getAccountCatalogueById(accountId , idEnterprise);
         if (currentAccount == null) {
             log.error("No se encontró la cuenta contable con ID: {}. Se omite la actualización de saldo.", accountId);
             // Considera lanzar una excepción si esto es un estado irrecuperable
@@ -68,7 +69,7 @@ public class AccountBalanceUpdateService implements IAccountBalanceUpdateInputPo
                 break; // Salir si no hay padre
             }
 
-            currentAccount = accountCatalogueSearchOutputPort.getAccountCatalogueById(currentAccount.getParent().getId());
+            currentAccount = accountCatalogueSearchOutputPort.getAccountCatalogueById(currentAccount.getParent().getId(), idEnterprise);
         }
     }
 

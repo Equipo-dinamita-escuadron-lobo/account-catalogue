@@ -29,9 +29,9 @@ public class TaxChangeStateService implements ITaxChangeStateInputPort {
     @Override
     public Tax changeState(Long id, String idEnterprise, Boolean status) {
         // Validar que el impuesto existe para la empresa específica
-        validationService.validateTaxExists(id);
+        validationService.validateTaxExists(id, idEnterprise);
         
         // Cambiar el estado
-        return taxChangeStateOutputPort.changeState(id, status);
+        return taxChangeStateOutputPort.changeState(id, idEnterprise, status);
     }
 }

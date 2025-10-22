@@ -28,7 +28,6 @@ public interface ITaxSearchMapper {
                 .refundAccount(taxEntity.getRefundAccount())
                 .depositAccount(taxEntity.getDepositAccount())
                 .status(taxEntity.getStatus())
-                .isDeleted(taxEntity.getIsDeleted())
                 .build();
     }
 
@@ -54,7 +53,6 @@ public interface ITaxSearchMapper {
                             .depositAccount(taxEntity.getDepositAccount())
                             .refundAccount(taxEntity.getRefundAccount())
                             .status(taxEntity.getStatus())
-                            .isDeleted(taxEntity.getIsDeleted())
                             .build();
                     return tax;
 

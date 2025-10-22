@@ -11,10 +11,8 @@ import org.mapstruct.Mapping;
 public interface BankDomainMapper {
     
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "isDeleted", ignore = true)
     Bank toDomain(BankCreateReq request);
     
-    @Mapping(target = "isDeleted", ignore = true)
     Bank toDomain(BankUpdateReq request);
     
     BankRes toRes(Bank domain);

@@ -13,7 +13,7 @@ public class TaxSearchRes {
     private String idEnterprise;
     private String code;
     private String description;
-    private float interest;
+    private double interest;
     private String refundAccount;
     private String depositAccount;
     private Boolean status;

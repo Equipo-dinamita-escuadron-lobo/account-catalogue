@@ -8,8 +8,9 @@ public interface ITaxChangeStateOutputPort {
      * Cambia el estado de un impuesto en la base de datos.
      * 
      * @param id el ID del impuesto
+     * @param idEnterprise el ID de la empresa
      * @param status el nuevo estado
      * @return el impuesto actualizado
      */
-    Tax changeState(Long id, Boolean status);
+    Tax changeState(Long id, String idEnterprise, Boolean status);
 }

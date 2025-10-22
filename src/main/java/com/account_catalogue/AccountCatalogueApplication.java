@@ -2,10 +2,14 @@ package com.account_catalogue;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+
+import com.account_catalogue.commons.config.FileUploadProperties;
 
 @SpringBootApplication
 @EnableDiscoveryClient
+@EnableConfigurationProperties(FileUploadProperties.class)
 public class AccountCatalogueApplication {
 
 	/**

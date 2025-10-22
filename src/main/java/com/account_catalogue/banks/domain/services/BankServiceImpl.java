@@ -36,12 +36,12 @@ public class BankServiceImpl implements IBankService {
         String standardizedName = standardizeName(request.getNombre());
 
         // Validar unicidad del código por empresa
-        if (repository.existsByCodigoAndIdEnterpriseAndIsDeletedFalse(request.getCodigo(), request.getIdEnterprise())) {
+        if (repository.existsByCodigoAndIdEnterprise(request.getCodigo(), request.getIdEnterprise())) {
             throw new BankAlreadyExistsException("código", request.getCodigo().toString(), request.getIdEnterprise());
         }
 
         // Validar unicidad del nombre por empresa
-        if (repository.existsByNombreAndIdEnterpriseAndIsDeletedFalse(standardizedName, request.getIdEnterprise())) {
+        if (repository.existsByNombreAndIdEnterprise(standardizedName, request.getIdEnterprise())) {
             throw new BankAlreadyExistsException("nombre", standardizedName, request.getIdEnterprise());
         }
 
@@ -55,7 +55,7 @@ public class BankServiceImpl implements IBankService {
 
     @Transactional
     public Bank update(BankUpdateReq request) {
-        BankEntity current = repository.findByIdAndIdEnterpriseAndIsDeletedFalse(request.getId(), request.getIdEnterprise())
+        BankEntity current = repository.findByIdAndIdEnterprise(request.getId(), request.getIdEnterprise())
                 .orElseThrow(BankNotFoundException::new);
 
         // Validar que no se esté intentando cambiar el código
@@ -70,7 +70,7 @@ public class BankServiceImpl implements IBankService {
 
         // Validar unicidad del nombre si cambió (solo entre registros no eliminados)
         if (!standardizedName.equals(current.getNombre()) && 
-            repository.existsByNombreAndIdEnterpriseAndIdNotAndIsDeletedFalse(standardizedName, request.getIdEnterprise(), current.getId())) {
+            repository.existsByNombreAndIdEnterpriseAndIdNot(standardizedName, request.getIdEnterprise(), current.getId())) {
             throw new BankAlreadyExistsException("nombre", standardizedName, request.getIdEnterprise());
         }
 
@@ -84,26 +84,26 @@ public class BankServiceImpl implements IBankService {
 
     @Transactional(readOnly = true)
     public Bank findById(Long id, String idEnterprise) {
-        return dataMapper.toDomain(repository.findByIdAndIdEnterpriseAndIsDeletedFalse(id, idEnterprise)
+        return dataMapper.toDomain(repository.findByIdAndIdEnterprise(id, idEnterprise)
                 .orElseThrow(BankNotFoundException::new));
     }
 
     @Transactional(readOnly = true)
     public Page<Bank> findAllByEnterprise(String idEnterprise, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        return repository.findAllByIdEnterpriseAndIsDeletedFalse(idEnterprise, pageable).map(dataMapper::toDomain);
+        return repository.findAllByIdEnterprise(idEnterprise, pageable).map(dataMapper::toDomain);
     }
 
     @Transactional(readOnly = true)
     public Page<Bank> findAllByEnterpriseAndStatus(String idEnterprise, Boolean status, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        return repository.findAllByIdEnterpriseAndStatusAndIsDeletedFalse(idEnterprise, status, pageable)
+        return repository.findAllByIdEnterpriseAndStatus(idEnterprise, status, pageable)
                 .map(dataMapper::toDomain);
     }
 
     @Transactional
     public Bank changeState(Long id, String idEnterprise, Boolean newState) {
-        BankEntity current = repository.findByIdAndIdEnterpriseAndIsDeletedFalse(id, idEnterprise)
+        BankEntity current = repository.findByIdAndIdEnterprise(id, idEnterprise)
                 .orElseThrow(BankNotFoundException::new);
 
         current.setStatus(newState);
@@ -112,13 +112,13 @@ public class BankServiceImpl implements IBankService {
     }
 
     @Transactional
-    public Bank softDelete(Long id, String idEnterprise) {
-        BankEntity current = repository.findByIdAndIdEnterpriseAndIsDeletedFalse(id, idEnterprise)
+    public Bank delete(Long id, String idEnterprise) {
+        BankEntity current = repository.findByIdAndIdEnterprise(id, idEnterprise)
                 .orElseThrow(BankNotFoundException::new);
 
-        current.setIsDeleted(true);
-        BankEntity saved = repository.save(current);
-        return dataMapper.toDomain(saved);
+        Bank domain = dataMapper.toDomain(current);
+        repository.delete(current);
+        return domain;
     }
 
     /**

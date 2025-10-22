@@ -26,8 +26,8 @@ public interface ITaxSearchRestMapper {
                 .code(tax.getCode())
                 .description(tax.getDescription())
                 .interest(tax.getInterest())
-                .refundAccount(tax.getRefundAccount().getCode())
-                .depositAccount(tax.getDepositAccount().getCode())
+                .refundAccount(tax.getRefundAccount() != null ? tax.getRefundAccount().getCode() : null)
+                .depositAccount(tax.getDepositAccount() != null ? tax.getDepositAccount().getCode() : null)
                 .status(tax.getStatus())
                 .build();
     }
@@ -52,8 +52,8 @@ public interface ITaxSearchRestMapper {
                             .code(tax.getCode())
                             .description(tax.getDescription())
                             .interest(tax.getInterest())
-                            .depositAccount(tax.getDepositAccount().getCode())
-                            .refundAccount(tax.getRefundAccount().getCode())
+                            .depositAccount(tax.getDepositAccount() != null ? tax.getDepositAccount().getCode() : null)
+                            .refundAccount(tax.getRefundAccount() != null ? tax.getRefundAccount().getCode() : null)
                             .status(tax.getStatus())
                             .build();
                     return taxSearchRes;

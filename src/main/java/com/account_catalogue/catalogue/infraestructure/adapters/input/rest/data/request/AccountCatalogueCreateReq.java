@@ -31,13 +31,13 @@ public class AccountCatalogueCreateReq {
     @NotBlank(message = "La descripcion es requerida")
     private String description;
 
-   // @NotBlank(message = "La naturaleza es requerida")
+    @NotBlank(message = "La naturaleza es requerida")
     private String nature;
 
-    //@NotBlank(message = "La estado financiero es requerido")
+    @NotBlank(message = "La estado financiero es requerido")
     private String financialStatus;
     
-    //@NotBlank(message = "La clasificacion es requerido")
+    @NotBlank(message = "La clasificacion es requerido")
     private String classification;
     
     private Long parent;

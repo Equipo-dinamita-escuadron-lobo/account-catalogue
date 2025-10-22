@@ -18,36 +18,33 @@ public class AccountCatalogueDeleteJpaAdapter implements IAccountCatalogueDelete
     private final IAccountCatalogueRepository accountCatalogueRepository;
 
     /**
-     * Realiza un soft delete marcando la cuenta como eliminada (isDeleted = true).
-     * También marca como eliminadas todas las cuentas hijas en cascada.
+     * Realiza una eliminación de la cuenta y todas sus cuentas hijas en cascada.
      *
-     * @param id del item de la cuenta que se va a marcar como eliminada
+     * @param id del item de la cuenta que se va a eliminar
      *
      */
     @Override
     public void deleteById(Long id) {
-        AccountCatalogueEntity entity = accountCatalogueRepository.findById(id.longValue());
+        AccountCatalogueEntity entity = accountCatalogueRepository.findById(id).orElse(null);
         if (entity != null) {
-            // Marcar la cuenta principal como eliminada
-            markAsDeleted(entity);
+            // Eliminar físicamente la cuenta principal y sus hijas
+            deletePhysical(entity);
         }
     }
     
     /**
-     * Marca recursivamente una cuenta y todas sus hijas como eliminadas.
+     * Elimina físicamente una cuenta y todas sus hijas recursivamente.
      * 
-     * @param entity la cuenta a marcar como eliminada
+     * @param entity la cuenta a eliminar
      */
-    private void markAsDeleted(AccountCatalogueEntity entity) {
-        entity.setIsDeleted(true);
-        
-        // Marcar recursivamente todas las cuentas hijas como eliminadas
+    private void deletePhysical(AccountCatalogueEntity entity) {
+        // Eliminar recursivamente todas las cuentas hijas primero
         if (entity.getChildren() != null && !entity.getChildren().isEmpty()) {
             for (AccountCatalogueEntity child : entity.getChildren()) {
-                markAsDeleted(child);
+                deletePhysical(child);
             }
         }
         
-        accountCatalogueRepository.save(entity);
+        accountCatalogueRepository.delete(entity);
     }
 }

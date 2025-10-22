@@ -7,8 +7,15 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueErrorCode;
+import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueHierarchyException;
+import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueImportException;
+import com.account_catalogue.commons.exceptions.catalogue.FileSizeExceededException;
+import com.account_catalogue.commons.exceptions.catalogue.FileValidationException;
+
+import com.account_catalogue.catalogue.domain.utils.ImportConstants;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
@@ -106,6 +113,107 @@ public class GlobalExceptionHandler {
         ), status);
     }
 
+    /**
+     * Maneja excepciones de tamaño de archivo excedido por Spring Boot.
+     * Esta excepción es lanzada por Spring antes de que llegue al controlador.
+     * Delega a FileSizeExceededException para reutilizar la lógica de formateo.
+     */
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ErrorResponse> handleMaxUploadSizeExceededException(
+            MaxUploadSizeExceededException ex, WebRequest request) {
+
+        // Crear una instancia de FileSizeExceededException para reutilizar su mensaje formateado
+        long maxSize = ImportConstants.MAX_FILE_SIZE;
+        FileSizeExceededException fileSizeException = new FileSizeExceededException(maxSize);
+        
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.PAYLOAD_TOO_LARGE.value())
+                .error("Payload Too Large")
+                .message(fileSizeException.getMessage())
+                .code(fileSizeException.getErrorCode().getCode())
+                .path(request.getDescription(false).replace("uri=", ""))
+                .build();
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.PAYLOAD_TOO_LARGE);
+    }
+
+    /**
+     * Maneja excepciones específicas de importación de catálogo de cuentas.
+     */
+    @ExceptionHandler(AccountCatalogueImportException.class)
+    public ResponseEntity<ErrorResponse> handleAccountCatalogueImportException(
+            AccountCatalogueImportException ex, WebRequest request) {
+
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.BAD_REQUEST.value())
+                .error("Import Error")
+                .message(ex.getMessage())
+                .code(ex.getErrorCode().getCode())
+                .path(request.getDescription(false).replace("uri=", ""))
+                .build();
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    /**
+     * Maneja excepciones de validación de archivos.
+     */
+    @ExceptionHandler(FileValidationException.class)
+    public ResponseEntity<ErrorResponse> handleFileValidationException(
+            FileValidationException ex, WebRequest request) {
+
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.BAD_REQUEST.value())
+                .error("File Validation Error")
+                .message(ex.getMessage())
+                .code(ex.getErrorCode().getCode())
+                .path(request.getDescription(false).replace("uri=", ""))
+                .build();
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    /**
+     * Maneja excepciones de jerarquía de cuentas.
+     */
+    @ExceptionHandler(AccountCatalogueHierarchyException.class)
+    public ResponseEntity<ErrorResponse> handleAccountCatalogueHierarchyException(
+            AccountCatalogueHierarchyException ex, WebRequest request) {
+
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.BAD_REQUEST.value())
+                .error("Hierarchy Error")
+                .message(ex.getMessage())
+                .code(ex.getErrorCode().getCode())
+                .path(request.getDescription(false).replace("uri=", ""))
+                .build();
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    /**
+     * Maneja excepciones de tamaño de archivo excedido (custom).
+     */
+    @ExceptionHandler(FileSizeExceededException.class)
+    public ResponseEntity<ErrorResponse> handleFileSizeExceededException(
+            FileSizeExceededException ex, WebRequest request) {
+
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.PAYLOAD_TOO_LARGE.value())
+                .error("File Too Large")
+                .message(ex.getMessage())
+                .code(ex.getErrorCode().getCode())
+                .path(request.getDescription(false).replace("uri=", ""))
+                .build();
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.PAYLOAD_TOO_LARGE);
+    }
+
     private HttpStatus mapStatusFromErrorCode(String code) {
         if (code == null) {
             return HttpStatus.BAD_REQUEST;
@@ -116,6 +224,9 @@ public class GlobalExceptionHandler {
         }
         if (upper.endsWith("_ALREADY_EXISTS") || upper.contains("DUPLICATE") || upper.contains("ASSOCIATED")) {
             return HttpStatus.CONFLICT;
+        }
+        if (upper.contains("IMPORT") || upper.contains("HIERARCHY") || upper.contains("FILE")) {
+            return HttpStatus.BAD_REQUEST;
         }
         return HttpStatus.BAD_REQUEST;
     }

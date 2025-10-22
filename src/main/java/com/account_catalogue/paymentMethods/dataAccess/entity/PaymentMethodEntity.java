@@ -11,9 +11,7 @@ import org.hibernate.annotations.TenantId;
     indexes = {
         @Index(name = "idx_payment_method_id_enterprise", columnList = "id_enterprise"),
         @Index(name = "idx_payment_method_name", columnList = "name"),
-        @Index(name = "idx_payment_method_status", columnList = "status"),
-        @Index(name = "idx_payment_method_is_deleted", columnList = "is_deleted"),
-        @Index(name = "idx_payment_method_enterprise_deleted", columnList = "id_enterprise, is_deleted")
+        @Index(name = "idx_payment_method_status", columnList = "status")
     }
 )
 @Getter
@@ -36,10 +34,6 @@ public class PaymentMethodEntity {
 
     @Column(name = "status", nullable = false)
     private Boolean status;
-
-    @Column(name = "is_deleted", nullable = false)
-    @Builder.Default
-    private Boolean isDeleted = false;
 
     @Column(name = "id_enterprise", nullable = false)
     private String idEnterprise;

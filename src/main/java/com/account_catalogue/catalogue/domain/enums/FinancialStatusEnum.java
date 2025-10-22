@@ -4,9 +4,8 @@ import lombok.Getter;
 
 @Getter
 public enum FinancialStatusEnum {
-    INCOMESTATEMENT("Estado de Resultados"),
     STATEMENTFINANCIALPOSITION("Estado de Situacion Financiero"),
-    EMPTY("Por defecto");
+    INCOMESTATEMENT("Estado de Resultados");
     private final String state;
 
     FinancialStatusEnum(String state){

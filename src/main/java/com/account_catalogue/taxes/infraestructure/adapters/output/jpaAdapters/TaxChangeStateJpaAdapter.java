@@ -21,12 +21,13 @@ public class TaxChangeStateJpaAdapter implements ITaxChangeStateOutputPort {
      * Cambia el estado de un impuesto en la base de datos.
      * 
      * @param id el ID del impuesto
+     * @param idEnterprise el ID de la empresa
      * @param status el nuevo estado
      * @return el impuesto actualizado
      */
     @Override
-    public Tax changeState(Long id, Boolean status) {
-        TaxEntity taxEntity = taxRepository.findByIdActive(id);
+    public Tax changeState(Long id, String idEnterprise, Boolean status) {
+        TaxEntity taxEntity = taxRepository.findByIdAndIdEnterprise(id, idEnterprise);
         
         if (taxEntity == null) {
             return null;

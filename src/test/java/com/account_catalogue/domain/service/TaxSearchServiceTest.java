@@ -6,6 +6,7 @@ import com.account_catalogue.catalogue.domain.enums.NatureEnum;
 import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.entity.AccountCatalogueEntity;
 import com.account_catalogue.taxes.application.output.ITaxSearchOutputPort;
 import com.account_catalogue.taxes.application.services.TaxSearchService;
+import com.account_catalogue.taxes.application.services.TaxValidationService;
 import com.account_catalogue.taxes.domain.models.Tax;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -18,7 +19,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.context.ActiveProfiles;
 
 
-import java.util.Collections;
 import java.util.List;
 
 
@@ -31,6 +31,9 @@ public class TaxSearchServiceTest {
 
     @Mock
     private ITaxSearchOutputPort taxSearchOutputPort;
+
+    @Mock
+    private TaxValidationService taxValidationService;
 
     @InjectMocks
     private TaxSearchService taxSearchService;
@@ -73,7 +76,7 @@ public class TaxSearchServiceTest {
                 .idEnterprise("1")
                 .code("123")
                 .description("iva")
-                .interest(2.7f)
+                .interest(2.7)
                 .refundAccount(account1)
                 .depositAccount(account2)
                 .build();
@@ -82,48 +85,12 @@ public class TaxSearchServiceTest {
     }
 
 
-    @DisplayName("Test para listar impuestos")
-    @Test
-    void testGetTaxes(){
-       Tax tax2 = Tax.builder()
-                .id(2L)
-               .idEnterprise("1")
-                .code("1234")
-                .description("iva")
-               .interest(2.7f)
-                .refundAccount(account1)
-                .depositAccount(account2)
-                .build();
-
-        //given
-        given(taxSearchOutputPort.getTaxes("1")).willReturn(List.of(tax,tax2));
-        //when
-        List<Tax> taxes=taxSearchService.getTaxes("1");
-
-        //then
-        assertThat(taxes).isNotNull();
-        assertThat(taxes.size()).isEqualTo(2);
-
-    }
-    @DisplayName("Test prar retornar una lista vacia de impuestos")
-    @Test
-    void testGetTaxesEmpty(){
-        //given
-        given(taxSearchOutputPort.getTaxes("2")).willReturn(Collections.emptyList());
-
-
-        //when
-        List<Tax> taxes=taxSearchService.getTaxes("2");
-
-        //then
-        assertThat(taxes).isEmpty();
-
-    }
     @DisplayName("Test para obtener un impuesto por el codigo")
     @Test
     void testGetTax(){
         //giiven
         given(taxSearchOutputPort.getTax("123","1")).willReturn(tax);
+        willDoNothing().given(taxValidationService).validateTaxExists("123", "1");
         //when
         Tax taxAux=taxSearchService.getTax(tax.getCode(),tax.getIdEnterprise());
         //then
@@ -137,11 +104,27 @@ public class TaxSearchServiceTest {
     void testGetTaxIncorrrect(){
         //giiven
         given(taxSearchOutputPort.getTax("123","2")).willReturn(null);
+        willDoNothing().given(taxValidationService).validateTaxExists("123", "2");
         //when
         Tax taxAux=taxSearchService.getTax(tax.getCode(),"2");
         //then
         assertThat(taxAux).isNull();
 
+    }
+
+    @DisplayName("Test para obtener una lista de impuestos activos")
+    @Test
+    void testGetActiveTaxes(){
+        //given
+        given(taxSearchOutputPort.getActiveTaxes("1")).willReturn(List.of(tax));
+        //when
+        List<Tax> activeTaxes = taxSearchService.getActiveTaxes("1");
+
+        //then
+        assertThat(activeTaxes).isNotNull();
+        assertThat(activeTaxes.size()).isEqualTo(1);
+        assertThat(activeTaxes.get(0)).isEqualTo(tax);
+        verify(taxSearchOutputPort).getActiveTaxes("1");
     }
 
 }

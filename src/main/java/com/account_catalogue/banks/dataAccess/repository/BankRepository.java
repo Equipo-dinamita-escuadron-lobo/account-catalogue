@@ -8,17 +8,17 @@ import java.util.Optional;
 
 public interface BankRepository extends JpaRepository<BankEntity, Long> {
     
-    boolean existsByCodigoAndIdEnterpriseAndIsDeletedFalse(String codigo, String idEnterprise);
+    boolean existsByCodigoAndIdEnterprise(String codigo, String idEnterprise);
     
-    boolean existsByNombreAndIdEnterpriseAndIsDeletedFalse(String nombre, String idEnterprise);
+    boolean existsByNombreAndIdEnterprise(String nombre, String idEnterprise);
     
-    boolean existsByCodigoAndIdEnterpriseAndIdNotAndIsDeletedFalse(String codigo, String idEnterprise, Long id);
+    boolean existsByCodigoAndIdEnterpriseAndIdNot(String codigo, String idEnterprise, Long id);
     
-    boolean existsByNombreAndIdEnterpriseAndIdNotAndIsDeletedFalse(String nombre, String idEnterprise, Long id);
+    boolean existsByNombreAndIdEnterpriseAndIdNot(String nombre, String idEnterprise, Long id);
     
-    Optional<BankEntity> findByIdAndIdEnterpriseAndIsDeletedFalse(Long id, String idEnterprise);
+    Optional<BankEntity> findByIdAndIdEnterprise(Long id, String idEnterprise);
     
-    Page<BankEntity> findAllByIdEnterpriseAndIsDeletedFalse(String idEnterprise, Pageable pageable);
+    Page<BankEntity> findAllByIdEnterprise(String idEnterprise, Pageable pageable);
     
-    Page<BankEntity> findAllByIdEnterpriseAndStatusAndIsDeletedFalse(String idEnterprise, Boolean status, Pageable pageable);
+    Page<BankEntity> findAllByIdEnterpriseAndStatus(String idEnterprise, Boolean status, Pageable pageable);
 }

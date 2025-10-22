@@ -69,10 +69,10 @@ public class PaymentMethodController {
     }
 
     @DeleteMapping("/delete/{id}/{enterpriseId}")
-    public ResponseEntity<PaymentMethodRes> softDelete(
+    public ResponseEntity<PaymentMethodRes> delete(
             @PathVariable Long id, 
             @PathVariable String enterpriseId) {
-        PaymentMethod deleted = service.softDelete(id, enterpriseId);
+        PaymentMethod deleted = service.delete(id, enterpriseId);
         return ResponseEntity.ok(mapper.toRes(deleted));
     }
 }

@@ -8,6 +8,15 @@ spring:
   jpa:
     hibernate:
       ddl-auto: ${DB_HIBERNATE_DDL_AUTO:create-drop}
+    show-sql: true
+
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 8MB
+      enabled: true
+      file-size-threshold: 2KB
+      resolve-lazily: false
   
   h2: 
     console:
@@ -55,6 +64,13 @@ spring:
 
 server:
   port: ${PORT:0}
+  tomcat:
+    connection-timeout: 60000
+    max-connections: 10000
+    threads:
+      max: 200
+      min-spare: 10
+    max-http-form-post-size: 8MB
 
 eureka:
   instance:
@@ -68,11 +84,30 @@ logging:
   level:
     org:
       Keycloak: ${KEYCLOAK_LOG_LEVEL:DEBUG}
+      hibernate:
+        SQL: DEBUG
+        type:
+          descriptor:
+            sql:
+              BasicBinder: TRACE
 jwt:
   auth:
     converter:
       principle-attribute: ${JWT_PRINCIPAL_ATTR:preferred_username}
       resource-id: ${JWT_RESOURCE_ID:microservices_client}
+
+file-upload:
+  max-size: 5242880
+  allowed-extensions:
+    excel:
+      - ".xlsx"
+      - ".xls"
+    pdf:
+      - ".pdf"
+  allowed-mime-types:
+    excel:
+      - "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      - "application/vnd.ms-excel"
 
 management:
   endpoint:

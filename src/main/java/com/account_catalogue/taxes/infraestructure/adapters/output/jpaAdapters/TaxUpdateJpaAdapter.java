@@ -48,6 +48,7 @@ public class TaxUpdateJpaAdapter implements ITaxUpdateOutputPort {
 
 
         taxValidationService.validateAccountDigits(taxDTO.getSalesTaxId(), taxDTO.getPurchaseTaxId(), taxDTO.getIdEnterprise());
+        taxValidationService.validateDifferentTaxAccounts(taxDTO.getSalesTaxId(), taxDTO.getPurchaseTaxId());
 
         if (!taxEntity.getSalesTax().getId().equals(taxDTO.getSalesTaxId())) {
             salesTax = accountCatalogueRepository.findByIdAndIdEnterprise(taxDTO.getSalesTaxId(),

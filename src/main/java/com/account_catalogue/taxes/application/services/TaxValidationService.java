@@ -6,6 +6,7 @@ import com.account_catalogue.catalogue.application.output.IAccountCatalogueSearc
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
 import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueInactiveException;
 import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueNotFoundException;
+import com.account_catalogue.commons.exceptions.taxes.DuplicateTaxAccountsException;
 import com.account_catalogue.commons.exceptions.taxes.InvalidAccountDigitsException;
 import com.account_catalogue.commons.exceptions.taxes.TaxAlreadyExistsException;
 import com.account_catalogue.commons.exceptions.taxes.TaxNotFoundException;
@@ -129,6 +130,20 @@ public class TaxValidationService {
         if (tax == null) {
             throw new TaxNotFoundException(
                     "No se encontró un impuesto con ID '" + id + "'");
+        }
+    }
+
+    /**
+     * Valida que las cuentas de impuesto de venta e impuesto de compra sean diferentes.
+     *
+     * @param salesTaxId ID de la cuenta de impuesto de venta
+     * @param purchaseTaxId ID de la cuenta de impuesto de compra
+     * @throws DuplicateTaxAccountsException si ambas cuentas son iguales
+     */
+    public void validateDifferentTaxAccounts(Long salesTaxId, Long purchaseTaxId) {
+        if (salesTaxId != null && purchaseTaxId != null && salesTaxId.equals(purchaseTaxId)) {
+            throw new DuplicateTaxAccountsException(
+                    "Las cuentas de impuesto de venta e impuesto de compra deben ser diferentes");
         }
     }
 }

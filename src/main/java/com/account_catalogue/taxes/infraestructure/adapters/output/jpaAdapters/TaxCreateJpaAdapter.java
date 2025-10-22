@@ -43,6 +43,7 @@ public class TaxCreateJpaAdapter implements ITaxCreateOutputPort {
         // Validaciones usando el servicio centralizado
         taxValidationService.validateTaxCodeNotExists(tax.getCode(), tax.getIdEnterprise());
         taxValidationService.validateAccountDigits(tax.getSalesTaxId(), tax.getPurchaseTaxId(), tax.getIdEnterprise());
+        taxValidationService.validateDifferentTaxAccounts(tax.getSalesTaxId(), tax.getPurchaseTaxId());
 
         AccountCatalogueEntity salesTax = accountCatalogueRepository.findByIdAndIdEnterprise(tax.getSalesTaxId(),
                 tax.getIdEnterprise());

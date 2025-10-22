@@ -39,7 +39,7 @@ public class TaxValidationService {
             AccountCatalogue salesTax = accountCatalogueSearchOutputPort
                     .getAccountCatalogueByIdAndIdEnterprise(salesTaxId, idEnterprise);
             if (salesTax == null) {
-                throw new AccountCatalogueNotFoundException("La cuenta con ID '" + salesTaxId + "' no existe");
+                throw new AccountCatalogueNotFoundException("La cuenta especificada no existe");
             }
             if (!Boolean.TRUE.equals(salesTax.getStatus())) {
                 throw new AccountCatalogueInactiveException(
@@ -54,7 +54,7 @@ public class TaxValidationService {
             AccountCatalogue purchaseTax = accountCatalogueSearchOutputPort
                     .getAccountCatalogueByIdAndIdEnterprise(purchaseTaxId, idEnterprise);
             if (purchaseTax == null) {
-                throw new AccountCatalogueNotFoundException("La cuenta con ID '" + purchaseTaxId + "' no existe");
+                throw new AccountCatalogueNotFoundException("La cuenta especificada no existe");
             }
             if (!Boolean.TRUE.equals(purchaseTax.getStatus())) {
                 throw new AccountCatalogueInactiveException(
@@ -79,7 +79,7 @@ public class TaxValidationService {
             AccountCatalogue account = accountCatalogueSearchOutputPort
                     .getAccountCatalogueByIdAndIdEnterprise(accountId, idEnterprise);
             if (account == null) {
-                throw new AccountCatalogueNotFoundException("La cuenta con ID '" + accountId + "' no existe");
+                throw new AccountCatalogueNotFoundException("La cuenta especificada no existe");
             }
             if (!Boolean.TRUE.equals(account.getStatus())) {
                 throw new AccountCatalogueInactiveException("La cuenta '" + account.getCode() + "' está inactiva");

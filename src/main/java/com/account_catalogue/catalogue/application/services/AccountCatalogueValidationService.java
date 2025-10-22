@@ -57,7 +57,7 @@ public class AccountCatalogueValidationService {
         AccountCatalogue existingAccount = accountCatalogueSearchOutputPort.getAccountCatalogueByCode(code, idEnterprise);
         if (existingAccount != null) {
             throw new AccountCatalogueAlreadyExistsException(
-                "Ya existe una cuenta con el código '" + code + "' para la empresa '" + idEnterprise + "'"
+                "Ya existe una cuenta con el código '" + code + "'"
             );
         }
     }
@@ -87,9 +87,7 @@ public class AccountCatalogueValidationService {
         AccountCatalogue existingAccount = accountCatalogueSearchOutputPort.getAccountCatalogueByCode(code.trim(), idEnterprise);
         if (existingAccount != null && !existingAccount.getId().equals(excludeId)) {
             throw new AccountCatalogueAlreadyExistsException(
-                "Ya existe otra cuenta con el código '" + code.trim() + "' para la empresa '" + idEnterprise + 
-                "'. Cuenta existente: ID=" + existingAccount.getId() + ", Código=" + existingAccount.getCode() + 
-                ". Cuenta a actualizar: ID=" + excludeId
+                "Ya existe otra cuenta con el código '" + code.trim() + "'"
             );
         }
     }
@@ -226,7 +224,7 @@ public class AccountCatalogueValidationService {
         AccountCatalogue existingAccount = accountCatalogueSearchOutputPort.getAccountCatalogueByDescriptionIgnoreCaseAndIdEnterprise(description.trim(), idEnterprise);
         if (existingAccount != null) {
             throw new AccountCatalogueDescriptionAlreadyExistsException(
-                "Ya existe una cuenta con la descripción '" + description.trim() + "' para la empresa '" + idEnterprise + "'"
+                "Ya existe una cuenta con la descripción '" + description.trim() + "'"
             );
         }
     }
@@ -256,9 +254,7 @@ public class AccountCatalogueValidationService {
         AccountCatalogue existingAccount = accountCatalogueSearchOutputPort.getAccountCatalogueByDescriptionIgnoreCaseAndIdEnterprise(description.trim(), idEnterprise);
         if (existingAccount != null && !existingAccount.getId().equals(excludeId)) {
             throw new AccountCatalogueDescriptionAlreadyExistsException(
-                "Ya existe otra cuenta con la descripción '" + description.trim() + "' para la empresa '" + idEnterprise + 
-                "'. Cuenta existente: ID=" + existingAccount.getId() + ", Descripción=" + existingAccount.getDescription() + 
-                ". Cuenta a actualizar: ID=" + excludeId
+                "Ya existe otra cuenta con la descripción '" + description.trim() + "'"
             );
         }
     }

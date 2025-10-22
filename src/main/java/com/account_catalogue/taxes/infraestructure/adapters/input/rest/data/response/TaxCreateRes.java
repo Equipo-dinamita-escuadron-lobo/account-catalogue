@@ -14,7 +14,7 @@ public class TaxCreateRes {
     private String code;
     private String description;
     private double interest;
-    private Long refundAccountId;
-    private Long depositAccountId;
+    private Long purchaseTaxId;
+    private Long salesTaxId;
     private Boolean status;
 }

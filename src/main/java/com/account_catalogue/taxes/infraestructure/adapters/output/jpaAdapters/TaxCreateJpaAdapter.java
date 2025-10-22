@@ -42,13 +42,13 @@ public class TaxCreateJpaAdapter implements ITaxCreateOutputPort {
     public Tax createTax(TaxDTO tax) {
         // Validaciones usando el servicio centralizado
         taxValidationService.validateTaxCodeNotExists(tax.getCode(), tax.getIdEnterprise());
-        taxValidationService.validateAccountDigits(tax.getDepositAccountId(), tax.getRefundAccountId(), tax.getIdEnterprise());
+        taxValidationService.validateAccountDigits(tax.getSalesTaxId(), tax.getPurchaseTaxId(), tax.getIdEnterprise());
 
-        AccountCatalogueEntity depositAccount = accountCatalogueRepository.findByIdAndIdEnterprise(tax.getDepositAccountId(),
+        AccountCatalogueEntity salesTax = accountCatalogueRepository.findByIdAndIdEnterprise(tax.getSalesTaxId(),
                 tax.getIdEnterprise());
 
 
-        AccountCatalogueEntity refundAccount = accountCatalogueRepository.findByIdAndIdEnterprise(tax.getRefundAccountId(),
+        AccountCatalogueEntity purchaseTax = accountCatalogueRepository.findByIdAndIdEnterprise(tax.getPurchaseTaxId(),
                 tax.getIdEnterprise());
 
 
@@ -57,13 +57,13 @@ public class TaxCreateJpaAdapter implements ITaxCreateOutputPort {
                 .idEnterprise(tax.getIdEnterprise())
                 .description(tax.getDescription())
                 .interest(tax.getInterest())
-                .refundAccount(refundAccount)
-                .depositAccount(depositAccount)
+                .purchaseTax(purchaseTax)
+                .salesTax(salesTax)
                 .build();
 
         TaxEntity taxEntity = taxCreateMapper.toEntity(taxAux);
-        depositAccount.getDepositAccounts().add(taxEntity);
-        refundAccount.getRefundAccounts().add(taxEntity);
+        salesTax.getSalesTaxes().add(taxEntity);
+        purchaseTax.getPurchaseTaxes().add(taxEntity);
         taxEntity = taxRepository.save(taxEntity);
         return taxCreateMapper.toModel(taxEntity);
     }

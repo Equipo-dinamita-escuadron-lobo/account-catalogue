@@ -137,13 +137,13 @@ public class AccountCatalogueValidationService {
      * @throws AccountCatalogueAssociatedWithTaxException si la cuenta está asociada a impuestos
      */
     public void validateAccountNotAssociatedWithTaxes(AccountCatalogue account) {
-        boolean hasDepositAccounts = account.getDepositAccounts() != null && !account.getDepositAccounts().isEmpty();
-        boolean hasRefundAccounts = account.getRefundAccounts() != null && !account.getRefundAccounts().isEmpty();
-        
-        if (hasDepositAccounts || hasRefundAccounts) {
+        boolean hasSalesTaxes = account.getSalesTaxes() != null && !account.getSalesTaxes().isEmpty();
+        boolean hasPurchaseTaxes = account.getPurchaseTaxes() != null && !account.getPurchaseTaxes().isEmpty();
+
+        if (hasSalesTaxes || hasPurchaseTaxes) {
             int totalTaxes = 0;
-            if (hasDepositAccounts) totalTaxes += account.getDepositAccounts().size();
-            if (hasRefundAccounts) totalTaxes += account.getRefundAccounts().size();
+            if (hasSalesTaxes) totalTaxes += account.getSalesTaxes().size();
+            if (hasPurchaseTaxes) totalTaxes += account.getPurchaseTaxes().size();
             
             throw new AccountCatalogueAssociatedWithTaxException(
                 "La cuenta '" + account.getCode() + "' está asociada a " + totalTaxes + 

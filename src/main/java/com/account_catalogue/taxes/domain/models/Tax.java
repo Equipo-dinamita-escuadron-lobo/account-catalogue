@@ -14,7 +14,7 @@ public class Tax {
     private String code;
     private String description;
     private Double interest;
-    private AccountCatalogueEntity depositAccount;
-    private AccountCatalogueEntity refundAccount;
+    private AccountCatalogueEntity salesTax;
+    private AccountCatalogueEntity purchaseTax;
     private Boolean status;
 }

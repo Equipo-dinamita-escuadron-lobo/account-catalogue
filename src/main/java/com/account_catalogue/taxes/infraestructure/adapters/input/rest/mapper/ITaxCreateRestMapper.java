@@ -26,8 +26,8 @@ public interface ITaxCreateRestMapper {
                 .code(taxCreateReq.getCode())
                 .description(taxCreateReq.getDescription())
                 .interest(taxCreateReq.getInterest())
-                .refundAccountId(taxCreateReq.getRefundAccountId())
-                .depositAccountId(taxCreateReq.getDepositAccountId())
+                .purchaseTaxId(taxCreateReq.getPurchaseTaxId())
+                .salesTaxId(taxCreateReq.getSalesTaxId())
                 .build();
     }
 
@@ -48,8 +48,8 @@ public interface ITaxCreateRestMapper {
                 .code(tax.getCode())
                 .description(tax.getDescription())
                 .interest(tax.getInterest())
-                .refundAccountId(tax.getRefundAccount() != null ? tax.getRefundAccount().getId() : null)
-                .depositAccountId(tax.getDepositAccount() != null ? tax.getDepositAccount().getId() : null)
+                .purchaseTaxId(tax.getPurchaseTax() != null ? tax.getPurchaseTax().getId() : null)
+                .salesTaxId(tax.getSalesTax() != null ? tax.getSalesTax().getId() : null)
                 .status(tax.getStatus())
                 .build();
     }

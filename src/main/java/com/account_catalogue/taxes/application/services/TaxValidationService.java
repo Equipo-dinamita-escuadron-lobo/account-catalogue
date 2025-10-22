@@ -22,44 +22,44 @@ public class TaxValidationService {
     private final IAccountCatalogueSearchOutputPort accountCatalogueSearchOutputPort;
 
     /**
-     * Valida que existan las cuentas de depósito y devolución por sus IDs, que
+     * Valida que existan las cuentas de impuesto de venta e impuesto de compra por sus IDs, que
      * tengan exactamente 8 dígitos y que estén activas.
-     * 
-     * @param depositAccountId ID de cuenta de depósito
-     * @param refundAccountId  ID de cuenta de devolución
+     *
+     * @param salesTaxId ID de cuenta de impuesto de venta
+     * @param purchaseTaxId  ID de cuenta de impuesto de compra
      * @param idEnterprise     ID de la empresa
-     * @throws AccountCatalogueNotFoundException si la cuenta de depósito o
-     *                                           devolución no existe
+     * @throws AccountCatalogueNotFoundException si la cuenta de impuesto de venta o
+     *                                           impuesto de compra no existe
      * @throws AccountCatalogueInactiveException si la cuenta está inactiva
      * @throws InvalidAccountDigitsException     si alguna cuenta no tiene 8 dígitos
      */
-    public void validateAccountDigits(Long depositAccountId, Long refundAccountId, String idEnterprise) {
-        if (depositAccountId != null) {
-            AccountCatalogue depositAccount = accountCatalogueSearchOutputPort
-                    .getAccountCatalogueByIdAndIdEnterprise(depositAccountId, idEnterprise);
-            if (depositAccount == null) {
-                throw new AccountCatalogueNotFoundException("La cuenta con ID '" + depositAccountId + "' no existe");
+    public void validateAccountDigits(Long salesTaxId, Long purchaseTaxId, String idEnterprise) {
+        if (salesTaxId != null) {
+            AccountCatalogue salesTax = accountCatalogueSearchOutputPort
+                    .getAccountCatalogueByIdAndIdEnterprise(salesTaxId, idEnterprise);
+            if (salesTax == null) {
+                throw new AccountCatalogueNotFoundException("La cuenta con ID '" + salesTaxId + "' no existe");
             }
-            if (!Boolean.TRUE.equals(depositAccount.getStatus())) {
+            if (!Boolean.TRUE.equals(salesTax.getStatus())) {
                 throw new AccountCatalogueInactiveException(
-                        "La cuenta '" + depositAccount.getCode() + "' está inactiva");
+                        "La cuenta '" + salesTax.getCode() + "' está inactiva");
             }
-            if (depositAccount.getCode() == null || depositAccount.getCode().trim().length() != 8) {
+            if (salesTax.getCode() == null || salesTax.getCode().trim().length() != 8) {
                 throw new InvalidAccountDigitsException();
             }
         }
 
-        if (refundAccountId != null) {
-            AccountCatalogue refundAccount = accountCatalogueSearchOutputPort
-                    .getAccountCatalogueByIdAndIdEnterprise(refundAccountId, idEnterprise);
-            if (refundAccount == null) {
-                throw new AccountCatalogueNotFoundException("La cuenta con ID '" + refundAccountId + "' no existe");
+        if (purchaseTaxId != null) {
+            AccountCatalogue purchaseTax = accountCatalogueSearchOutputPort
+                    .getAccountCatalogueByIdAndIdEnterprise(purchaseTaxId, idEnterprise);
+            if (purchaseTax == null) {
+                throw new AccountCatalogueNotFoundException("La cuenta con ID '" + purchaseTaxId + "' no existe");
             }
-            if (!Boolean.TRUE.equals(refundAccount.getStatus())) {
+            if (!Boolean.TRUE.equals(purchaseTax.getStatus())) {
                 throw new AccountCatalogueInactiveException(
-                        "La cuenta '" + refundAccount.getCode() + "' está inactiva");
+                        "La cuenta '" + purchaseTax.getCode() + "' está inactiva");
             }
-            if (refundAccount.getCode() == null || refundAccount.getCode().trim().length() != 8) {
+            if (purchaseTax.getCode() == null || purchaseTax.getCode().trim().length() != 8) {
                 throw new InvalidAccountDigitsException();
             }
         }

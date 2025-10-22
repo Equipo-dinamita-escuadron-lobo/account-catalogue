@@ -23,6 +23,7 @@ public interface IAccountCatalogueSearchInputPort {
 
     Page<AccountCatalogue> getAllAccountCatalogues(String idEnterprise, Pageable pageable);
 
+    Page<AccountCatalogue> getAllAccountCataloguesByStatus(String idEnterprise, Boolean status, Pageable pageable);
 
     List<AccountCatalogue> getAllAccountsByEnterprise(String idEnterprise);
 

@@ -25,31 +25,13 @@ public interface IAccountCatalogueSearchOutputPort {
 
     List<AccountCatalogue> getAuxiliaryAccountsWithCrossingByIdEnterprise(String idEnterprise);
 
-    /**
-     * Obtiene todos los catálogos de cuentas para una empresa específica con paginación.
-     * Los resultados se ordenan por código para mantener la jerarquía.
-     *
-     * @param idEnterprise el ID de la empresa
-     * @param pageable objeto de paginación con ordenamiento
-     * @return página de catálogos de cuentas
-     */
     Page<AccountCatalogue> getAllAccountCataloguesByIdEnterprise(String idEnterprise, Pageable pageable);
 
-    /**
-     * Obtiene todas las cuentas (activas e inactivas) para una empresa específica ordenadas por código.
-     *
-     * @param idEnterprise el ID de la empresa
-     * @return lista de todas las cuentas ordenadas por código
-     */
+  
     List<AccountCatalogue> getAllAccountsByEnterprise(String idEnterprise);
 
-    /**
-     * Obtiene las cuentas (activas e inactivas) que coinciden con el criterio de búsqueda (código o descripción) para una empresa específica.
-     * Búsqueda inteligente por código o descripción, ordenada por código ascendente.
-     *
-     * @param idEnterprise el ID de la empresa
-     * @param search el término de búsqueda (código o descripción)
-     * @return lista de cuentas que coinciden con el criterio de búsqueda
-     */
     List<AccountCatalogue> getAccountsByCodeOrDescription(String idEnterprise, String search);
+
+    
+    Page<AccountCatalogue> getAllAccountCataloguesByIdEnterpriseAndStatus(String idEnterprise, Boolean status, Pageable pageable);
 }

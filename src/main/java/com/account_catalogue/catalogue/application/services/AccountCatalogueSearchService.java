@@ -134,8 +134,17 @@ public class AccountCatalogueSearchService implements IAccountCatalogueSearchInp
         if (idEnterprise == null || idEnterprise.trim().isEmpty()) {
             throw new IllegalArgumentException("El ID de empresa es requerido para buscar catálogos de cuentas");
         }
-        
+
         return accountCatalogueSearchOutputPort.getAllAccountCataloguesByIdEnterprise(idEnterprise.trim(), pageable);
+    }
+
+    @Override
+    public Page<AccountCatalogue> getAllAccountCataloguesByStatus(String idEnterprise, Boolean status, Pageable pageable) {
+        if (idEnterprise == null || idEnterprise.trim().isEmpty()) {
+            throw new IllegalArgumentException("El ID de empresa es requerido para buscar catálogos de cuentas");
+        }
+
+        return accountCatalogueSearchOutputPort.getAllAccountCataloguesByIdEnterpriseAndStatus(idEnterprise.trim(), status, pageable);
     }
 
     /**

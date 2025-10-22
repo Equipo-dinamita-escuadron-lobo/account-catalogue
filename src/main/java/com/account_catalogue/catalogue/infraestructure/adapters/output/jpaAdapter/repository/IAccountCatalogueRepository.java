@@ -102,15 +102,37 @@ public interface IAccountCatalogueRepository extends JpaRepository<AccountCatalo
     void updateStatusByCodes(@Param("status") Boolean status, @Param("codes") List<String> codes, @Param("idEnterprise") String idEnterprise, @Param("tenantId") String tenantId);
 
     /**
-     * Encuentra todas las cuentas activas para una empresa específica con paginación.
+     * Encuentra todas las cuentas (activas e inactivas) para una empresa específica con paginación.
      * Ordenadas por código para mantener la jerarquía.
-     * 
+     *
      * @param idEnterprise el id de la empresa.
      * @param pageable objeto de paginación.
      * @return página de AccountCatalogueEntity para la empresa dada.
      */
-    @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.idEnterprise = ?1 AND a.status = true ORDER BY a.code ASC")
+    @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.idEnterprise = ?1 ORDER BY a.code ASC")
     Page<AccountCatalogueEntity> findAllByIdEnterpriseOrderByCode(String idEnterprise, Pageable pageable);
+
+    /**
+     * Encuentra todas las cuentas activas para una empresa específica con paginación.
+     * Ordenadas por código para mantener la jerarquía.
+     *
+     * @param idEnterprise el id de la empresa.
+     * @param pageable objeto de paginación.
+     * @return página de AccountCatalogueEntity activas para la empresa dada.
+     */
+    @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.idEnterprise = ?1 AND a.status = true ORDER BY a.code ASC")
+    Page<AccountCatalogueEntity> findAllActiveByIdEnterpriseOrderByCode(String idEnterprise, Pageable pageable);
+
+    /**
+     * Encuentra todas las cuentas inactivas para una empresa específica con paginación.
+     * Ordenadas por código para mantener la jerarquía.
+     *
+     * @param idEnterprise el id de la empresa.
+     * @param pageable objeto de paginación.
+     * @return página de AccountCatalogueEntity inactivas para la empresa dada.
+     */
+    @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.idEnterprise = ?1 AND a.status = false ORDER BY a.code ASC")
+    Page<AccountCatalogueEntity> findAllInactiveByIdEnterpriseOrderByCode(String idEnterprise, Pageable pageable);
 
 
     /**

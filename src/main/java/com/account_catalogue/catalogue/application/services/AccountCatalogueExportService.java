@@ -37,7 +37,7 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
     private final AccountCatalogueExcelValidationService excelValidationService;
     private final IAccountCatalogueSearchInputPort accountCatalogueSearchInputPort;
 
-    private static final int EXPORT_PAGE_SIZE = 5000;
+    private static final int EXPORT_PAGE_SIZE = 1000;
     private static final String TEMPLATE_PLACEHOLDER_TEXT = "Seleccionar...";
 
     @Override
@@ -53,14 +53,14 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
     }
 
     @Override
-    public Resource exportAccountCatalogueWithValidations(String entId) {
+    public Resource exportAccountCatalogueWithValidations(String entId, Boolean status) {
         try {
-            // Obtener todos los datos reales con paginación y orden jerárquico
-            List<AccountCatalogue> accountCatalogues = getAllAccountCataloguesWithPagination(entId);
+            // Obtener todos los datos reales con paginación y orden jerárquico, filtrados por status
+            List<AccountCatalogue> accountCatalogues = getAllAccountCataloguesWithPagination(entId, status);
 
             // Verificar que haya datos para exportar
             if (accountCatalogues.isEmpty()) {
-                throw AccountCatalogueExportException.forNoData();
+                throw AccountCatalogueExportException.forNoData(status);
             }
 
             // Convertir a template data para compatibilidad con el método existente
@@ -499,27 +499,27 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
         );
     }
 
-    private List<AccountCatalogue> getAllAccountCataloguesWithPagination(String entId) {
+    private List<AccountCatalogue> getAllAccountCataloguesWithPagination(String entId, Boolean status) {
         List<AccountCatalogue> allAccounts = new ArrayList<>();
         int currentPage = 0;
         Page<AccountCatalogue> page;
-        
+
         do {
             // Crear pageable para la página actual
             Pageable pageable = PageRequest.of(currentPage, EXPORT_PAGE_SIZE);
-            
-            // Obtener página de cuentas ordenadas por código (jerarquía)
-            page = accountCatalogueSearchInputPort.getAllAccountCatalogues(entId, pageable);
-            
+
+            // Obtener página de cuentas ordenadas por código (jerarquía) filtradas por status
+            page = accountCatalogueSearchInputPort.getAllAccountCataloguesByStatus(entId, status, pageable);
+
             // Agregar contenido de esta página a la lista total
             if (page != null && page.hasContent()) {
                 allAccounts.addAll(page.getContent());
             }
-            
+
             currentPage++;
-            
+
         } while (page != null && page.hasNext());
-        
+
         return allAccounts;
     }
 
@@ -540,4 +540,5 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
             .centroCosto(account.getCostCenter())
             .build();
     }
+
 }

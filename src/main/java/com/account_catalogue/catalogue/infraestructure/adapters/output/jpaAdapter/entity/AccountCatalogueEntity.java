@@ -1,5 +1,6 @@
 package com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.entity;
 
+import java.math.BigDecimal;
 import java.util.List;
 import org.hibernate.annotations.Formula;
 import org.hibernate.annotations.TenantId;
@@ -71,4 +72,8 @@ public class AccountCatalogueEntity {
 
     @Formula("LENGTH(code)")
     private Integer codeLength;
+    @Column(name = "amount", nullable = false, precision = 19, scale = 4)
+    @Builder.Default
+    private BigDecimal amount = BigDecimal.ZERO;
+
 }

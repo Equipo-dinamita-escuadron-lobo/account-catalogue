@@ -6,6 +6,6 @@ public class BankHasAssociatedAccountsException extends BaseBusinessException {
 
     public BankHasAssociatedAccountsException(String bankName) {
         super(BankErrorCode.BANK_HAS_ASSOCIATED_ACCOUNTS,
-              String.format("No se puede eliminar el banco '%s' porque tiene una o más cuentas bancarias", bankName));
+              String.format("No se puede eliminar '%s' porque tiene una o más cuentas bancarias", bankName));
     }
 }

@@ -44,11 +44,11 @@ public class AccountCatalogueEntity {
     private FinancialStatusEnum financialStatus;
     private ClassificationEnum classification;
 
-    @ManyToOne
-    @JoinColumn(name = "parent_id", referencedColumnName = "id") 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_id", referencedColumnName = "id")
     private AccountCatalogueEntity parent;
 
-    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<AccountCatalogueEntity> children;
 
    @OneToMany(mappedBy = "salesTax", fetch = FetchType.LAZY)

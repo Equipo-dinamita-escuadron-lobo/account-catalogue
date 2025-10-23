@@ -55,8 +55,13 @@ public class BankAccountServiceImpl implements IBankAccountService {
 
         BankAccount domain = domainMapper.toDomain(request);
         domain.setBank(bank);
-        domain.setAccountingAccount(accountingAccount);
+        domain.setAccountingAccountId(accountingAccount.getId());
         BankAccountEntity toSave = dataMapper.toEntity(domain);
+
+        // Configurar la entidad de cuenta contable
+        AccountCatalogueEntity accountingAccountEntity = new AccountCatalogueEntity();
+        accountingAccountEntity.setId(accountingAccount.getId());
+        toSave.setAccountingAccount(accountingAccountEntity);
 
         BankAccountEntity saved = repository.save(toSave);
         return dataMapper.toDomain(saved);
@@ -97,15 +102,10 @@ public class BankAccountServiceImpl implements IBankAccountService {
         // Si no cambió, mantenemos la entidad existente que ya está cargada
         current.setAccountType(request.getAccountType());
 
-        // Solo actualizar la cuenta contable si cambió
-        if (!current.getAccountingAccount().getId().equals(request.getAccountingAccountId())) {
-            // Si cambió, crear una entidad mínima para evitar problemas de lazy loading
-            // Solo necesitamos el ID para la relación, no la entidad completa
-            AccountCatalogueEntity accountingAccountEntity = new AccountCatalogueEntity();
-            accountingAccountEntity.setId(request.getAccountingAccountId());
-            current.setAccountingAccount(accountingAccountEntity);
-        }
-        // Si no cambió, mantenemos la entidad existente que ya está cargada
+        // Actualizar siempre la cuenta contable (ya que validamos que existe)
+        AccountCatalogueEntity accountingAccountEntity = new AccountCatalogueEntity();
+        accountingAccountEntity.setId(request.getAccountingAccountId());
+        current.setAccountingAccount(accountingAccountEntity);
         current.setStatus(request.getStatus());
 
         BankAccountEntity saved = repository.save(current);

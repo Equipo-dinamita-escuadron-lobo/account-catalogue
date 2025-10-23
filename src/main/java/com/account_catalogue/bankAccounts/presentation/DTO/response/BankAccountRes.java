@@ -14,7 +14,7 @@ public class BankAccountRes {
     private Long accountNumber;
     private BankRes bank;
     private AccountType accountType;
-    private String cuentaContable;
+    private Long accountingAccountId;
     private Boolean status;
     private String idEnterprise;
 }

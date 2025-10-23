@@ -12,10 +12,13 @@ public interface BankAccountDomainMapper {
     
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "bank", ignore = true)
+    @Mapping(target = "accountingAccount", ignore = true)
     BankAccount toDomain(BankAccountCreateReq request);
-    
+
     @Mapping(target = "bank", ignore = true)
+    @Mapping(target = "accountingAccount", ignore = true)
     BankAccount toDomain(BankAccountUpdateReq request);
     
+    @Mapping(target = "accountingAccountId", source = "accountingAccount.id")
     BankAccountRes toRes(BankAccount domain);
 }

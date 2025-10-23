@@ -11,6 +11,7 @@ import com.account_catalogue.banks.domain.services.IBankService;
 import com.account_catalogue.banks.domain.model.Bank;
 import com.account_catalogue.bankAccounts.dataAccess.entity.BankAccountEntity;
 import com.account_catalogue.bankAccounts.dataAccess.mapper.BankAccountDataMapper;
+import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.entity.AccountCatalogueEntity;
 import com.account_catalogue.bankAccounts.dataAccess.repository.BankAccountRepository;
 import com.account_catalogue.bankAccounts.domain.mapper.BankAccountDomainMapper;
 import com.account_catalogue.bankAccounts.domain.model.BankAccount;
@@ -39,7 +40,7 @@ public class BankAccountServiceImpl implements IBankAccountService {
 
         Bank bank = validateBankExists(request.getBankId(), request.getIdEnterprise());
 
-        validateAccountingAccount(request.getCuentaContable(), request.getIdEnterprise());
+        AccountCatalogue accountingAccount = validateAccountingAccountExists(request.getAccountingAccountId(), request.getIdEnterprise());
 
         if (repository.existsByAccountNumberAndIdEnterprise(request.getAccountNumber(), request.getIdEnterprise())) {
             throw new BankAccountAlreadyExistsException("número de cuenta", request.getAccountNumber().toString(), request.getIdEnterprise());
@@ -47,6 +48,7 @@ public class BankAccountServiceImpl implements IBankAccountService {
 
         BankAccount domain = domainMapper.toDomain(request);
         domain.setBank(bank);
+        domain.setAccountingAccount(accountingAccount);
         BankAccountEntity toSave = dataMapper.toEntity(domain);
 
         BankAccountEntity saved = repository.save(toSave);
@@ -74,11 +76,14 @@ public class BankAccountServiceImpl implements IBankAccountService {
             );
         }
 
-        // Validar que la cuenta contable existe y es auxiliar
-        validateAccountingAccount(request.getCuentaContable(), request.getIdEnterprise());
+        // Validar que la cuenta contable existe
+        AccountCatalogue accountingAccount = validateAccountingAccountExists(request.getAccountingAccountId(), request.getIdEnterprise());
 
         current.setAccountType(request.getAccountType());
-        current.setCuentaContable(request.getCuentaContable());
+        // Convertir AccountCatalogue del dominio a AccountCatalogueEntity
+        AccountCatalogueEntity accountingAccountEntity = new AccountCatalogueEntity();
+        accountingAccountEntity.setId(accountingAccount.getId());
+        current.setAccountingAccount(accountingAccountEntity);
         current.setStatus(request.getStatus());
 
         BankAccountEntity saved = repository.save(current);
@@ -163,36 +168,28 @@ public class BankAccountServiceImpl implements IBankAccountService {
     }
 
     /**
-     * Valida que la cuenta contable existe y es una cuenta auxiliar (8 dígitos exactamente).
+     * Valida que la cuenta contable existe por ID.
      */
-    private void validateAccountingAccount(String accountingAccount, String idEnterprise) {
-        if (accountingAccount == null || accountingAccount.trim().isEmpty()) {
-            throw new InvalidAccountingAccountForBankAccountException("La cuenta contable no puede estar vacía");
-        }
-
-        String trimmedAccount = accountingAccount.trim();
-
-        // Validar que la cuenta tenga exactamente 8 dígitos (cuenta auxiliar)
-        if (!trimmedAccount.matches("^\\d{8}$")) {
-            throw new InvalidAccountingAccountForBankAccountException(
-                "La cuenta contable debe ser una cuenta auxiliar de exactamente 8 dígitos. Cuenta proporcionada: '" + trimmedAccount + "'"
-            );
+    private AccountCatalogue validateAccountingAccountExists(Long accountingAccountId, String idEnterprise) {
+        if (accountingAccountId == null) {
+            throw new InvalidAccountingAccountForBankAccountException("El ID de la cuenta contable no puede estar vacío");
         }
 
         // Validar que la cuenta existe en el catálogo
         try {
-            AccountCatalogue account = accountCatalogueValidationService.validateAccountExists(trimmedAccount, idEnterprise);
+            AccountCatalogue account = accountCatalogueValidationService.validateAccountExistsByIdAndEnterprise(accountingAccountId, idEnterprise);
             if (account == null) {
                 throw new InvalidAccountingAccountForBankAccountException(
-                    "La cuenta contable '" + trimmedAccount + "' no existe en el catálogo de cuentas para la empresa '" + idEnterprise + "'"
+                    "La cuenta contable con ID '" + accountingAccountId + "' no existe en el catálogo de cuentas para la empresa '" + idEnterprise + "'"
                 );
             }
+            return account;
         } catch (Exception e) {
             if (e instanceof InvalidAccountingAccountForBankAccountException) {
                 throw e;
             }
             throw new InvalidAccountingAccountForBankAccountException(
-                "La cuenta contable '" + trimmedAccount + "' no existe en el catálogo de cuentas para la empresa '" + idEnterprise + "'"
+                "La cuenta contable con ID '" + accountingAccountId + "' no existe en el catálogo de cuentas para la empresa '" + idEnterprise + "'"
             );
         }
     }

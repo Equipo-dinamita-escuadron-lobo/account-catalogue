@@ -12,5 +12,6 @@ public interface BankAccountDataMapper {
     
     @Mapping(target = "tenantId", ignore = true)
     @Mapping(target = "bank.tenantId", ignore = true)
+    @Mapping(target = "accountingAccount.tenantId", ignore = true)
     BankAccountEntity toEntity(BankAccount domain);
 }

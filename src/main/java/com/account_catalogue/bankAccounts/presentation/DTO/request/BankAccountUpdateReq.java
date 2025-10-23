@@ -38,8 +38,8 @@ public class BankAccountUpdateReq {
     @NotNull(message = "El tipo de cuenta es obligatorio")
     private AccountType accountType;
 
-    @NotBlank(message = "La cuenta contable es obligatoria")
-    private String cuentaContable;
+    @NotNull(message = "La cuenta contable es obligatoria")
+    private Long accountingAccountId;
 
     @NotNull(message = "El estado es obligatorio")
     private Boolean status;

@@ -2,6 +2,7 @@ package com.account_catalogue.bankAccounts.dataAccess.entity;
 
 import com.account_catalogue.bankAccounts.domain.enums.AccountType;
 import com.account_catalogue.banks.dataAccess.entity.BankEntity;
+import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.entity.AccountCatalogueEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.TenantId;
@@ -37,8 +38,9 @@ public class BankAccountEntity {
     @Column(name = "account_type", nullable = false)
     private AccountType accountType;
 
-    @Column(name = "cuenta_contable", nullable = false)
-    private String cuentaContable;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "accounting_account_id", nullable = false)
+    private AccountCatalogueEntity accountingAccount;
 
     @Column(name = "status", nullable = false)
     @Builder.Default

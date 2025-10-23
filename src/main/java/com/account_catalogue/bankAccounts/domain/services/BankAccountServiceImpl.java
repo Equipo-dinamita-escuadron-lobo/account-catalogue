@@ -12,9 +12,7 @@ import com.account_catalogue.banks.domain.model.Bank;
 import com.account_catalogue.bankAccounts.dataAccess.entity.BankAccountEntity;
 import com.account_catalogue.bankAccounts.dataAccess.mapper.BankAccountDataMapper;
 import com.account_catalogue.banks.dataAccess.entity.BankEntity;
-import com.account_catalogue.banks.dataAccess.repository.BankRepository;
 import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.entity.AccountCatalogueEntity;
-import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.repository.IAccountCatalogueRepository;
 import com.account_catalogue.bankAccounts.dataAccess.repository.BankAccountRepository;
 import com.account_catalogue.bankAccounts.domain.mapper.BankAccountDomainMapper;
 import com.account_catalogue.bankAccounts.domain.model.BankAccount;
@@ -36,8 +34,6 @@ public class BankAccountServiceImpl implements IBankAccountService {
     private final BankAccountDomainMapper domainMapper;
     private final IBankService bankService;
     private final AccountCatalogueValidationService accountCatalogueValidationService;
-    private final BankRepository bankRepository;
-    private final IAccountCatalogueRepository accountCatalogueRepository;
 
     @Transactional
     public BankAccount create(BankAccountCreateReq request) {

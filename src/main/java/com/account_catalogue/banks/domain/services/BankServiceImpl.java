@@ -61,12 +61,13 @@ public class BankServiceImpl implements IBankService {
         BankEntity current = repository.findByIdAndIdEnterprise(request.getId(), request.getIdEnterprise())
                 .orElseThrow(BankNotFoundException::new);
 
-        // Validar que no se esté intentando cambiar el código
-        if (!current.getCodigo().equals(request.getCodigo())) {
-            throw new InvalidBankCodeException(
-                "No se puede modificar el código del banco. Código actual: '" + current.getCodigo() + 
-                "', código solicitado: '" + request.getCodigo() + "'"
-            );
+        // Validar formato del código
+        validateBankCode(request.getCodigo());
+
+        // Validar unicidad del código si cambió
+        if (!current.getCodigo().equals(request.getCodigo()) &&
+            repository.existsByCodigoAndIdEnterprise(request.getCodigo(), request.getIdEnterprise())) {
+            throw new BankAlreadyExistsException("código", request.getCodigo(), request.getIdEnterprise());
         }
 
         String standardizedName = standardizeName(request.getNombre());
@@ -77,6 +78,7 @@ public class BankServiceImpl implements IBankService {
             throw new BankAlreadyExistsException("nombre", standardizedName, request.getIdEnterprise());
         }
 
+        current.setCodigo(request.getCodigo());
         current.setNombre(standardizedName);
         current.setMoneda(request.getMoneda());
         current.setStatus(request.getStatus());

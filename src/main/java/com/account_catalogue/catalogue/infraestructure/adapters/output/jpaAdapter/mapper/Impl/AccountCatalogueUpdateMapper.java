@@ -28,6 +28,7 @@ public class AccountCatalogueUpdateMapper implements IAccountCatalogueUpdateMapp
                 .status(accountCatalogueEntity.getStatus())
                 .salesTaxes(accountCatalogueEntity.getSalesTaxes())
                 .purchaseTaxes(accountCatalogueEntity.getPurchaseTaxes())
+                .amount(accountCatalogueEntity.getAmount())
                 .parent(auxParent(accountCatalogueEntity.getParent() == null ? null : accountCatalogueEntity.getParent()))
                 .build();
         

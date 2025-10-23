@@ -7,6 +7,8 @@ import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapte
 import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.repository.IAccountCatalogueRepository;
 
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,6 +16,7 @@ import java.util.List;
 
 @Component
 @Data
+@RequiredArgsConstructor
 public class AccountCatalogueUpdateJpaAdapter implements IAccountCatalogueUpdateOutputPort {
 
 
@@ -53,7 +56,7 @@ public class AccountCatalogueUpdateJpaAdapter implements IAccountCatalogueUpdate
         accountCatalogueEntity.setNature(accountCatalogue.getNature());
         accountCatalogueEntity.setCrossing(accountCatalogue.getCrossing());
         accountCatalogueEntity.setCostCenter(accountCatalogue.getCostCenter());
-
+        accountCatalogueEntity.setAmount(accountCatalogue.getAmount());
         accountCatalogueEntity = accountCatalogueRepository.save(accountCatalogueEntity);
 
         // Si el código cambió, actualizar códigos de hijos en cascada

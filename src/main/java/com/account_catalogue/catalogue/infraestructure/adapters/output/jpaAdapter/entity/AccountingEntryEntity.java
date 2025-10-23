@@ -30,6 +30,9 @@ public class AccountingEntryEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "id_enterprise", nullable = false)
+    private String idEnterprise;
+
     @Column(nullable = false, unique = true, length = 50)
     private String code;
     

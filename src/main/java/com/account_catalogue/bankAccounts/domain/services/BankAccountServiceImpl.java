@@ -11,6 +11,7 @@ import com.account_catalogue.banks.domain.services.IBankService;
 import com.account_catalogue.banks.domain.model.Bank;
 import com.account_catalogue.bankAccounts.dataAccess.entity.BankAccountEntity;
 import com.account_catalogue.bankAccounts.dataAccess.mapper.BankAccountDataMapper;
+import com.account_catalogue.banks.dataAccess.entity.BankEntity;
 import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.entity.AccountCatalogueEntity;
 import com.account_catalogue.bankAccounts.dataAccess.repository.BankAccountRepository;
 import com.account_catalogue.bankAccounts.domain.mapper.BankAccountDomainMapper;
@@ -62,24 +63,29 @@ public class BankAccountServiceImpl implements IBankAccountService {
         BankAccountEntity current = repository.findByIdAndIdEnterprise(request.getId(), request.getIdEnterprise())
                 .orElseThrow(BankAccountNotFoundException::new);
 
-        // Validar que no se esté intentando cambiar el número de cuenta
-        if (!current.getAccountNumber().equals(request.getAccountNumber())) {
-            throw new InvalidAccountNumberException(
-                    "No se puede modificar el número de cuenta. Número actual: '" + current.getAccountNumber() +
-                            "', número solicitado: '" + request.getAccountNumber() + "'");
-        }
+        // Validar el número de cuenta (si cambió)
+        validateAccountNumber(request.getAccountNumber());
 
-        // Validar que no se esté intentando cambiar el banco
-        if (!current.getBank().getId().equals(request.getBankId())) {
-            throw new BankNotFoundForAccountException(
-                    "No se puede modificar el banco de la cuenta. Banco actual: '" + current.getBank().getId() +
-                            "', banco solicitado: '" + request.getBankId() + "'");
+        // Validar que el banco existe
+        Bank bank = validateBankExists(request.getBankId(), request.getIdEnterprise());
+
+        // Verificar que no exista otra cuenta con el mismo número para la misma empresa
+        if (!current.getAccountNumber().equals(request.getAccountNumber())) {
+            if (repository.existsByAccountNumberAndIdEnterprise(request.getAccountNumber(), request.getIdEnterprise())) {
+                throw new BankAccountAlreadyExistsException("número de cuenta", request.getAccountNumber().toString(),
+                        request.getIdEnterprise());
+            }
         }
 
         // Validar que la cuenta contable existe
         AccountCatalogue accountingAccount = validateAccountingAccountExists(request.getAccountingAccountId(),
                 request.getIdEnterprise());
 
+        current.setAccountNumber(request.getAccountNumber());
+        // Convertir Bank del dominio a BankEntity
+        BankEntity bankEntity = new BankEntity();
+        bankEntity.setId(bank.getId());
+        current.setBank(bankEntity);
         current.setAccountType(request.getAccountType());
         // Convertir AccountCatalogue del dominio a AccountCatalogueEntity
         AccountCatalogueEntity accountingAccountEntity = new AccountCatalogueEntity();

@@ -26,13 +26,13 @@ public interface IAccountCatalogueRepository extends JpaRepository<AccountCatalo
 
     /**
      * Encuentra un AccountCatalogueEntity por ID y id de empresa (no eliminado).
-     * 
+     *
      * @param id           el ID de la cuenta.
      * @param idEnterprise el id de la empresa.
      * @return el AccountCatalogueEntity con el ID y id de empresa dados. Si no
      *         se encuentra, se devuelve null.
      */
-    @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.id = ?1 AND a.idEnterprise = ?2")
+    @Query("SELECT a FROM AccountCatalogueEntity a LEFT JOIN FETCH a.parent WHERE a.id = ?1 AND a.idEnterprise = ?2")
     AccountCatalogueEntity findByIdAndIdEnterprise(Long id, String idEnterprise);
 
     /**
@@ -177,4 +177,14 @@ public interface IAccountCatalogueRepository extends JpaRepository<AccountCatalo
      */
     @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.idEnterprise = ?1 AND (a.code LIKE %?2% OR UPPER(a.description) LIKE UPPER(CONCAT('%', ?2, '%'))) ORDER BY a.code ASC")
     List<AccountCatalogueEntity> findByIdEnterpriseAndCodeOrDescription(String idEnterprise, String search);
+
+    /**
+     * Encuentra todas las cuentas hijas directas de una cuenta padre para una empresa específica.
+     *
+     * @param parentId el ID de la cuenta padre.
+     * @param idEnterprise el id de la empresa.
+     * @return lista de AccountCatalogueEntity hijas directas.
+     */
+    @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.parent.id = ?1 AND a.idEnterprise = ?2 ORDER BY a.code ASC")
+    List<AccountCatalogueEntity> findByParentIdAndIdEnterprise(Long parentId, String idEnterprise);
 }

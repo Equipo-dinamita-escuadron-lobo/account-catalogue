@@ -44,6 +44,11 @@ public class AccountCatalogueUpdateService implements IAccountCatalogueUpdateInp
         if (accountCatalogue.getCode() != null) {
             accountCatalogue.setCode(accountCatalogue.getCode().trim());
         }
+
+        if (accountCatalogue.getCode() == null || accountCatalogue.getCode().trim().isEmpty()) {
+            throw new IllegalArgumentException("El código de la cuenta es requerido para la actualización");
+        }
+
         validationService.validateAccountCode(accountCatalogue.getCode());
         
         // Normalizar y validar la descripción de la cuenta
@@ -61,11 +66,17 @@ public class AccountCatalogueUpdateService implements IAccountCatalogueUpdateInp
         
         // Validar que no existe otra cuenta con la misma descripción (excluyendo la actual) - case-insensitive
         validationService.validateAccountDescriptionDoesNotExistExcluding(
-            accountCatalogue.getDescription(), 
-            accountCatalogue.getIdEnterprise(), 
+            accountCatalogue.getDescription(),
+            accountCatalogue.getIdEnterprise(),
             id
         );
-        
+
+        // Validar que si el código cambió y la cuenta tiene padre, el nuevo código mantenga el prefijo del padre
+        boolean codeChanged = accountCatalogue.getCode() != null && !accountCatalogue.getCode().equals(existingAccount.getCode());
+        if (codeChanged && existingAccount.getParent() != null && existingAccount.getParent().getCode() != null) {
+            validationService.validateParentCodePrefix(accountCatalogue.getCode(), existingAccount.getParent().getCode());
+        }
+
         // Solo validar que la cuenta no está asociada a impuestos
         // (Se permite actualizar cuentas que tienen hijos)
         validationService.validateAccountNotAssociatedWithTaxes(existingAccount);

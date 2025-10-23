@@ -316,4 +316,28 @@ public class AccountCatalogueValidationService {
             }
         }
     }
+
+    /**
+     * Valida que el código de la cuenta comience con el prefijo del código padre.
+     * Esto asegura que se mantenga la jerarquía correcta cuando se actualiza una cuenta hija.
+     *
+     * @param accountCode el código de la cuenta a validar
+     * @param parentCode el código del padre
+     * @throws InvalidAccountCodeException si el código no mantiene el prefijo del padre
+     */
+    public void validateParentCodePrefix(String accountCode, String parentCode) {
+        if (accountCode == null) {
+            throw new InvalidAccountCodeException("El código de la cuenta no puede ser nulo");
+        }
+        if (parentCode == null) {
+            throw new InvalidAccountCodeException("El código del padre no puede ser nulo");
+        }
+
+        if (!accountCode.startsWith(parentCode)) {
+            throw new InvalidAccountCodeException(
+                "El código de la cuenta debe comenzar con el código del padre. " +
+                "Padre: '" + parentCode + "', Cuenta: '" + accountCode + "'"
+            );
+        }
+    }
 }

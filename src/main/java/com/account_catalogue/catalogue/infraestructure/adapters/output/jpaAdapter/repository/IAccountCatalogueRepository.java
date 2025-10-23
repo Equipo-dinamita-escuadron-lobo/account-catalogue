@@ -26,13 +26,13 @@ public interface IAccountCatalogueRepository extends JpaRepository<AccountCatalo
 
     /**
      * Encuentra un AccountCatalogueEntity por ID y id de empresa (no eliminado).
-     * 
+     *
      * @param id           el ID de la cuenta.
      * @param idEnterprise el id de la empresa.
      * @return el AccountCatalogueEntity con el ID y id de empresa dados. Si no
      *         se encuentra, se devuelve null.
      */
-    @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.id = ?1 AND a.idEnterprise = ?2")
+    @Query("SELECT a FROM AccountCatalogueEntity a LEFT JOIN FETCH a.parent WHERE a.id = ?1 AND a.idEnterprise = ?2")
     AccountCatalogueEntity findByIdAndIdEnterprise(Long id, String idEnterprise);
 
     /**
@@ -102,15 +102,37 @@ public interface IAccountCatalogueRepository extends JpaRepository<AccountCatalo
     void updateStatusByCodes(@Param("status") Boolean status, @Param("codes") List<String> codes, @Param("idEnterprise") String idEnterprise, @Param("tenantId") String tenantId);
 
     /**
-     * Encuentra todas las cuentas activas para una empresa específica con paginación.
+     * Encuentra todas las cuentas (activas e inactivas) para una empresa específica con paginación.
      * Ordenadas por código para mantener la jerarquía.
-     * 
+     *
      * @param idEnterprise el id de la empresa.
      * @param pageable objeto de paginación.
      * @return página de AccountCatalogueEntity para la empresa dada.
      */
-    @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.idEnterprise = ?1 AND a.status = true ORDER BY a.code ASC")
+    @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.idEnterprise = ?1 ORDER BY a.code ASC")
     Page<AccountCatalogueEntity> findAllByIdEnterpriseOrderByCode(String idEnterprise, Pageable pageable);
+
+    /**
+     * Encuentra todas las cuentas activas para una empresa específica con paginación.
+     * Ordenadas por código para mantener la jerarquía.
+     *
+     * @param idEnterprise el id de la empresa.
+     * @param pageable objeto de paginación.
+     * @return página de AccountCatalogueEntity activas para la empresa dada.
+     */
+    @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.idEnterprise = ?1 AND a.status = true ORDER BY a.code ASC")
+    Page<AccountCatalogueEntity> findAllActiveByIdEnterpriseOrderByCode(String idEnterprise, Pageable pageable);
+
+    /**
+     * Encuentra todas las cuentas inactivas para una empresa específica con paginación.
+     * Ordenadas por código para mantener la jerarquía.
+     *
+     * @param idEnterprise el id de la empresa.
+     * @param pageable objeto de paginación.
+     * @return página de AccountCatalogueEntity inactivas para la empresa dada.
+     */
+    @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.idEnterprise = ?1 AND a.status = false ORDER BY a.code ASC")
+    Page<AccountCatalogueEntity> findAllInactiveByIdEnterpriseOrderByCode(String idEnterprise, Pageable pageable);
 
 
     /**
@@ -155,4 +177,14 @@ public interface IAccountCatalogueRepository extends JpaRepository<AccountCatalo
      */
     @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.idEnterprise = ?1 AND (a.code LIKE %?2% OR UPPER(a.description) LIKE UPPER(CONCAT('%', ?2, '%'))) ORDER BY a.code ASC")
     List<AccountCatalogueEntity> findByIdEnterpriseAndCodeOrDescription(String idEnterprise, String search);
+
+    /**
+     * Encuentra todas las cuentas hijas directas de una cuenta padre para una empresa específica.
+     *
+     * @param parentId el ID de la cuenta padre.
+     * @param idEnterprise el id de la empresa.
+     * @return lista de AccountCatalogueEntity hijas directas.
+     */
+    @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.parent.id = ?1 AND a.idEnterprise = ?2 ORDER BY a.code ASC")
+    List<AccountCatalogueEntity> findByParentIdAndIdEnterprise(Long parentId, String idEnterprise);
 }

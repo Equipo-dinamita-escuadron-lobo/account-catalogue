@@ -52,11 +52,11 @@ public class AccountCatalogueEntity {
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
     private List<AccountCatalogueEntity> children;
 
-   @OneToMany(mappedBy = "depositAccount", fetch = FetchType.LAZY)
-   private List<TaxEntity> depositAccounts;
+   @OneToMany(mappedBy = "salesTax", fetch = FetchType.LAZY)
+   private List<TaxEntity> salesTaxes;
 
-   @OneToMany(mappedBy = "refundAccount", fetch = FetchType.LAZY)
-   private List<TaxEntity>  refundAccounts;
+   @OneToMany(mappedBy = "purchaseTax", fetch = FetchType.LAZY)
+   private List<TaxEntity>  purchaseTaxes;
 
     private String idEnterprise;
 

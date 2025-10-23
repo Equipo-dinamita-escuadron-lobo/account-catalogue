@@ -151,7 +151,24 @@ public class AccountCatalogueSearchJpaAdapter implements IAccountCatalogueSearch
      */
     @Override
     public Page<AccountCatalogue> getAllAccountCataloguesByIdEnterprise(String idEnterprise, Pageable pageable) {
+        // Este método ahora se usa solo para obtener todos (activos e inactivos)
         Page<AccountCatalogueEntity> entities = accountCatalogueRepository.findAllByIdEnterpriseOrderByCode(idEnterprise, pageable);
+        return entities.map(itemAccountCatalogueSearchMapper::toDomain);
+    }
+
+    @Override
+    public Page<AccountCatalogue> getAllAccountCataloguesByIdEnterpriseAndStatus(String idEnterprise, Boolean status, Pageable pageable) {
+        Page<AccountCatalogueEntity> entities;
+        if (status == null) {
+            // Todos (activos e inactivos)
+            entities = accountCatalogueRepository.findAllByIdEnterpriseOrderByCode(idEnterprise, pageable);
+        } else if (status) {
+            // Solo activos
+            entities = accountCatalogueRepository.findAllActiveByIdEnterpriseOrderByCode(idEnterprise, pageable);
+        } else {
+            // Solo inactivos
+            entities = accountCatalogueRepository.findAllInactiveByIdEnterpriseOrderByCode(idEnterprise, pageable);
+        }
         return entities.map(itemAccountCatalogueSearchMapper::toDomain);
     }
 

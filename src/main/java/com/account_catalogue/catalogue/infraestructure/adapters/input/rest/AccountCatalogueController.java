@@ -194,10 +194,11 @@ public class AccountCatalogueController {
     @GetMapping("/export/excel")
     public ResponseEntity<Resource> exportAccountCatalogueWithValidations(
             @RequestParam String entId,
-            @RequestParam(required = false) String companyName) {
+            @RequestParam(required = false) String companyName,
+            @RequestParam(required = false) Boolean status) {
 
-        Resource excelFile = accountCatalogueExportInputPort.exportAccountCatalogueWithValidations(entId);
-        String filename = fileNameGenerator.generateExportFileName(entId, companyName);
+        Resource excelFile = accountCatalogueExportInputPort.exportAccountCatalogueWithValidations(entId, status);
+        String filename = fileNameGenerator.generateExportFileName(entId, companyName, status);
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
@@ -205,13 +206,7 @@ public class AccountCatalogueController {
                 .body(excelFile);
     }
 
-    /**
-     * Endpoint para importar catálogo de cuentas desde archivo Excel.
-     * 
-     * @param entId identificador de la empresa
-     * @param file archivo Excel con las cuentas a importar
-     * @return respuesta con estadísticas y errores de la importación
-     */
+    
     @PostMapping("/import/excel")
     public ResponseEntity<AccountCatalogueImportResponse> importFromExcel(
             @RequestParam String entId,

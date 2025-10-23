@@ -30,13 +30,24 @@ public class AccountCatalogueExcelFileNameGenerator {
      *
      * @param entId ID de la entidad
      * @param companyName nombre de la empresa (opcional)
+     * @param status estado de filtrado (opcional: true=activos, false=inactivos)
      * @return nombre del archivo con timestamp
      */
-    public String generateExportFileName(String entId, String companyName) {
+    public String generateExportFileName(String entId, String companyName, Boolean status) {
         String timestamp = LocalDateTime.now().format(TIMESTAMP_FORMAT);
         String companySuffix = (companyName != null && !companyName.trim().isEmpty())
             ? "_" + companyName.replaceAll("[^a-zA-Z0-9]", "_")
             : "";
-        return "Catalogo_Cuentas" + companySuffix + "_" + timestamp + ".xlsx";
+
+        String statusSuffix = "";
+        if (status != null) {
+            if (status) {
+                statusSuffix = "_activos";
+            } else {
+                statusSuffix = "_inactivos";
+            }
+        }
+
+        return "Catalogo_Cuentas" + companySuffix + statusSuffix + "_" + timestamp + ".xlsx";
     }
 }

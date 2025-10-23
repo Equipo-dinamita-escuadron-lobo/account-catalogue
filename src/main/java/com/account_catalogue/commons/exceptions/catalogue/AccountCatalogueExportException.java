@@ -32,12 +32,22 @@ public class AccountCatalogueExportException extends BaseBusinessException {
     /**
      * Constructor de conveniencia para exportación sin datos.
      *
+     * @param status filtro de estado aplicado (true=activos, false=inactivos, null=todos)
      * @return nueva instancia de AccountCatalogueExportException
      */
-    public static AccountCatalogueExportException forNoData() {
+    public static AccountCatalogueExportException forNoData(Boolean status) {
+        String message;
+        if (status == null) {
+            message = "No hay cuentas para exportar";
+        } else if (status) {
+            message = "No hay cuentas activas para exportar";
+        } else {
+            message = "No hay cuentas inactivas para exportar";
+        }
+
         return new AccountCatalogueExportException(
             AccountCatalogueErrorCode.ACCOUNT_EXPORT_NO_DATA,
-            "No hay cuentas contables disponibles para exportar"
+            message
         );
     }
 }

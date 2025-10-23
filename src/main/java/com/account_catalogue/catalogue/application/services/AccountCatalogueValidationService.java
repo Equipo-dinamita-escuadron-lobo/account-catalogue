@@ -57,7 +57,7 @@ public class AccountCatalogueValidationService {
         AccountCatalogue existingAccount = accountCatalogueSearchOutputPort.getAccountCatalogueByCode(code, idEnterprise);
         if (existingAccount != null) {
             throw new AccountCatalogueAlreadyExistsException(
-                "Ya existe una cuenta con el código '" + code + "' para la empresa '" + idEnterprise + "'"
+                "Ya existe una cuenta con el código '" + code + "'"
             );
         }
     }
@@ -87,9 +87,7 @@ public class AccountCatalogueValidationService {
         AccountCatalogue existingAccount = accountCatalogueSearchOutputPort.getAccountCatalogueByCode(code.trim(), idEnterprise);
         if (existingAccount != null && !existingAccount.getId().equals(excludeId)) {
             throw new AccountCatalogueAlreadyExistsException(
-                "Ya existe otra cuenta con el código '" + code.trim() + "' para la empresa '" + idEnterprise + 
-                "'. Cuenta existente: ID=" + existingAccount.getId() + ", Código=" + existingAccount.getCode() + 
-                ". Cuenta a actualizar: ID=" + excludeId
+                "Ya existe otra cuenta con el código '" + code.trim() + "'"
             );
         }
     }
@@ -137,13 +135,13 @@ public class AccountCatalogueValidationService {
      * @throws AccountCatalogueAssociatedWithTaxException si la cuenta está asociada a impuestos
      */
     public void validateAccountNotAssociatedWithTaxes(AccountCatalogue account) {
-        boolean hasDepositAccounts = account.getDepositAccounts() != null && !account.getDepositAccounts().isEmpty();
-        boolean hasRefundAccounts = account.getRefundAccounts() != null && !account.getRefundAccounts().isEmpty();
-        
-        if (hasDepositAccounts || hasRefundAccounts) {
+        boolean hasSalesTaxes = account.getSalesTaxes() != null && !account.getSalesTaxes().isEmpty();
+        boolean hasPurchaseTaxes = account.getPurchaseTaxes() != null && !account.getPurchaseTaxes().isEmpty();
+
+        if (hasSalesTaxes || hasPurchaseTaxes) {
             int totalTaxes = 0;
-            if (hasDepositAccounts) totalTaxes += account.getDepositAccounts().size();
-            if (hasRefundAccounts) totalTaxes += account.getRefundAccounts().size();
+            if (hasSalesTaxes) totalTaxes += account.getSalesTaxes().size();
+            if (hasPurchaseTaxes) totalTaxes += account.getPurchaseTaxes().size();
             
             throw new AccountCatalogueAssociatedWithTaxException(
                 "La cuenta '" + account.getCode() + "' está asociada a " + totalTaxes + 
@@ -226,7 +224,7 @@ public class AccountCatalogueValidationService {
         AccountCatalogue existingAccount = accountCatalogueSearchOutputPort.getAccountCatalogueByDescriptionIgnoreCaseAndIdEnterprise(description.trim(), idEnterprise);
         if (existingAccount != null) {
             throw new AccountCatalogueDescriptionAlreadyExistsException(
-                "Ya existe una cuenta con la descripción '" + description.trim() + "' para la empresa '" + idEnterprise + "'"
+                "Ya existe una cuenta con la descripción '" + description.trim() + "'"
             );
         }
     }
@@ -256,9 +254,7 @@ public class AccountCatalogueValidationService {
         AccountCatalogue existingAccount = accountCatalogueSearchOutputPort.getAccountCatalogueByDescriptionIgnoreCaseAndIdEnterprise(description.trim(), idEnterprise);
         if (existingAccount != null && !existingAccount.getId().equals(excludeId)) {
             throw new AccountCatalogueDescriptionAlreadyExistsException(
-                "Ya existe otra cuenta con la descripción '" + description.trim() + "' para la empresa '" + idEnterprise + 
-                "'. Cuenta existente: ID=" + existingAccount.getId() + ", Descripción=" + existingAccount.getDescription() + 
-                ". Cuenta a actualizar: ID=" + excludeId
+                "Ya existe otra cuenta con la descripción '" + description.trim() + "'"
             );
         }
     }
@@ -318,6 +314,30 @@ public class AccountCatalogueValidationService {
                     );
                 }
             }
+        }
+    }
+
+    /**
+     * Valida que el código de la cuenta comience con el prefijo del código padre.
+     * Esto asegura que se mantenga la jerarquía correcta cuando se actualiza una cuenta hija.
+     *
+     * @param accountCode el código de la cuenta a validar
+     * @param parentCode el código del padre
+     * @throws InvalidAccountCodeException si el código no mantiene el prefijo del padre
+     */
+    public void validateParentCodePrefix(String accountCode, String parentCode) {
+        if (accountCode == null) {
+            throw new InvalidAccountCodeException("El código de la cuenta no puede ser nulo");
+        }
+        if (parentCode == null) {
+            throw new InvalidAccountCodeException("El código del padre no puede ser nulo");
+        }
+
+        if (!accountCode.startsWith(parentCode)) {
+            throw new InvalidAccountCodeException(
+                "El código de la cuenta debe comenzar con el código del padre. " +
+                "Padre: '" + parentCode + "', Cuenta: '" + accountCode + "'"
+            );
         }
     }
 }

@@ -21,8 +21,6 @@ public class TaxUpdateReq {
     private String description;
     @NotNull(message = "El interés es requerido")
     private Double interest;
-    @NotNull(message = "La cuenta de devolución es requerida")
-    private Long refundAccountId;
-    @NotNull(message = "La cuenta de depósito es requerida")
-    private Long depositAccountId;
+    private Long purchaseTaxId;
+    private Long salesTaxId;
 }

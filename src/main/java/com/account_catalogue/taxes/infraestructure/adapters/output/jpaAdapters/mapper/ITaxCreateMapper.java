@@ -26,8 +26,8 @@ public interface ITaxCreateMapper {
                 .code(tax.getCode())
                 .description(tax.getDescription())
                 .interest(tax.getInterest())
-                .depositAccount(tax.getDepositAccount())
-                .refundAccount(tax.getRefundAccount())
+                .salesTax(tax.getSalesTax())
+                .purchaseTax(tax.getPurchaseTax())
                 .status(tax.getStatus() != null ? tax.getStatus() : true)
                 .build();
     }
@@ -50,8 +50,8 @@ public interface ITaxCreateMapper {
                 .code(taxEntity.getCode())
                 .description(taxEntity.getDescription())
                 .interest(taxEntity.getInterest())
-                .refundAccount(taxEntity.getRefundAccount())
-                .depositAccount(taxEntity.getDepositAccount())
+                .purchaseTax(taxEntity.getPurchaseTax())
+                .salesTax(taxEntity.getSalesTax())
                 .status(taxEntity.getStatus())
                 .build();
     }

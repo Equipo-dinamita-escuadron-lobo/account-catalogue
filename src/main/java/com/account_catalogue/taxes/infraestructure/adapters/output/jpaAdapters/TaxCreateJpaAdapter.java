@@ -42,28 +42,39 @@ public class TaxCreateJpaAdapter implements ITaxCreateOutputPort {
     public Tax createTax(TaxDTO tax) {
         // Validaciones usando el servicio centralizado
         taxValidationService.validateTaxCodeNotExists(tax.getCode(), tax.getIdEnterprise());
-        taxValidationService.validateAccountDigits(tax.getDepositAccountId(), tax.getRefundAccountId(), tax.getIdEnterprise());
+        taxValidationService.validateAccountDigits(tax.getSalesTaxId(), tax.getPurchaseTaxId(), tax.getIdEnterprise());
+        taxValidationService.validateDifferentTaxAccounts(tax.getSalesTaxId(), tax.getPurchaseTaxId());
 
-        AccountCatalogueEntity depositAccount = accountCatalogueRepository.findByIdAndIdEnterprise(tax.getDepositAccountId(),
-                tax.getIdEnterprise());
+        AccountCatalogueEntity salesTax = null;
+        if (tax.getSalesTaxId() != null) {
+            salesTax = accountCatalogueRepository.findByIdAndIdEnterprise(tax.getSalesTaxId(),
+                    tax.getIdEnterprise());
+        }
 
-
-        AccountCatalogueEntity refundAccount = accountCatalogueRepository.findByIdAndIdEnterprise(tax.getRefundAccountId(),
-                tax.getIdEnterprise());
-
+        AccountCatalogueEntity purchaseTax = null;
+        if (tax.getPurchaseTaxId() != null) {
+            purchaseTax = accountCatalogueRepository.findByIdAndIdEnterprise(tax.getPurchaseTaxId(),
+                    tax.getIdEnterprise());
+        }
 
         Tax taxAux = Tax.builder()
                 .code(tax.getCode())
                 .idEnterprise(tax.getIdEnterprise())
                 .description(tax.getDescription())
                 .interest(tax.getInterest())
-                .refundAccount(refundAccount)
-                .depositAccount(depositAccount)
+                .purchaseTax(purchaseTax)
+                .salesTax(salesTax)
                 .build();
 
         TaxEntity taxEntity = taxCreateMapper.toEntity(taxAux);
-        depositAccount.getDepositAccounts().add(taxEntity);
-        refundAccount.getRefundAccounts().add(taxEntity);
+
+        // Solo agregar a las listas si las entidades no son null
+        if (salesTax != null) {
+            salesTax.getSalesTaxes().add(taxEntity);
+        }
+        if (purchaseTax != null) {
+            purchaseTax.getPurchaseTaxes().add(taxEntity);
+        }
         taxEntity = taxRepository.save(taxEntity);
         return taxCreateMapper.toModel(taxEntity);
     }

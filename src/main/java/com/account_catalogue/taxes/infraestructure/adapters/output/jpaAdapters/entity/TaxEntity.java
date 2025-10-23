@@ -38,12 +38,12 @@ public class TaxEntity {
     private Double interest;
 
     @ManyToOne
-    @JoinColumn(name="depositAccount_code")
-    private AccountCatalogueEntity depositAccount;
+    @JoinColumn(name="salesTax_code")
+    private AccountCatalogueEntity salesTax;
 
     @ManyToOne
-    @JoinColumn(name="refundAccount_code")
-    private AccountCatalogueEntity refundAccount;
+    @JoinColumn(name="purchaseTax_code")
+    private AccountCatalogueEntity purchaseTax;
 
     private String idEnterprise;
 

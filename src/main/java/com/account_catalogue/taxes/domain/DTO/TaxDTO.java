@@ -15,6 +15,6 @@ public class TaxDTO {
     private String code;
     private String description;
     private Double interest;
-    private Long depositAccountId;
-    private Long refundAccountId;
+    private Long salesTaxId;
+    private Long purchaseTaxId;
 }

@@ -14,7 +14,7 @@ public class TaxSearchRes {
     private String code;
     private String description;
     private double interest;
-    private String refundAccount;
-    private String depositAccount;
+    private String purchaseTax;
+    private String salesTax;
     private Boolean status;
 }

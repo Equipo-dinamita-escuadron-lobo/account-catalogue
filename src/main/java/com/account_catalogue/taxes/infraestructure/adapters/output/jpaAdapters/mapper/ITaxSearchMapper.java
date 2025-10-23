@@ -25,8 +25,8 @@ public interface ITaxSearchMapper {
                 .code(taxEntity.getCode())
                 .description(taxEntity.getDescription())
                 .interest(taxEntity.getInterest())
-                .refundAccount(taxEntity.getRefundAccount())
-                .depositAccount(taxEntity.getDepositAccount())
+                .purchaseTax(taxEntity.getPurchaseTax())
+                .salesTax(taxEntity.getSalesTax())
                 .status(taxEntity.getStatus())
                 .build();
     }
@@ -50,8 +50,8 @@ public interface ITaxSearchMapper {
                             .idEnterprise(taxEntity.getIdEnterprise())
                             .description(taxEntity.getDescription())
                             .interest(taxEntity.getInterest())
-                            .depositAccount(taxEntity.getDepositAccount())
-                            .refundAccount(taxEntity.getRefundAccount())
+                            .salesTax(taxEntity.getSalesTax())
+                            .purchaseTax(taxEntity.getPurchaseTax())
                             .status(taxEntity.getStatus())
                             .build();
                     return tax;

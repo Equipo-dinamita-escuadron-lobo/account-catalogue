@@ -27,7 +27,7 @@ public interface IItemAccountCatalogueSearchMapper {
         }
         return AccountCatalogue.builder()
                 .id(accountCatalogueEntity.getId())
-                .idEnterprise(accountCatalogueEntity.getIdEnterprise()) 
+                .idEnterprise(accountCatalogueEntity.getIdEnterprise())
                 .code(accountCatalogueEntity.getCode())
                 .description(accountCatalogueEntity.getDescription())
                 .nature(accountCatalogueEntity.getNature())
@@ -36,8 +36,8 @@ public interface IItemAccountCatalogueSearchMapper {
                 .crossing(accountCatalogueEntity.getCrossing())
                 .costCenter(accountCatalogueEntity.getCostCenter())
                 .status(accountCatalogueEntity.getStatus())
-                .depositAccounts(accountCatalogueEntity.getDepositAccounts())
-                .refundAccounts(accountCatalogueEntity.getRefundAccounts())
+                .salesTaxes(accountCatalogueEntity.getSalesTaxes())
+                .purchaseTaxes(accountCatalogueEntity.getPurchaseTaxes())
                 .amount(accountCatalogueEntity.getAmount())
                 .parent(auxParent(
                         accountCatalogueEntity.getParent() == null ? null : accountCatalogueEntity.getParent()))
@@ -62,7 +62,7 @@ public interface IItemAccountCatalogueSearchMapper {
 
         AccountCatalogue accountCatalogue = AccountCatalogue.builder()
                 .id(accountCatalogueEntity.getId())
-                .idEnterprise(accountCatalogueEntity.getIdEnterprise()) 
+                .idEnterprise(accountCatalogueEntity.getIdEnterprise())
                 .code(accountCatalogueEntity.getCode())
                 .description(accountCatalogueEntity.getDescription())
                 .nature(accountCatalogueEntity.getNature())
@@ -71,8 +71,8 @@ public interface IItemAccountCatalogueSearchMapper {
                 .crossing(accountCatalogueEntity.getCrossing())
                 .costCenter(accountCatalogueEntity.getCostCenter())
                 .status(accountCatalogueEntity.getStatus())
-                .depositAccounts(accountCatalogueEntity.getDepositAccounts())
-                .refundAccounts(accountCatalogueEntity.getRefundAccounts())
+                .salesTaxes(accountCatalogueEntity.getSalesTaxes())
+                .purchaseTaxes(accountCatalogueEntity.getPurchaseTaxes())
                 .parent(auxParent(
                         accountCatalogueEntity.getParent() == null ? null : accountCatalogueEntity.getParent()))
                 .build();

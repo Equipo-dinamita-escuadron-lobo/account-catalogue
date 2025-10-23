@@ -31,8 +31,8 @@ public class AccountCatalogue {
     private ClassificationEnum classification;
     private AccountCatalogue  parent;
     private List<AccountCatalogue> children;
-    private List<TaxEntity> depositAccounts;
-    private List<TaxEntity>  refundAccounts;
+    private List<TaxEntity> salesTaxes;
+    private List<TaxEntity>  purchaseTaxes;
     private Boolean crossing;
     private Boolean costCenter;
     private Boolean status;

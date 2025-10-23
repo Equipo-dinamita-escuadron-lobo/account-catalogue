@@ -28,8 +28,7 @@ import lombok.NoArgsConstructor;
         @Index(name = "idx_account_id_enterprise", columnList = "idEnterprise"),
         @Index(name = "idx_account_code", columnList = "code"),
         @Index(name = "idx_account_status", columnList = "status"),
-        @Index(name = "idx_account_enterprise_status", columnList = "idEnterprise, status"),
-        @Index(name = "idx_account_code_length", columnList = "codeLength")
+        @Index(name = "idx_account_enterprise_status", columnList = "idEnterprise, status")
     }
 )
 public class AccountCatalogueEntity {

@@ -122,20 +122,6 @@ public class MapStructConfig {
         return Mappers.getMapper(ITaxSearchRestMapper.class);
     }
 
-    /**
-     * Este método se utiliza para generar una implementación de la interfaz
-     * ITaxUpdateMapper
-     * en tiempo de compilación utilizando la biblioteca MapStruct. La interfaz se
-     * utiliza para mapear el modelo de dominio Tax al objeto de transferencia de
-     * datos TaxEntity
-     * que se utiliza para interacciones con el repositorio JPA. El mapeador se
-     * registra como un Bean de Spring
-     * para hacerlo disponible para inyección de dependencias.
-     */
-    @Bean
-    ITaxUpdateMapper mapStructUpdateMapper() {
-        return Mappers.getMapper(ITaxUpdateMapper.class);
-    }
 
     /**
      * Este método se utiliza para generar una implementación de la interfaz

@@ -181,7 +181,15 @@ public class BankAccountServiceImpl implements IBankAccountService {
      */
     private Bank validateBankExists(Long bankId, String idEnterprise) {
         try {
-            return bankService.findById(bankId, idEnterprise);
+            Bank bank = bankService.findById(bankId, idEnterprise);
+            // Verificar que el banco esté activo
+            if (!Boolean.TRUE.equals(bank.getStatus())) {
+                throw new BankNotFoundForAccountException(
+                        "El banco con ID '" + bankId + "' existe pero no está activo.");
+            }
+            return bank;
+        } catch (BankNotFoundForAccountException e) {
+            throw e;
         } catch (Exception e) {
             throw new BankNotFoundForAccountException(
                     "El banco con ID '" + bankId + "' no existe o no está disponible.");

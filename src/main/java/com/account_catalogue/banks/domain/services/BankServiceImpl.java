@@ -1,11 +1,13 @@
 package com.account_catalogue.banks.domain.services;
 
 import com.account_catalogue.commons.exceptions.banks.BankAlreadyExistsException;
+import com.account_catalogue.commons.exceptions.banks.BankHasAssociatedAccountsException;
 import com.account_catalogue.commons.exceptions.banks.BankNotFoundException;
 import com.account_catalogue.commons.exceptions.banks.InvalidBankCodeException;
 import com.account_catalogue.banks.dataAccess.entity.BankEntity;
 import com.account_catalogue.banks.dataAccess.mapper.BankDataMapper;
 import com.account_catalogue.banks.dataAccess.repository.BankRepository;
+import com.account_catalogue.bankAccounts.dataAccess.repository.BankAccountRepository;
 import com.account_catalogue.banks.domain.mapper.BankDomainMapper;
 import com.account_catalogue.banks.domain.model.Bank;
 import com.account_catalogue.banks.presentation.DTO.request.BankCreateReq;
@@ -26,6 +28,7 @@ public class BankServiceImpl implements IBankService {
     private final BankRepository repository;
     private final BankDataMapper dataMapper;
     private final BankDomainMapper domainMapper;
+    private final BankAccountRepository bankAccountRepository;
 
     @Transactional
     public Bank create(BankCreateReq request) {
@@ -115,6 +118,12 @@ public class BankServiceImpl implements IBankService {
     public Bank delete(Long id, String idEnterprise) {
         BankEntity current = repository.findByIdAndIdEnterprise(id, idEnterprise)
                 .orElseThrow(BankNotFoundException::new);
+
+        // Verificar si el banco tiene cuentas bancarias asociadas
+        boolean hasAssociatedAccounts = bankAccountRepository.findAllByIdEnterpriseAndBankId(idEnterprise, id, PageRequest.of(0, 1)).hasContent();
+        if (hasAssociatedAccounts) {
+            throw new BankHasAssociatedAccountsException(current.getNombre());
+        }
 
         Bank domain = dataMapper.toDomain(current);
         repository.delete(current);

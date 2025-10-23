@@ -162,13 +162,13 @@ public class BankAccountServiceImpl implements IBankAccountService {
             return bankService.findById(bankId, idEnterprise);
         } catch (Exception e) {
             throw new BankNotFoundForAccountException(
-                "El banco con ID '" + bankId + "' no existe o no está disponible para la empresa '" + idEnterprise + "'"
+                "El banco con ID '" + bankId + "' no existe o no está disponible."
             );
         }
     }
 
     /**
-     * Valida que la cuenta contable existe por ID.
+     * Valida que la cuenta contable existe por ID y es una cuenta auxiliar (8 dígitos).
      */
     private AccountCatalogue validateAccountingAccountExists(Long accountingAccountId, String idEnterprise) {
         if (accountingAccountId == null) {
@@ -180,16 +180,31 @@ public class BankAccountServiceImpl implements IBankAccountService {
             AccountCatalogue account = accountCatalogueValidationService.validateAccountExistsByIdAndEnterprise(accountingAccountId, idEnterprise);
             if (account == null) {
                 throw new InvalidAccountingAccountForBankAccountException(
-                    "La cuenta contable con ID '" + accountingAccountId + "' no existe en el catálogo de cuentas para la empresa '" + idEnterprise + "'"
+                    "La cuenta contable con ID '" + accountingAccountId + "' no existe en el catálogo de cuentas."
                 );
             }
+
+            String accountCode = account.getCode();
+            if (accountCode == null || accountCode.trim().isEmpty()) {
+                throw new InvalidAccountingAccountForBankAccountException(
+                    "La cuenta contable tiene un código vacío o nulo."
+                );
+            }
+
+            String trimmedCode = accountCode.trim();
+            if (!trimmedCode.matches("^\\d{8}$")) {
+                throw new InvalidAccountingAccountForBankAccountException(
+                    "La cuenta contable debe ser una cuenta auxiliar con exactamente 8 dígitos."
+                );
+            }
+
             return account;
         } catch (Exception e) {
             if (e instanceof InvalidAccountingAccountForBankAccountException) {
                 throw e;
             }
             throw new InvalidAccountingAccountForBankAccountException(
-                "La cuenta contable con ID '" + accountingAccountId + "' no existe en el catálogo de cuentas para la empresa '" + idEnterprise + "'"
+                "La cuenta contable con ID '" + accountingAccountId + "' no existe en el catálogo de cuentas."
             );
         }
     }

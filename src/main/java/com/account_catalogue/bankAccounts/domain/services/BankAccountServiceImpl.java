@@ -12,7 +12,9 @@ import com.account_catalogue.banks.domain.model.Bank;
 import com.account_catalogue.bankAccounts.dataAccess.entity.BankAccountEntity;
 import com.account_catalogue.bankAccounts.dataAccess.mapper.BankAccountDataMapper;
 import com.account_catalogue.banks.dataAccess.entity.BankEntity;
+import com.account_catalogue.banks.dataAccess.repository.BankRepository;
 import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.entity.AccountCatalogueEntity;
+import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.repository.IAccountCatalogueRepository;
 import com.account_catalogue.bankAccounts.dataAccess.repository.BankAccountRepository;
 import com.account_catalogue.bankAccounts.domain.mapper.BankAccountDomainMapper;
 import com.account_catalogue.bankAccounts.domain.model.BankAccount;
@@ -34,6 +36,8 @@ public class BankAccountServiceImpl implements IBankAccountService {
     private final BankAccountDomainMapper domainMapper;
     private final IBankService bankService;
     private final AccountCatalogueValidationService accountCatalogueValidationService;
+    private final BankRepository bankRepository;
+    private final IAccountCatalogueRepository accountCatalogueRepository;
 
     @Transactional
     public BankAccount create(BankAccountCreateReq request) {
@@ -66,9 +70,6 @@ public class BankAccountServiceImpl implements IBankAccountService {
         // Validar el número de cuenta (si cambió)
         validateAccountNumber(request.getAccountNumber());
 
-        // Validar que el banco existe
-        Bank bank = validateBankExists(request.getBankId(), request.getIdEnterprise());
-
         // Verificar que no exista otra cuenta con el mismo número para la misma empresa
         if (!current.getAccountNumber().equals(request.getAccountNumber())) {
             if (repository.existsByAccountNumberAndIdEnterprise(request.getAccountNumber(), request.getIdEnterprise())) {
@@ -77,20 +78,34 @@ public class BankAccountServiceImpl implements IBankAccountService {
             }
         }
 
-        // Validar que la cuenta contable existe
-        AccountCatalogue accountingAccount = validateAccountingAccountExists(request.getAccountingAccountId(),
-                request.getIdEnterprise());
+        // Validar que el banco existe (solo para validación, no necesitamos la entidad del dominio aquí)
+        validateBankExists(request.getBankId(), request.getIdEnterprise());
+
+        // Validar que la cuenta contable existe (solo para validación, no necesitamos la entidad del dominio aquí)
+        validateAccountingAccountExists(request.getAccountingAccountId(), request.getIdEnterprise());
 
         current.setAccountNumber(request.getAccountNumber());
-        // Convertir Bank del dominio a BankEntity
-        BankEntity bankEntity = new BankEntity();
-        bankEntity.setId(bank.getId());
-        current.setBank(bankEntity);
+
+        // Solo actualizar el banco si cambió
+        if (!current.getBank().getId().equals(request.getBankId())) {
+            // Si cambió, crear una entidad mínima para evitar problemas de lazy loading
+            // Solo necesitamos el ID para la relación, no la entidad completa
+            BankEntity bankEntity = new BankEntity();
+            bankEntity.setId(request.getBankId());
+            current.setBank(bankEntity);
+        }
+        // Si no cambió, mantenemos la entidad existente que ya está cargada
         current.setAccountType(request.getAccountType());
-        // Convertir AccountCatalogue del dominio a AccountCatalogueEntity
-        AccountCatalogueEntity accountingAccountEntity = new AccountCatalogueEntity();
-        accountingAccountEntity.setId(accountingAccount.getId());
-        current.setAccountingAccount(accountingAccountEntity);
+
+        // Solo actualizar la cuenta contable si cambió
+        if (!current.getAccountingAccount().getId().equals(request.getAccountingAccountId())) {
+            // Si cambió, crear una entidad mínima para evitar problemas de lazy loading
+            // Solo necesitamos el ID para la relación, no la entidad completa
+            AccountCatalogueEntity accountingAccountEntity = new AccountCatalogueEntity();
+            accountingAccountEntity.setId(request.getAccountingAccountId());
+            current.setAccountingAccount(accountingAccountEntity);
+        }
+        // Si no cambió, mantenemos la entidad existente que ya está cargada
         current.setStatus(request.getStatus());
 
         BankAccountEntity saved = repository.save(current);

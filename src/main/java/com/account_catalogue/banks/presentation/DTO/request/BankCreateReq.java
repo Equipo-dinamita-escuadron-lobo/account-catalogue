@@ -4,6 +4,8 @@ import com.account_catalogue.banks.domain.enums.Currency;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
+import java.util.Set;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -22,8 +24,8 @@ public class BankCreateReq {
     @Size(max = 100, message = "The name must not exceed 100 characters")
     private String name;
 
-    @NotNull(message = "La moneda es obligatoria")
-    private Currency currency;
+    @NotEmpty(message = "Debe seleccionar al menos una moneda")
+    private Set<Currency> currencies;
 
     @Builder.Default
     private Boolean status = true;

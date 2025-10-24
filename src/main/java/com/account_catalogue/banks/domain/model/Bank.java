@@ -3,6 +3,8 @@ package com.account_catalogue.banks.domain.model;
 import com.account_catalogue.banks.domain.enums.Currency;
 import lombok.*;
 
+import java.util.Set;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -12,7 +14,7 @@ public class Bank {
     private Long id;
     private String code;
     private String name;
-    private Currency currency;
+    private Set<Currency> currencies;
     @Builder.Default
     private Boolean status = true;
     private String idEnterprise;

@@ -24,6 +24,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.util.StringUtils;
 
 import java.util.Optional;
 import org.springframework.stereotype.Service;
@@ -120,9 +121,63 @@ public class BankAccountServiceImpl implements IBankAccountService {
     }
 
     @Transactional(readOnly = true)
-    public Page<BankAccount> findAllByEnterprise(String idEnterprise, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        return repository.findAllByIdEnterprise(idEnterprise, pageable).map(dataMapper::toDomain);
+    public Page<BankAccount> findAllByEnterpriseWithFilters(String idEnterprise, Integer page, Integer size,
+                                                          String sortField, String sortOrder, String search) {
+        // Validar sortField - solo permitir "accountNumber"
+        if (sortField != null && !sortField.isEmpty()) {
+            if (!"accountNumber".equals(sortField)) {
+                throw new IllegalArgumentException("El campo de ordenamiento debe ser 'accountNumber'");
+            }
+        } else {
+            // Por defecto ordenar por accountNumber
+            sortField = "accountNumber";
+        }
+
+        // Validar sortOrder - solo permitir "asc" y "desc"
+        Sort.Direction direction = Sort.Direction.ASC;
+        if (sortOrder != null && !sortOrder.isEmpty()) {
+            if ("desc".equalsIgnoreCase(sortOrder)) {
+                direction = Sort.Direction.DESC;
+            } else if (!"asc".equalsIgnoreCase(sortOrder)) {
+                throw new IllegalArgumentException("El orden debe ser 'asc' o 'desc'");
+            }
+        }
+
+        // Determinar el número total de registros (considerando búsqueda si existe)
+        long totalRecords;
+        if (StringUtils.hasText(search)) {
+            // Si hay búsqueda, contar registros que coincidan con la búsqueda
+            totalRecords = repository.countByIdEnterpriseAndAccountNumberSearch(idEnterprise, search.trim());
+        } else {
+            // Sin búsqueda, contar todos los registros
+            totalRecords = repository.countByIdEnterprise(idEnterprise);
+        }
+
+        // Crear paginación inteligente
+        Pageable pageable = paginationHelper.createFlexiblePageable(
+            Optional.ofNullable(page),
+            Optional.ofNullable(size),
+            totalRecords
+        );
+
+        // Aplicar ordenamiento
+        Pageable pageableWithSort = PageRequest.of(
+            pageable.getPageNumber(),
+            pageable.getPageSize(),
+            Sort.by(direction, sortField)
+        );
+
+        // Ejecutar consulta con filtros
+        Page<BankAccountEntity> result;
+        if (StringUtils.hasText(search)) {
+            // Búsqueda por número de cuenta
+            result = repository.findByIdEnterpriseAndAccountNumberSearch(idEnterprise, search.trim(), pageableWithSort);
+        } else {
+            // Sin búsqueda
+            result = repository.findAllByIdEnterprise(idEnterprise, pageableWithSort);
+        }
+
+        return result.map(dataMapper::toDomain);
     }
 
     @Transactional(readOnly = true)

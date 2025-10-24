@@ -17,7 +17,9 @@ public interface BankAccountRepository extends JpaRepository<BankAccountEntity, 
     Page<BankAccountEntity> findAllByIdEnterprise(String idEnterprise, Pageable pageable);
     
     Page<BankAccountEntity> findAllByIdEnterpriseAndStatus(String idEnterprise, Boolean status, Pageable pageable);
-    
+
+    long countByIdEnterpriseAndStatus(String idEnterprise, Boolean status);
+
     Page<BankAccountEntity> findAllByIdEnterpriseAndBankId(String idEnterprise, Long bankId, Pageable pageable);
     
     Page<BankAccountEntity> findAllByIdEnterpriseAndAccountType(String idEnterprise, String accountType, Pageable pageable);

@@ -5,6 +5,7 @@ import com.account_catalogue.commons.exceptions.bankAccounts.BankAccountNotFound
 import com.account_catalogue.commons.exceptions.bankAccounts.BankNotFoundForAccountException;
 import com.account_catalogue.commons.exceptions.bankAccounts.InvalidAccountNumberException;
 import com.account_catalogue.commons.exceptions.bankAccounts.InvalidAccountingAccountForBankAccountException;
+import com.account_catalogue.commons.utils.PaginationHelper;
 import com.account_catalogue.catalogue.application.services.AccountCatalogueValidationService;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
 import com.account_catalogue.banks.domain.services.IBankService;
@@ -22,6 +23,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+
+import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +38,7 @@ public class BankAccountServiceImpl implements IBankAccountService {
     private final BankAccountDomainMapper domainMapper;
     private final IBankService bankService;
     private final AccountCatalogueValidationService accountCatalogueValidationService;
+    private final PaginationHelper paginationHelper;
 
     @Transactional
     public BankAccount create(BankAccountCreateReq request) {
@@ -121,9 +126,23 @@ public class BankAccountServiceImpl implements IBankAccountService {
     }
 
     @Transactional(readOnly = true)
-    public Page<BankAccount> findAllByEnterpriseAndStatus(String idEnterprise, Boolean status, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        return repository.findAllByIdEnterpriseAndStatus(idEnterprise, status, pageable)
+    public Page<BankAccount> findAllActiveByEnterprise(String idEnterprise, Integer page, Integer size) {
+        
+        long totalRecords = repository.countByIdEnterpriseAndStatus(idEnterprise, true);
+
+        Pageable pageable = paginationHelper.createFlexiblePageable(
+                Optional.ofNullable(page),
+                Optional.ofNullable(size),
+                totalRecords
+        );
+
+        Pageable pageableWithSort = PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                Sort.by(Sort.Direction.ASC, "accountNumber")
+        );
+
+        return repository.findAllByIdEnterpriseAndStatus(idEnterprise, true, pageableWithSort)
                 .map(dataMapper::toDomain);
     }
 

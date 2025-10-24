@@ -45,19 +45,18 @@ public class BankAccountController {
                 .map(mapper::toRes));
     }
 
-    @GetMapping("/findAllByStatus/{enterpriseId}")
-    public ResponseEntity<?> listByStatus(
-            @PathVariable("enterpriseId") String enterpriseId,
-            @RequestParam Boolean status,
-            @RequestParam(defaultValue = "0") Integer page,
-            @RequestParam(defaultValue = "10") Integer size) {
-        return ResponseEntity.ok(service.findAllByEnterpriseAndStatus(enterpriseId, status, page, size)
+    @GetMapping("/findAllActive/{enterpriseId}")
+    public ResponseEntity<?> listActive(
+            @PathVariable String enterpriseId,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size) {
+        return ResponseEntity.ok(service.findAllActiveByEnterprise(enterpriseId, page, size)
                 .map(mapper::toRes));
     }
 
     @GetMapping("/findAllByBank/{enterpriseId}")
     public ResponseEntity<?> listByBank(
-            @PathVariable("enterpriseId") String enterpriseId,
+            @PathVariable String enterpriseId,
             @RequestParam Long bankId,
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "10") Integer size) {

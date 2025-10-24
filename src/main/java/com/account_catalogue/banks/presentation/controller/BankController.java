@@ -38,7 +38,7 @@ public class BankController {
 
     @GetMapping("/findAll/{enterpriseId}")
     public ResponseEntity<?> list(
-            @PathVariable("enterpriseId") String enterpriseId,
+            @PathVariable String enterpriseId,
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "10") Integer size) {
         return ResponseEntity.ok(service.findAllByEnterprise(enterpriseId, page, size)

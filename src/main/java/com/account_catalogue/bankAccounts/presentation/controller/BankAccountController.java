@@ -6,6 +6,7 @@ import com.account_catalogue.bankAccounts.domain.mapper.BankAccountDomainMapper;
 import com.account_catalogue.bankAccounts.presentation.DTO.request.BankAccountCreateReq;
 import com.account_catalogue.bankAccounts.presentation.DTO.request.BankAccountUpdateReq;
 import com.account_catalogue.bankAccounts.presentation.DTO.response.BankAccountRes;
+import org.springframework.data.domain.Page;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -37,8 +38,8 @@ public class BankAccountController {
     }
 
     @GetMapping("/findAll/{enterpriseId}")
-    public ResponseEntity<?> list(
-            @PathVariable("enterpriseId") String enterpriseId,
+    public ResponseEntity<Page<BankAccountRes>> list(
+            @PathVariable String enterpriseId,
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "10") Integer size) {
         return ResponseEntity.ok(service.findAllByEnterprise(enterpriseId, page, size)
@@ -46,7 +47,7 @@ public class BankAccountController {
     }
 
     @GetMapping("/findAllActive/{enterpriseId}")
-    public ResponseEntity<?> listActive(
+    public ResponseEntity<Page<BankAccountRes>> listActive(
             @PathVariable String enterpriseId,
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size) {
@@ -55,7 +56,7 @@ public class BankAccountController {
     }
 
     @GetMapping("/findAllByBank/{enterpriseId}")
-    public ResponseEntity<?> listByBank(
+    public ResponseEntity<Page<BankAccountRes>> listByBank(
             @PathVariable String enterpriseId,
             @RequestParam Long bankId,
             @RequestParam(defaultValue = "0") Integer page,

@@ -6,6 +6,7 @@ import com.account_catalogue.banks.domain.mapper.BankDomainMapper;
 import com.account_catalogue.banks.presentation.DTO.request.BankCreateReq;
 import com.account_catalogue.banks.presentation.DTO.request.BankUpdateReq;
 import com.account_catalogue.banks.presentation.DTO.response.BankRes;
+import org.springframework.data.domain.Page;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -37,7 +38,7 @@ public class BankController {
     }
 
     @GetMapping("/findAll/{enterpriseId}")
-    public ResponseEntity<?> list(
+    public ResponseEntity<Page<BankRes>> list(
             @PathVariable String enterpriseId,
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "10") Integer size) {
@@ -46,7 +47,7 @@ public class BankController {
     }
 
     @GetMapping("/findAllActive/{enterpriseId}")
-    public ResponseEntity<?> listActive(
+    public ResponseEntity<Page<BankRes>> listActive(
             @PathVariable String enterpriseId,
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size) {

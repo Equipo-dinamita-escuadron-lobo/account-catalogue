@@ -10,9 +10,9 @@ import lombok.*;
 @Builder
 public class BankRes {
     private Long id;
-    private String codigo;
-    private String nombre;
-    private Currency moneda;
+    private String code;
+    private String name;
+    private Currency currency;
     private Boolean status;
     private String idEnterprise;
 }

@@ -15,15 +15,15 @@ public class BankCreateReq {
     private String idEnterprise;
 
     @NotBlank(message = "El código del banco es obligatorio")
-    @Pattern(regexp = "^\\d{2}$", message = "El código debe ser exactamente 2 dígitos (01-99)")
-    private String codigo;
+    @Pattern(regexp = "^\\d{2}$", message = "El código debe tener exactamente 2 dígitos (01-99)")
+    private String code;
 
     @NotBlank(message = "El nombre del banco es obligatorio")
-    @Size(max = 100, message = "El nombre no debe exceder 100 caracteres")
-    private String nombre;
+    @Size(max = 100, message = "The name must not exceed 100 characters")
+    private String name;
 
     @NotNull(message = "La moneda es obligatoria")
-    private Currency moneda;
+    private Currency currency;
 
     @Builder.Default
     private Boolean status = true;

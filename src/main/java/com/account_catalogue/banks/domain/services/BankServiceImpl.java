@@ -38,23 +38,23 @@ public class BankServiceImpl implements IBankService {
     @Transactional
     public Bank create(BankCreateReq request) {
         // Validar formato del código
-        validateBankCode(request.getCodigo());
+        validateBankCode(request.getCode());
 
         // Estandarización del nombre a mayúsculas
-        String standardizedName = standardizeName(request.getNombre());
+        String standardizedName = standardizeName(request.getName());
 
-        // Validar unicidad del código por empresa
-        if (repository.existsByCodigoAndIdEnterprise(request.getCodigo(), request.getIdEnterprise())) {
-            throw new BankAlreadyExistsException("código", request.getCodigo(), request.getIdEnterprise());
-        }
+               // Validar unicidad del código por empresa
+               if (repository.existsByCodeAndIdEnterprise(request.getCode(), request.getIdEnterprise())) {
+                   throw new BankAlreadyExistsException("código", request.getCode(), request.getIdEnterprise());
+               }
 
         // Validar unicidad del nombre por empresa
-        if (repository.existsByNombreAndIdEnterprise(standardizedName, request.getIdEnterprise())) {
+        if (repository.existsByNameAndIdEnterprise(standardizedName, request.getIdEnterprise())) {
             throw new BankAlreadyExistsException("nombre", standardizedName, request.getIdEnterprise());
         }
 
         Bank domain = domainMapper.toDomain(request);
-        domain.setNombre(standardizedName);
+        domain.setName(standardizedName);
         BankEntity toSave = dataMapper.toEntity(domain);
 
         BankEntity saved = repository.save(toSave);
@@ -67,26 +67,26 @@ public class BankServiceImpl implements IBankService {
                 .orElseThrow(BankNotFoundException::new);
 
         // Validar formato del código
-        validateBankCode(request.getCodigo());
+        validateBankCode(request.getCode());
 
         // Validar unicidad del código si cambió
-        if (!current.getCodigo().equals(request.getCodigo()) &&
-                repository.existsByCodigoAndIdEnterprise(request.getCodigo(), request.getIdEnterprise())) {
-            throw new BankAlreadyExistsException("código", request.getCodigo(), request.getIdEnterprise());
+        if (!current.getCode().equals(request.getCode()) &&
+                repository.existsByCodeAndIdEnterprise(request.getCode(), request.getIdEnterprise())) {
+            throw new BankAlreadyExistsException("código", request.getCode(), request.getIdEnterprise());
         }
 
-        String standardizedName = standardizeName(request.getNombre());
+        String standardizedName = standardizeName(request.getName());
 
         // Validar unicidad del nombre si cambió (solo entre registros no eliminados)
-        if (!standardizedName.equals(current.getNombre()) &&
-                repository.existsByNombreAndIdEnterpriseAndIdNot(standardizedName, request.getIdEnterprise(),
+        if (!standardizedName.equals(current.getName()) &&
+                repository.existsByNameAndIdEnterpriseAndIdNot(standardizedName, request.getIdEnterprise(),
                         current.getId())) {
             throw new BankAlreadyExistsException("nombre", standardizedName, request.getIdEnterprise());
         }
 
-        current.setCodigo(request.getCodigo());
-        current.setNombre(standardizedName);
-        current.setMoneda(request.getMoneda());
+        current.setCode(request.getCode());
+        current.setName(standardizedName);
+        current.setCurrency(request.getCurrency());
         current.setStatus(request.getStatus());
 
         BankEntity saved = repository.save(current);
@@ -102,14 +102,14 @@ public class BankServiceImpl implements IBankService {
     @Transactional(readOnly = true)
     public Page<Bank> findAllByEnterpriseWithFilters(String idEnterprise, Integer page, Integer size,
                                                    String sortField, String sortOrder, String search) {
-        // Validar sortField - solo permitir "codigo" y "nombre"
+        // Validar sortField - solo permitir "code" y "name"
         if (sortField != null && !sortField.isEmpty()) {
-            if (!"codigo".equals(sortField) && !"nombre".equals(sortField)) {
-                throw new IllegalArgumentException("El campo de ordenamiento debe ser 'codigo' o 'nombre'");
+            if (!"code".equals(sortField) && !"name".equals(sortField)) {
+                throw new IllegalArgumentException("El campo de ordenamiento debe ser 'code' o 'name'");
             }
         } else {
             // Por defecto ordenar por nombre
-            sortField = "nombre";
+            sortField = "name";
         }
 
         // Validar sortOrder - solo permitir "asc" y "desc"
@@ -173,7 +173,7 @@ public class BankServiceImpl implements IBankService {
         Pageable pageableWithSort = PageRequest.of(
                 pageable.getPageNumber(),
                 pageable.getPageSize(),
-                Sort.by(Sort.Direction.ASC, "nombre"));
+                Sort.by(Sort.Direction.ASC, "name"));
 
         return repository.findAllByIdEnterpriseAndStatus(idEnterprise, true, pageableWithSort)
                 .map(dataMapper::toDomain);
@@ -198,7 +198,7 @@ public class BankServiceImpl implements IBankService {
         boolean hasAssociatedAccounts = bankAccountRepository
                 .findAllByIdEnterpriseAndBankId(idEnterprise, id, PageRequest.of(0, 1)).hasContent();
         if (hasAssociatedAccounts) {
-            throw new BankHasAssociatedAccountsException(current.getNombre());
+            throw new BankHasAssociatedAccountsException(current.getName());
         }
 
         Bank domain = dataMapper.toDomain(current);

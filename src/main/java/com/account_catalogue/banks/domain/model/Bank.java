@@ -10,9 +10,9 @@ import lombok.*;
 @Builder
 public class Bank {
     private Long id;
-    private String codigo;
-    private String nombre;
-    private Currency moneda;
+    private String code;
+    private String name;
+    private Currency currency;
     @Builder.Default
     private Boolean status = true;
     private String idEnterprise;

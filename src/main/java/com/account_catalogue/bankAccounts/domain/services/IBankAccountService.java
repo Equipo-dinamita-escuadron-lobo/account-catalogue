@@ -14,9 +14,9 @@ public interface IBankAccountService {
 
     BankAccount findById(Long id, String idEnterprise);
 
-    Page<BankAccount> findAllByEnterprise(String idEnterprise, int page, int size);
+    Page<BankAccount> findAllByEnterpriseWithFilters(String idEnterprise, Integer page, Integer size, String sortField, String sortOrder, String search);
 
-    Page<BankAccount> findAllByEnterpriseAndStatus(String idEnterprise, Boolean status, int page, int size);
+    Page<BankAccount> findAllActiveByEnterprise(String idEnterprise, Integer page, Integer size);
 
     Page<BankAccount> findAllByEnterpriseAndBank(String idEnterprise, Long bankId, int page, int size);
 

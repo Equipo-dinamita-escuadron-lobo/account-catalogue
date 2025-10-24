@@ -14,7 +14,7 @@ public class BankAccount {
     private Long accountNumber;
     private Bank bank;
     private AccountType accountType;
-    private String cuentaContable;
+    private Long accountingAccountId;
     @Builder.Default
     private Boolean status = true;
     private String idEnterprise;

@@ -7,10 +7,12 @@ import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface BankAccountDataMapper {
-    
+
+    @Mapping(target = "accountingAccountId", source = "accountingAccount.id")
     BankAccount toDomain(BankAccountEntity entity);
-    
+
     @Mapping(target = "tenantId", ignore = true)
     @Mapping(target = "bank.tenantId", ignore = true)
+    @Mapping(target = "accountingAccount", ignore = true)
     BankAccountEntity toEntity(BankAccount domain);
 }

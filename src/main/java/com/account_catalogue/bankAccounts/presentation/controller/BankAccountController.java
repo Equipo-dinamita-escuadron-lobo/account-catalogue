@@ -6,6 +6,7 @@ import com.account_catalogue.bankAccounts.domain.mapper.BankAccountDomainMapper;
 import com.account_catalogue.bankAccounts.presentation.DTO.request.BankAccountCreateReq;
 import com.account_catalogue.bankAccounts.presentation.DTO.request.BankAccountUpdateReq;
 import com.account_catalogue.bankAccounts.presentation.DTO.response.BankAccountRes;
+import org.springframework.data.domain.Page;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -37,27 +38,29 @@ public class BankAccountController {
     }
 
     @GetMapping("/findAll/{enterpriseId}")
-    public ResponseEntity<?> list(
-            @PathVariable("enterpriseId") String enterpriseId,
-            @RequestParam(defaultValue = "0") Integer page,
-            @RequestParam(defaultValue = "10") Integer size) {
-        return ResponseEntity.ok(service.findAllByEnterprise(enterpriseId, page, size)
+    public ResponseEntity<Page<BankAccountRes>> list(
+            @PathVariable String enterpriseId,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size,
+            @RequestParam(required = false) String sortField,
+            @RequestParam(required = false) String sortOrder,
+            @RequestParam(required = false) String search) {
+        return ResponseEntity.ok(service.findAllByEnterpriseWithFilters(enterpriseId, page, size, sortField, sortOrder, search)
                 .map(mapper::toRes));
     }
 
-    @GetMapping("/findAllByStatus/{enterpriseId}")
-    public ResponseEntity<?> listByStatus(
-            @PathVariable("enterpriseId") String enterpriseId,
-            @RequestParam Boolean status,
-            @RequestParam(defaultValue = "0") Integer page,
-            @RequestParam(defaultValue = "10") Integer size) {
-        return ResponseEntity.ok(service.findAllByEnterpriseAndStatus(enterpriseId, status, page, size)
+    @GetMapping("/findAllActive/{enterpriseId}")
+    public ResponseEntity<Page<BankAccountRes>> listActive(
+            @PathVariable String enterpriseId,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size) {
+        return ResponseEntity.ok(service.findAllActiveByEnterprise(enterpriseId, page, size)
                 .map(mapper::toRes));
     }
 
     @GetMapping("/findAllByBank/{enterpriseId}")
-    public ResponseEntity<?> listByBank(
-            @PathVariable("enterpriseId") String enterpriseId,
+    public ResponseEntity<Page<BankAccountRes>> listByBank(
+            @PathVariable String enterpriseId,
             @RequestParam Long bankId,
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "10") Integer size) {

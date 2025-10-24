@@ -28,8 +28,7 @@ import lombok.NoArgsConstructor;
         @Index(name = "idx_account_id_enterprise", columnList = "idEnterprise"),
         @Index(name = "idx_account_code", columnList = "code"),
         @Index(name = "idx_account_status", columnList = "status"),
-        @Index(name = "idx_account_enterprise_status", columnList = "idEnterprise, status"),
-        @Index(name = "idx_account_code_length", columnList = "codeLength")
+        @Index(name = "idx_account_enterprise_status", columnList = "idEnterprise, status")
     }
 )
 public class AccountCatalogueEntity {
@@ -45,11 +44,11 @@ public class AccountCatalogueEntity {
     private FinancialStatusEnum financialStatus;
     private ClassificationEnum classification;
 
-    @ManyToOne
-    @JoinColumn(name = "parent_id", referencedColumnName = "id") 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_id", referencedColumnName = "id")
     private AccountCatalogueEntity parent;
 
-    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<AccountCatalogueEntity> children;
 
    @OneToMany(mappedBy = "salesTax", fetch = FetchType.LAZY)

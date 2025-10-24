@@ -5,12 +5,15 @@ import com.account_catalogue.commons.exceptions.bankAccounts.BankAccountNotFound
 import com.account_catalogue.commons.exceptions.bankAccounts.BankNotFoundForAccountException;
 import com.account_catalogue.commons.exceptions.bankAccounts.InvalidAccountNumberException;
 import com.account_catalogue.commons.exceptions.bankAccounts.InvalidAccountingAccountForBankAccountException;
+import com.account_catalogue.commons.utils.PaginationHelper;
 import com.account_catalogue.catalogue.application.services.AccountCatalogueValidationService;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
 import com.account_catalogue.banks.domain.services.IBankService;
 import com.account_catalogue.banks.domain.model.Bank;
 import com.account_catalogue.bankAccounts.dataAccess.entity.BankAccountEntity;
 import com.account_catalogue.bankAccounts.dataAccess.mapper.BankAccountDataMapper;
+import com.account_catalogue.banks.dataAccess.entity.BankEntity;
+import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.entity.AccountCatalogueEntity;
 import com.account_catalogue.bankAccounts.dataAccess.repository.BankAccountRepository;
 import com.account_catalogue.bankAccounts.domain.mapper.BankAccountDomainMapper;
 import com.account_catalogue.bankAccounts.domain.model.BankAccount;
@@ -20,6 +23,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.util.StringUtils;
+
+import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +39,7 @@ public class BankAccountServiceImpl implements IBankAccountService {
     private final BankAccountDomainMapper domainMapper;
     private final IBankService bankService;
     private final AccountCatalogueValidationService accountCatalogueValidationService;
+    private final PaginationHelper paginationHelper;
 
     @Transactional
     public BankAccount create(BankAccountCreateReq request) {
@@ -39,15 +47,23 @@ public class BankAccountServiceImpl implements IBankAccountService {
 
         Bank bank = validateBankExists(request.getBankId(), request.getIdEnterprise());
 
-        validateAccountingAccount(request.getCuentaContable(), request.getIdEnterprise());
+        AccountCatalogue accountingAccount = validateAccountingAccountExists(request.getAccountingAccountId(),
+                request.getIdEnterprise());
 
         if (repository.existsByAccountNumberAndIdEnterprise(request.getAccountNumber(), request.getIdEnterprise())) {
-            throw new BankAccountAlreadyExistsException("número de cuenta", request.getAccountNumber().toString(), request.getIdEnterprise());
+            throw new BankAccountAlreadyExistsException("número de cuenta", request.getAccountNumber().toString(),
+                    request.getIdEnterprise());
         }
 
         BankAccount domain = domainMapper.toDomain(request);
         domain.setBank(bank);
+        domain.setAccountingAccountId(accountingAccount.getId());
         BankAccountEntity toSave = dataMapper.toEntity(domain);
+
+        // Configurar la entidad de cuenta contable
+        AccountCatalogueEntity accountingAccountEntity = new AccountCatalogueEntity();
+        accountingAccountEntity.setId(accountingAccount.getId());
+        toSave.setAccountingAccount(accountingAccountEntity);
 
         BankAccountEntity saved = repository.save(toSave);
         return dataMapper.toDomain(saved);
@@ -58,27 +74,40 @@ public class BankAccountServiceImpl implements IBankAccountService {
         BankAccountEntity current = repository.findByIdAndIdEnterprise(request.getId(), request.getIdEnterprise())
                 .orElseThrow(BankAccountNotFoundException::new);
 
-        // Validar que no se esté intentando cambiar el número de cuenta
+        // Validar el número de cuenta (si cambió)
+        validateAccountNumber(request.getAccountNumber());
+
+        // Verificar que no exista otra cuenta con el mismo número para la misma empresa
         if (!current.getAccountNumber().equals(request.getAccountNumber())) {
-            throw new InvalidAccountNumberException(
-                "No se puede modificar el número de cuenta. Número actual: '" + current.getAccountNumber() + 
-                "', número solicitado: '" + request.getAccountNumber() + "'"
-            );
+            if (repository.existsByAccountNumberAndIdEnterprise(request.getAccountNumber(), request.getIdEnterprise())) {
+                throw new BankAccountAlreadyExistsException("número de cuenta", request.getAccountNumber().toString(),
+                        request.getIdEnterprise());
+            }
         }
 
-        // Validar que no se esté intentando cambiar el banco
+        // Validar que el banco existe (solo para validación, no necesitamos la entidad del dominio aquí)
+        validateBankExists(request.getBankId(), request.getIdEnterprise());
+
+        // Validar que la cuenta contable existe (solo para validación, no necesitamos la entidad del dominio aquí)
+        validateAccountingAccountExists(request.getAccountingAccountId(), request.getIdEnterprise());
+
+        current.setAccountNumber(request.getAccountNumber());
+
+        // Solo actualizar el banco si cambió
         if (!current.getBank().getId().equals(request.getBankId())) {
-            throw new BankNotFoundForAccountException(
-                "No se puede modificar el banco de la cuenta. Banco actual: '" + current.getBank().getId() + 
-                "', banco solicitado: '" + request.getBankId() + "'"
-            );
+            // Si cambió, crear una entidad mínima para evitar problemas de lazy loading
+            // Solo necesitamos el ID para la relación, no la entidad completa
+            BankEntity bankEntity = new BankEntity();
+            bankEntity.setId(request.getBankId());
+            current.setBank(bankEntity);
         }
-
-        // Validar que la cuenta contable existe y es auxiliar
-        validateAccountingAccount(request.getCuentaContable(), request.getIdEnterprise());
-
+        // Si no cambió, mantenemos la entidad existente que ya está cargada
         current.setAccountType(request.getAccountType());
-        current.setCuentaContable(request.getCuentaContable());
+
+        // Actualizar siempre la cuenta contable (ya que validamos que existe)
+        AccountCatalogueEntity accountingAccountEntity = new AccountCatalogueEntity();
+        accountingAccountEntity.setId(request.getAccountingAccountId());
+        current.setAccountingAccount(accountingAccountEntity);
         current.setStatus(request.getStatus());
 
         BankAccountEntity saved = repository.save(current);
@@ -92,15 +121,83 @@ public class BankAccountServiceImpl implements IBankAccountService {
     }
 
     @Transactional(readOnly = true)
-    public Page<BankAccount> findAllByEnterprise(String idEnterprise, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        return repository.findAllByIdEnterprise(idEnterprise, pageable).map(dataMapper::toDomain);
+    public Page<BankAccount> findAllByEnterpriseWithFilters(String idEnterprise, Integer page, Integer size,
+                                                          String sortField, String sortOrder, String search) {
+        // Validar sortField - solo permitir "accountNumber"
+        if (sortField != null && !sortField.isEmpty()) {
+            if (!"accountNumber".equals(sortField)) {
+                throw new IllegalArgumentException("El campo de ordenamiento debe ser 'accountNumber'");
+            }
+        } else {
+            // Por defecto ordenar por accountNumber
+            sortField = "accountNumber";
+        }
+
+        // Validar sortOrder - solo permitir "asc" y "desc"
+        Sort.Direction direction = Sort.Direction.ASC;
+        if (sortOrder != null && !sortOrder.isEmpty()) {
+            if ("desc".equalsIgnoreCase(sortOrder)) {
+                direction = Sort.Direction.DESC;
+            } else if (!"asc".equalsIgnoreCase(sortOrder)) {
+                throw new IllegalArgumentException("El orden debe ser 'asc' o 'desc'");
+            }
+        }
+
+        // Determinar el número total de registros (considerando búsqueda si existe)
+        long totalRecords;
+        if (StringUtils.hasText(search)) {
+            // Si hay búsqueda, contar registros que coincidan con la búsqueda
+            totalRecords = repository.countByIdEnterpriseAndAccountNumberSearch(idEnterprise, search.trim());
+        } else {
+            // Sin búsqueda, contar todos los registros
+            totalRecords = repository.countByIdEnterprise(idEnterprise);
+        }
+
+        // Crear paginación inteligente
+        Pageable pageable = paginationHelper.createFlexiblePageable(
+            Optional.ofNullable(page),
+            Optional.ofNullable(size),
+            totalRecords
+        );
+
+        // Aplicar ordenamiento
+        Pageable pageableWithSort = PageRequest.of(
+            pageable.getPageNumber(),
+            pageable.getPageSize(),
+            Sort.by(direction, sortField)
+        );
+
+        // Ejecutar consulta con filtros
+        Page<BankAccountEntity> result;
+        if (StringUtils.hasText(search)) {
+            // Búsqueda por número de cuenta
+            result = repository.findByIdEnterpriseAndAccountNumberSearch(idEnterprise, search.trim(), pageableWithSort);
+        } else {
+            // Sin búsqueda
+            result = repository.findAllByIdEnterprise(idEnterprise, pageableWithSort);
+        }
+
+        return result.map(dataMapper::toDomain);
     }
 
     @Transactional(readOnly = true)
-    public Page<BankAccount> findAllByEnterpriseAndStatus(String idEnterprise, Boolean status, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        return repository.findAllByIdEnterpriseAndStatus(idEnterprise, status, pageable)
+    public Page<BankAccount> findAllActiveByEnterprise(String idEnterprise, Integer page, Integer size) {
+        
+        long totalRecords = repository.countByIdEnterpriseAndStatus(idEnterprise, true);
+
+        Pageable pageable = paginationHelper.createFlexiblePageable(
+                Optional.ofNullable(page),
+                Optional.ofNullable(size),
+                totalRecords
+        );
+
+        Pageable pageableWithSort = PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                Sort.by(Sort.Direction.ASC, "accountNumber")
+        );
+
+        return repository.findAllByIdEnterpriseAndStatus(idEnterprise, true, pageableWithSort)
                 .map(dataMapper::toDomain);
     }
 
@@ -141,11 +238,11 @@ public class BankAccountServiceImpl implements IBankAccountService {
 
         // Contar dígitos del número
         int digits = String.valueOf(accountNumber).length();
-        
+
         if (digits < 8 || digits > 16) {
             throw new InvalidAccountNumberException(
-                "El número de cuenta debe tener entre 8 y 16 dígitos. Número proporcionado: '" + accountNumber + "' (" + digits + " dígitos)"
-            );
+                    "El número de cuenta debe tener entre 8 y 16 dígitos. Número proporcionado: '" + accountNumber
+                            + "' (" + digits + " dígitos)");
         }
     }
 
@@ -154,46 +251,58 @@ public class BankAccountServiceImpl implements IBankAccountService {
      */
     private Bank validateBankExists(Long bankId, String idEnterprise) {
         try {
-            return bankService.findById(bankId, idEnterprise);
+            Bank bank = bankService.findById(bankId, idEnterprise);
+            // Verificar que el banco esté activo
+            if (!Boolean.TRUE.equals(bank.getStatus())) {
+                throw new BankNotFoundForAccountException(
+                        "El banco con ID '" + bankId + "' existe pero no está activo.");
+            }
+            return bank;
+        } catch (BankNotFoundForAccountException e) {
+            throw e;
         } catch (Exception e) {
             throw new BankNotFoundForAccountException(
-                "El banco con ID '" + bankId + "' no existe o no está disponible para la empresa '" + idEnterprise + "'"
-            );
+                    "El banco con ID '" + bankId + "' no existe o no está disponible.");
         }
     }
 
     /**
-     * Valida que la cuenta contable existe y es una cuenta auxiliar (8 dígitos exactamente).
+     * Valida que la cuenta contable existe por ID y es una cuenta auxiliar (8
+     * dígitos).
      */
-    private void validateAccountingAccount(String accountingAccount, String idEnterprise) {
-        if (accountingAccount == null || accountingAccount.trim().isEmpty()) {
-            throw new InvalidAccountingAccountForBankAccountException("La cuenta contable no puede estar vacía");
-        }
-
-        String trimmedAccount = accountingAccount.trim();
-
-        // Validar que la cuenta tenga exactamente 8 dígitos (cuenta auxiliar)
-        if (!trimmedAccount.matches("^\\d{8}$")) {
+    private AccountCatalogue validateAccountingAccountExists(Long accountingAccountId, String idEnterprise) {
+        if (accountingAccountId == null) {
             throw new InvalidAccountingAccountForBankAccountException(
-                "La cuenta contable debe ser una cuenta auxiliar de exactamente 8 dígitos. Cuenta proporcionada: '" + trimmedAccount + "'"
-            );
+                    "El ID de la cuenta contable no puede estar vacío");
         }
 
         // Validar que la cuenta existe en el catálogo
         try {
-            AccountCatalogue account = accountCatalogueValidationService.validateAccountExists(trimmedAccount, idEnterprise);
+            AccountCatalogue account = accountCatalogueValidationService
+                    .validateAccountExistsByIdAndEnterprise(accountingAccountId, idEnterprise);
             if (account == null) {
                 throw new InvalidAccountingAccountForBankAccountException(
-                    "La cuenta contable '" + trimmedAccount + "' no existe en el catálogo de cuentas para la empresa '" + idEnterprise + "'"
-                );
+                        "La cuenta contable con ID '" + accountingAccountId + "' no existe en el catálogo de cuentas.");
             }
+
+            String accountCode = account.getCode();
+            if (accountCode == null || accountCode.trim().isEmpty()) {
+                throw new InvalidAccountingAccountForBankAccountException(
+                        "La cuenta contable tiene un código vacío o nulo.");
+            }
+
+            String trimmedCode = accountCode.trim();
+            if (!trimmedCode.matches("^\\d{8}$")) {
+                throw new InvalidAccountingAccountForBankAccountException(
+                        "La cuenta contable debe ser una cuenta auxiliar con exactamente 8 dígitos.");
+            }
+
+            return account;
+        } catch (InvalidAccountingAccountForBankAccountException e) {
+            throw e;
         } catch (Exception e) {
-            if (e instanceof InvalidAccountingAccountForBankAccountException) {
-                throw e;
-            }
             throw new InvalidAccountingAccountForBankAccountException(
-                "La cuenta contable '" + trimmedAccount + "' no existe en el catálogo de cuentas para la empresa '" + idEnterprise + "'"
-            );
+                    "La cuenta contable con ID '" + accountingAccountId + "' no existe en el catálogo de cuentas.");
         }
     }
 }

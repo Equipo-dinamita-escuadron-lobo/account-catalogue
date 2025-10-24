@@ -32,7 +32,7 @@ public interface IAccountCatalogueRepository extends JpaRepository<AccountCatalo
      * @return el AccountCatalogueEntity con el ID y id de empresa dados. Si no
      *         se encuentra, se devuelve null.
      */
-    @Query("SELECT a FROM AccountCatalogueEntity a LEFT JOIN FETCH a.parent WHERE a.id = ?1 AND a.idEnterprise = ?2")
+    @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.id = ?1 AND a.idEnterprise = ?2")
     AccountCatalogueEntity findByIdAndIdEnterprise(Long id, String idEnterprise);
 
     /**

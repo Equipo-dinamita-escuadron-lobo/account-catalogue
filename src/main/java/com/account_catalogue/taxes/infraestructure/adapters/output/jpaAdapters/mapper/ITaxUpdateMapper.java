@@ -6,7 +6,7 @@ import com.account_catalogue.taxes.infraestructure.adapters.output.jpaAdapters.e
 
 import org.mapstruct.Mapper;
 
-@Mapper
+@Mapper(componentModel = "spring")
 public interface ITaxUpdateMapper {
     /**
      * Mapea un objeto Tax a un objeto TaxEntity.
@@ -14,43 +14,13 @@ public interface ITaxUpdateMapper {
      * @param tax el objeto Tax a mapear
      * @return el objeto TaxEntity mapeado, o null si el objeto Tax es null
      */
-    default TaxEntity toEntity(Tax tax){
-        if(tax==null){
-            return null;
+    TaxEntity toEntity(Tax tax);
 
-        }
-
-
-        return TaxEntity.builder()
-                .code(tax.getCode())
-                .idEnterprise(tax.getIdEnterprise())
-                .description(tax.getDescription())
-                .interest(tax.getInterest())
-                .salesTax(tax.getSalesTax())
-                .purchaseTax(tax.getPurchaseTax())
-                .status(tax.getStatus() != null ? tax.getStatus() : true)
-                .build();
-    }
     /**
      * Mapea un objeto TaxEntity a un objeto Tax.
      *
      * @param taxEntity el TaxEntity a mapear
      * @return el modelo de dominio Tax mapeado, o null si el TaxEntity es null
      */
-    default Tax toModel(TaxEntity taxEntity){
-        if(taxEntity==null){
-            return null;
-        }
-
-        return Tax.builder()
-                .id(taxEntity.getId())
-                .code(taxEntity.getCode())
-                .idEnterprise(taxEntity.getIdEnterprise())
-                .description(taxEntity.getDescription())
-                .interest(taxEntity.getInterest())
-                .purchaseTax(taxEntity.getPurchaseTax())
-                .salesTax(taxEntity.getSalesTax())
-                .status(taxEntity.getStatus())
-                .build();
-    }
+    Tax toModel(TaxEntity taxEntity);
 }

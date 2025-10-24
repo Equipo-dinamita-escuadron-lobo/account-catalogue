@@ -10,8 +10,8 @@ import org.hibernate.annotations.TenantId;
     name = "banks",
     indexes = {
         @Index(name = "idx_bank_id_enterprise", columnList = "id_enterprise"),
-        @Index(name = "idx_bank_codigo", columnList = "codigo"),
-        @Index(name = "idx_bank_nombre", columnList = "nombre")
+        @Index(name = "idx_bank_code", columnList = "code"),
+        @Index(name = "idx_bank_name", columnList = "name")
     }
 )
 @Getter
@@ -25,15 +25,15 @@ public class BankEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "codigo", nullable = false, length = 2)
-    private String codigo;
+    @Column(name = "code", nullable = false, length = 2)
+    private String code;
 
-    @Column(name = "nombre", nullable = false)
-    private String nombre;
+    @Column(name = "name", nullable = false)
+    private String name;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "moneda", nullable = false)
-    private Currency moneda;
+    @Column(name = "currency", nullable = false)
+    private Currency currency;
 
     @Column(name = "status", nullable = false)
     @Builder.Default

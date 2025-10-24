@@ -25,8 +25,8 @@ public class BankAccountCreateReq {
     @NotNull(message = "El tipo de cuenta es obligatorio")
     private AccountType accountType;
 
-    @NotBlank(message = "La cuenta contable es obligatoria")
-    private String cuentaContable;
+    @NotNull(message = "La cuenta contable es obligatoria")
+    private Long accountingAccountId;
 
     @Builder.Default
     private Boolean status = true;

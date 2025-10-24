@@ -21,4 +21,6 @@ public interface BankRepository extends JpaRepository<BankEntity, Long> {
     Page<BankEntity> findAllByIdEnterprise(String idEnterprise, Pageable pageable);
     
     Page<BankEntity> findAllByIdEnterpriseAndStatus(String idEnterprise, Boolean status, Pageable pageable);
+
+    long countByIdEnterpriseAndStatus(String idEnterprise, Boolean status);
 }

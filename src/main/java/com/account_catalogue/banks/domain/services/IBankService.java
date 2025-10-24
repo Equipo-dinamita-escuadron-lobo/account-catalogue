@@ -16,7 +16,7 @@ public interface IBankService {
 
     Page<Bank> findAllByEnterprise(String idEnterprise, int page, int size);
 
-    Page<Bank> findAllByEnterpriseAndStatus(String idEnterprise, Boolean status, int page, int size);
+    Page<Bank> findAllActiveByEnterprise(String idEnterprise, Integer page, Integer size);
 
     Bank changeState(Long id, String idEnterprise, Boolean newState);
 

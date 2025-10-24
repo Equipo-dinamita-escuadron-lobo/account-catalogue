@@ -4,6 +4,7 @@ import com.account_catalogue.commons.exceptions.banks.BankAlreadyExistsException
 import com.account_catalogue.commons.exceptions.banks.BankHasAssociatedAccountsException;
 import com.account_catalogue.commons.exceptions.banks.BankNotFoundException;
 import com.account_catalogue.commons.exceptions.banks.InvalidBankCodeException;
+import com.account_catalogue.commons.utils.PaginationHelper;
 import com.account_catalogue.banks.dataAccess.entity.BankEntity;
 import com.account_catalogue.banks.dataAccess.mapper.BankDataMapper;
 import com.account_catalogue.banks.dataAccess.repository.BankRepository;
@@ -16,10 +17,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Locale;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +32,7 @@ public class BankServiceImpl implements IBankService {
     private final BankDataMapper dataMapper;
     private final BankDomainMapper domainMapper;
     private final BankAccountRepository bankAccountRepository;
+    private final PaginationHelper paginationHelper;
 
     @Transactional
     public Bank create(BankCreateReq request) {
@@ -40,7 +44,7 @@ public class BankServiceImpl implements IBankService {
 
         // Validar unicidad del código por empresa
         if (repository.existsByCodigoAndIdEnterprise(request.getCodigo(), request.getIdEnterprise())) {
-            throw new BankAlreadyExistsException("código", request.getCodigo().toString(), request.getIdEnterprise());
+            throw new BankAlreadyExistsException("código", request.getCodigo(), request.getIdEnterprise());
         }
 
         // Validar unicidad del nombre por empresa
@@ -66,15 +70,16 @@ public class BankServiceImpl implements IBankService {
 
         // Validar unicidad del código si cambió
         if (!current.getCodigo().equals(request.getCodigo()) &&
-            repository.existsByCodigoAndIdEnterprise(request.getCodigo(), request.getIdEnterprise())) {
+                repository.existsByCodigoAndIdEnterprise(request.getCodigo(), request.getIdEnterprise())) {
             throw new BankAlreadyExistsException("código", request.getCodigo(), request.getIdEnterprise());
         }
 
         String standardizedName = standardizeName(request.getNombre());
 
         // Validar unicidad del nombre si cambió (solo entre registros no eliminados)
-        if (!standardizedName.equals(current.getNombre()) && 
-            repository.existsByNombreAndIdEnterpriseAndIdNot(standardizedName, request.getIdEnterprise(), current.getId())) {
+        if (!standardizedName.equals(current.getNombre()) &&
+                repository.existsByNombreAndIdEnterpriseAndIdNot(standardizedName, request.getIdEnterprise(),
+                        current.getId())) {
             throw new BankAlreadyExistsException("nombre", standardizedName, request.getIdEnterprise());
         }
 
@@ -100,9 +105,24 @@ public class BankServiceImpl implements IBankService {
     }
 
     @Transactional(readOnly = true)
-    public Page<Bank> findAllByEnterpriseAndStatus(String idEnterprise, Boolean status, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        return repository.findAllByIdEnterpriseAndStatus(idEnterprise, status, pageable)
+    public Page<Bank> findAllActiveByEnterprise(String idEnterprise, Integer page, Integer size) {
+        // Contar el total de bancos activos para paginación inteligente
+        long totalRecords = repository.countByIdEnterpriseAndStatus(idEnterprise, true);
+
+        // Usar paginación inteligente con totalRecords y ordenamiento por nombre
+        // ascendente
+        Pageable pageable = paginationHelper.createFlexiblePageable(
+                Optional.ofNullable(page),
+                Optional.ofNullable(size),
+                totalRecords);
+
+        // Crear nuevo Pageable con ordenamiento por nombre
+        Pageable pageableWithSort = PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                Sort.by(Sort.Direction.ASC, "nombre"));
+
+        return repository.findAllByIdEnterpriseAndStatus(idEnterprise, true, pageableWithSort)
                 .map(dataMapper::toDomain);
     }
 
@@ -122,7 +142,8 @@ public class BankServiceImpl implements IBankService {
                 .orElseThrow(BankNotFoundException::new);
 
         // Verificar si el banco tiene cuentas bancarias asociadas
-        boolean hasAssociatedAccounts = bankAccountRepository.findAllByIdEnterpriseAndBankId(idEnterprise, id, PageRequest.of(0, 1)).hasContent();
+        boolean hasAssociatedAccounts = bankAccountRepository
+                .findAllByIdEnterpriseAndBankId(idEnterprise, id, PageRequest.of(0, 1)).hasContent();
         if (hasAssociatedAccounts) {
             throw new BankHasAssociatedAccountsException(current.getNombre());
         }
@@ -136,12 +157,14 @@ public class BankServiceImpl implements IBankService {
      * Estandariza el nombre del banco convirtiéndolo a mayúsculas.
      */
     private String standardizeName(String input) {
-        if (input == null) return null;
+        if (input == null)
+            return null;
         return input.trim().toUpperCase(new Locale("es", "ES"));
     }
 
     /**
-     * Valida que el código del banco tenga el formato correcto (exactamente 2 dígitos: 01-99).
+     * Valida que el código del banco tenga el formato correcto (exactamente 2
+     * dígitos: 01-99).
      */
     private void validateBankCode(String codigo) {
         if (codigo == null || codigo.trim().isEmpty()) {
@@ -149,18 +172,16 @@ public class BankServiceImpl implements IBankService {
         }
 
         String trimmedCodigo = codigo.trim();
-        
+
         if (!trimmedCodigo.matches("^\\d{2}$")) {
             throw new InvalidBankCodeException(
-                "El código debe ser exactamente 2 dígitos (01-99). Código proporcionado: '" + trimmedCodigo + "'"
-            );
+                    "El código debe ser exactamente 2 dígitos (01-99). Código proporcionado: '" + trimmedCodigo + "'");
         }
 
         int codigoInt = Integer.parseInt(trimmedCodigo);
         if (codigoInt < 1 || codigoInt > 99) {
             throw new InvalidBankCodeException(
-                "El código debe estar entre 01 y 99. Código proporcionado: '" + trimmedCodigo + "'"
-            );
+                    "El código debe estar entre 01 y 99. Código proporcionado: '" + trimmedCodigo + "'");
         }
     }
 }

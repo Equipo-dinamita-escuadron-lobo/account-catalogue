@@ -40,9 +40,12 @@ public class BankController {
     @GetMapping("/findAll/{enterpriseId}")
     public ResponseEntity<Page<BankRes>> list(
             @PathVariable String enterpriseId,
-            @RequestParam(defaultValue = "0") Integer page,
-            @RequestParam(defaultValue = "10") Integer size) {
-        return ResponseEntity.ok(service.findAllByEnterprise(enterpriseId, page, size)
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size,
+            @RequestParam(required = false) String sortField,
+            @RequestParam(required = false) String sortOrder,
+            @RequestParam(required = false) String search) {
+        return ResponseEntity.ok(service.findAllByEnterpriseWithFilters(enterpriseId, page, size, sortField, sortOrder, search)
                 .map(mapper::toRes));
     }
 

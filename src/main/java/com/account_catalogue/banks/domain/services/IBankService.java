@@ -14,7 +14,7 @@ public interface IBankService {
 
     Bank findById(Long id, String idEnterprise);
 
-    Page<Bank> findAllByEnterprise(String idEnterprise, int page, int size);
+    Page<Bank> findAllByEnterpriseWithFilters(String idEnterprise, Integer page, Integer size, String sortField, String sortOrder, String search);
 
     Page<Bank> findAllActiveByEnterprise(String idEnterprise, Integer page, Integer size);
 

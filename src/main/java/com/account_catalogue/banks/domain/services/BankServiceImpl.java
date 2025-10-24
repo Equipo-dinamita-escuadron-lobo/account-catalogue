@@ -18,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.util.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -99,9 +100,63 @@ public class BankServiceImpl implements IBankService {
     }
 
     @Transactional(readOnly = true)
-    public Page<Bank> findAllByEnterprise(String idEnterprise, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        return repository.findAllByIdEnterprise(idEnterprise, pageable).map(dataMapper::toDomain);
+    public Page<Bank> findAllByEnterpriseWithFilters(String idEnterprise, Integer page, Integer size,
+                                                   String sortField, String sortOrder, String search) {
+        // Validar sortField - solo permitir "codigo" y "nombre"
+        if (sortField != null && !sortField.isEmpty()) {
+            if (!"codigo".equals(sortField) && !"nombre".equals(sortField)) {
+                throw new IllegalArgumentException("El campo de ordenamiento debe ser 'codigo' o 'nombre'");
+            }
+        } else {
+            // Por defecto ordenar por nombre
+            sortField = "nombre";
+        }
+
+        // Validar sortOrder - solo permitir "asc" y "desc"
+        Sort.Direction direction = Sort.Direction.ASC;
+        if (sortOrder != null && !sortOrder.isEmpty()) {
+            if ("desc".equalsIgnoreCase(sortOrder)) {
+                direction = Sort.Direction.DESC;
+            } else if (!"asc".equalsIgnoreCase(sortOrder)) {
+                throw new IllegalArgumentException("El orden debe ser 'asc' o 'desc'");
+            }
+        }
+
+        // Determinar el número total de registros (considerando búsqueda si existe)
+        long totalRecords;
+        if (StringUtils.hasText(search)) {
+            // Si hay búsqueda, contar registros que coincidan con la búsqueda
+            totalRecords = repository.countByIdEnterpriseAndSearch(idEnterprise, search.trim());
+        } else {
+            // Sin búsqueda, contar todos los registros
+            totalRecords = repository.countByIdEnterprise(idEnterprise);
+        }
+
+        // Crear paginación inteligente
+        Pageable pageable = paginationHelper.createFlexiblePageable(
+            Optional.ofNullable(page),
+            Optional.ofNullable(size),
+            totalRecords
+        );
+
+        // Aplicar ordenamiento
+        Pageable pageableWithSort = PageRequest.of(
+            pageable.getPageNumber(),
+            pageable.getPageSize(),
+            Sort.by(direction, sortField)
+        );
+
+        // Ejecutar consulta con filtros
+        Page<BankEntity> result;
+        if (StringUtils.hasText(search)) {
+            // Búsqueda por código o nombre
+            result = repository.findByIdEnterpriseAndSearch(idEnterprise, search.trim(), pageableWithSort);
+        } else {
+            // Sin búsqueda
+            result = repository.findAllByIdEnterprise(idEnterprise, pageableWithSort);
+        }
+
+        return result.map(dataMapper::toDomain);
     }
 
     @Transactional(readOnly = true)
@@ -109,8 +164,6 @@ public class BankServiceImpl implements IBankService {
         // Contar el total de bancos activos para paginación inteligente
         long totalRecords = repository.countByIdEnterpriseAndStatus(idEnterprise, true);
 
-        // Usar paginación inteligente con totalRecords y ordenamiento por nombre
-        // ascendente
         Pageable pageable = paginationHelper.createFlexiblePageable(
                 Optional.ofNullable(page),
                 Optional.ofNullable(size),

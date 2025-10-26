@@ -3,7 +3,6 @@ package com.account_catalogue.paymentMethods.domain.services;
 import com.account_catalogue.commons.exceptions.paymentMethods.PaymentMethodsAlreadyExistsException;
 import com.account_catalogue.commons.exceptions.paymentMethods.PaymentMethodsNotFoundException;
 import com.account_catalogue.commons.exceptions.paymentMethods.InvalidAccountingAccountException;
-import com.account_catalogue.commons.exceptions.paymentMethods.AccountingAccountImmutableException;
 import com.account_catalogue.catalogue.application.services.AccountCatalogueValidationService;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
 import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.entity.AccountCatalogueEntity;
@@ -84,18 +83,14 @@ public class PaymentMethodServiceImpl implements IPaymentMethodService {
         PaymentMethodEntity current = repository.findByIdAndIdEnterprise(request.getId(), request.getIdEnterprise())
                 .orElseThrow(PaymentMethodsNotFoundException::new);
 
+        // Validar que la nueva cuenta contable existe y es auxiliar (si se está cambiando)
+        AccountCatalogue newAccount = accountCatalogueValidationService.validateAccountExistsByIdAndEnterprise(
+                request.getAccountingAccountId(), request.getIdEnterprise());
+        validateAccountingAccount(newAccount.getCode(), request.getIdEnterprise());
+
         // Normalizar nombre solo para validación de unicidad
         String normalizedNameForValidation = StringStandardizationUtils.standardizeName(request.getName());
 
-        // Validar que no se esté intentando cambiar la cuenta contable
-        Long currentAccountId = current.getAccountingAccount() != null ? current.getAccountingAccount().getId() : null;
-        if (currentAccountId != null && !request.getAccountingAccountId().equals(currentAccountId)) {
-            throw new AccountingAccountImmutableException(
-                    "No se puede modificar la cuenta contable. ID actual: '" + currentAccountId +
-                            "', ID solicitado: '" + request.getAccountingAccountId() + "'");
-        }
-
-        
         String currentNormalizedName = StringStandardizationUtils.standardizeName(current.getName());
         if (!normalizedNameForValidation.equals(currentNormalizedName)) {
             List<PaymentMethodEntity> existingMethods = repository.findAllByIdEnterprise(request.getIdEnterprise(), Pageable.unpaged()).getContent();
@@ -108,9 +103,16 @@ public class PaymentMethodServiceImpl implements IPaymentMethodService {
             }
         }
 
-      
+        // Guardar el nombre tal como lo ingresó el usuario (sin normalizar)
         current.setName(request.getName());
-       
+
+        // Actualizar la cuenta contable
+        AccountCatalogueEntity accountEntity = new AccountCatalogueEntity();
+        accountEntity.setId(newAccount.getId());
+        accountEntity.setCode(newAccount.getCode());
+        accountEntity.setDescription(newAccount.getDescription());
+        current.setAccountingAccount(accountEntity);
+
         PaymentMethodEntity saved = repository.save(current);
         return dataMapper.toDomain(saved);
     }

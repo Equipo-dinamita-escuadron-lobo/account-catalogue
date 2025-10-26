@@ -23,6 +23,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.Locale;
 import java.util.Optional;
@@ -37,7 +38,6 @@ public class PaymentMethodServiceImpl implements IPaymentMethodService {
     private final AccountCatalogueValidationService accountCatalogueValidationService;
     private final PaginationHelper paginationHelper;
 
-
     @Transactional
     public PaymentMethod create(PaymentMethodCreateReq request) {
         // Estandarización de nombre
@@ -45,7 +45,7 @@ public class PaymentMethodServiceImpl implements IPaymentMethodService {
 
         // Validar que la cuenta contable existe por ID y empresa
         AccountCatalogue account = accountCatalogueValidationService.validateAccountExistsByIdAndEnterprise(
-            request.getAccountingAccountId(), request.getIdEnterprise());
+                request.getAccountingAccountId(), request.getIdEnterprise());
 
         // Validar que la cuenta contable es auxiliar
         validateAccountingAccount(account.getCode(), request.getIdEnterprise());
@@ -85,14 +85,14 @@ public class PaymentMethodServiceImpl implements IPaymentMethodService {
         Long currentAccountId = current.getAccountingAccount() != null ? current.getAccountingAccount().getId() : null;
         if (currentAccountId != null && !request.getAccountingAccountId().equals(currentAccountId)) {
             throw new AccountingAccountImmutableException(
-                "No se puede modificar la cuenta contable. ID actual: '" + currentAccountId +
-                "', ID solicitado: '" + request.getAccountingAccountId() + "'"
-            );
+                    "No se puede modificar la cuenta contable. ID actual: '" + currentAccountId +
+                            "', ID solicitado: '" + request.getAccountingAccountId() + "'");
         }
 
         // Validar unicidad si el nombre cambió (solo entre registros no eliminados)
         if (!standardizedName.equals(current.getName()) &&
-            repository.existsByNameAndIdEnterpriseAndIdNot(standardizedName, request.getIdEnterprise(), current.getId())) {
+                repository.existsByNameAndIdEnterpriseAndIdNot(standardizedName, request.getIdEnterprise(),
+                        current.getId())) {
             throw new PaymentMethodsAlreadyExistsException("nombre", standardizedName, request.getIdEnterprise());
         }
 
@@ -110,19 +110,37 @@ public class PaymentMethodServiceImpl implements IPaymentMethodService {
     }
 
     @Transactional(readOnly = true)
-    public Page<PaymentMethod> findAllByEnterprise(String idEnterprise, Optional<Integer> page, Optional<Integer> size, String sortField, String sortOrder) {
-        long totalRecords = repository.countByIdEnterprise(idEnterprise);
+    public Page<PaymentMethod> findAllByEnterprise(String idEnterprise, Optional<Integer> page, Optional<Integer> size,
+            String sortField, String sortOrder, String search) {
+        long totalRecords;
+        if (StringUtils.hasText(search)) {
+            totalRecords = repository.countByIdEnterpriseAndSearch(idEnterprise, search.trim());
+        } else {
+            totalRecords = repository.countByIdEnterprise(idEnterprise);
+        }
+
         Sort sort = Sort.by(sortOrder.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC, sortField);
 
         Pageable pageable = paginationHelper.createFlexiblePageable(page, size, totalRecords);
         pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
 
-        return repository.findAllByIdEnterprise(idEnterprise, pageable).map(dataMapper::toDomain);
+        // Ejecutar consulta con filtros
+        Page<PaymentMethodEntity> result;
+        if (StringUtils.hasText(search)) {
+            // Búsqueda por nombre o cuenta contable
+            result = repository.findByIdEnterpriseAndSearch(idEnterprise, search.trim(), pageable);
+        } else {
+            // Sin búsqueda
+            result = repository.findAllByIdEnterprise(idEnterprise, pageable);
+        }
+
+        return result.map(dataMapper::toDomain);
     }
 
     @Transactional(readOnly = true)
-    public Page<PaymentMethod> findAllActiveByEnterprise(String idEnterprise, Optional<Integer> page, Optional<Integer> size) {
-    
+    public Page<PaymentMethod> findAllActiveByEnterprise(String idEnterprise, Optional<Integer> page,
+            Optional<Integer> size) {
+
         long totalRecords = repository.countByIdEnterpriseAndStatus(idEnterprise, true);
 
         Sort sort = Sort.by(Sort.Direction.ASC, "name");
@@ -155,18 +173,22 @@ public class PaymentMethodServiceImpl implements IPaymentMethodService {
     }
 
     private String standardizeName(String input) {
-        if (input == null) return null;
+        if (input == null)
+            return null;
         String s = input.trim().replaceAll("\\s+", " ").toLowerCase(new Locale("es", "ES"));
-        if (s.isEmpty()) return s;
+        if (s.isEmpty())
+            return s;
         return s.substring(0, 1).toUpperCase(new Locale("es", "ES")) + s.substring(1);
     }
 
     /**
-     * Valida que la cuenta contable existe y es una cuenta auxiliar (8 dígitos exactamente).
+     * Valida que la cuenta contable existe y es una cuenta auxiliar (8 dígitos
+     * exactamente).
      * 
      * @param accountingAccount el código de la cuenta contable
-     * @param idEnterprise el ID de la empresa
-     * @throws InvalidAccountingAccountException si la cuenta no existe o no es auxiliar
+     * @param idEnterprise      el ID de la empresa
+     * @throws InvalidAccountingAccountException si la cuenta no existe o no es
+     *                                           auxiliar
      */
     private void validateAccountingAccount(String accountingAccount, String idEnterprise) {
         if (accountingAccount == null || accountingAccount.trim().isEmpty()) {
@@ -178,25 +200,26 @@ public class PaymentMethodServiceImpl implements IPaymentMethodService {
         // Validar que la cuenta tenga exactamente 8 dígitos (cuenta auxiliar)
         if (!trimmedAccount.matches("^\\d{8}$")) {
             throw new InvalidAccountingAccountException(
-                "La cuenta contable debe ser una cuenta auxiliar de exactamente 8 dígitos. Cuenta proporcionada: '" + trimmedAccount + "'"
-            );
+                    "La cuenta contable debe ser una cuenta auxiliar de exactamente 8 dígitos. Cuenta proporcionada: '"
+                            + trimmedAccount + "'");
         }
 
         // Validar que la cuenta existe en el catálogo
         try {
-            AccountCatalogue account = accountCatalogueValidationService.validateAccountExists(trimmedAccount, idEnterprise);
+            AccountCatalogue account = accountCatalogueValidationService.validateAccountExists(trimmedAccount,
+                    idEnterprise);
             if (account == null) {
                 throw new InvalidAccountingAccountException(
-                    "La cuenta contable '" + trimmedAccount + "' no existe en el catálogo de cuentas para la empresa '" + idEnterprise + "'"
-                );
+                        "La cuenta contable '" + trimmedAccount
+                                + "' no existe en el catálogo de cuentas para la empresa '" + idEnterprise + "'");
             }
         } catch (Exception e) {
             if (e instanceof InvalidAccountingAccountException) {
                 throw e;
             }
             throw new InvalidAccountingAccountException(
-                "La cuenta contable '" + trimmedAccount + "' no existe en el catálogo de cuentas para la empresa '" + idEnterprise + "'"
-            );
+                    "La cuenta contable '" + trimmedAccount + "' no existe en el catálogo de cuentas para la empresa '"
+                            + idEnterprise + "'");
         }
     }
 }

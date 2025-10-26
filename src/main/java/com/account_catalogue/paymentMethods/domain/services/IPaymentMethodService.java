@@ -16,7 +16,7 @@ public interface IPaymentMethodService {
 
     PaymentMethod findById(Long id, String idEnterprise);
 
-    Page<PaymentMethod> findAllByEnterprise(String idEnterprise, Optional<Integer> page, Optional<Integer> size, String sortField, String sortOrder);
+    Page<PaymentMethod> findAllByEnterprise(String idEnterprise, Optional<Integer> page, Optional<Integer> size, String sortField, String sortOrder, String search);
 
     Page<PaymentMethod> findAllActiveByEnterprise(String idEnterprise, Optional<Integer> page, Optional<Integer> size);
 

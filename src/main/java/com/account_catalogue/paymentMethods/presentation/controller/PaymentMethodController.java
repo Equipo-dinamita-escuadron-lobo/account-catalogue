@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -40,7 +41,7 @@ public class PaymentMethodController {
     }
 
     @GetMapping("/findAll/{enterpriseId}")
-    public ResponseEntity<?> list(
+    public ResponseEntity<Page<PaymentMethodRes>> list(
             @PathVariable String enterpriseId,
             @RequestParam(required = false) Optional<Integer> page,
             @RequestParam(required = false) Optional<Integer> size,
@@ -51,7 +52,7 @@ public class PaymentMethodController {
     }
 
     @GetMapping("/findAllActive/{enterpriseId}")
-    public ResponseEntity<?> findAllActive(
+    public ResponseEntity<Page<PaymentMethodRes>> findAllActive(
             @PathVariable String enterpriseId,
             @RequestParam(required = false) Optional<Integer> page,
             @RequestParam(required = false) Optional<Integer> size) {

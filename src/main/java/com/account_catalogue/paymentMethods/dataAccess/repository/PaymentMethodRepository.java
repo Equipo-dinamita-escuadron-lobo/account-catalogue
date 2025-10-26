@@ -24,4 +24,6 @@ public interface PaymentMethodRepository extends JpaRepository<PaymentMethodEnti
 
     long countByIdEnterprise(String idEnterprise);
 
+    long countByIdEnterpriseAndStatus(String idEnterprise, Boolean status);
+
 }

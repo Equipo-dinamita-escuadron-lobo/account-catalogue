@@ -121,9 +121,17 @@ public class PaymentMethodServiceImpl implements IPaymentMethodService {
     }
 
     @Transactional(readOnly = true)
-    public Page<PaymentMethod> findAllByEnterpriseAndStatus(String idEnterprise, Boolean status, int page, int size, String sortField, String sortOrder) {
-        Sort sort = Sort.by(sortOrder.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC, sortField);
-        Pageable pageable = PageRequest.of(page, size, sort);
+    public Page<PaymentMethod> findAllByEnterpriseAndStatus(String idEnterprise, Boolean status, Optional<Integer> page, Optional<Integer> size) {
+        // Obtener el total de registros filtrados por empresa y estado
+        long totalRecords = repository.countByIdEnterpriseAndStatus(idEnterprise, status);
+
+        // Ordenamiento fijo: name ASC
+        Sort sort = Sort.by(Sort.Direction.ASC, "name");
+
+        // Crear el Pageable usando PaginationHelper
+        Pageable pageable = paginationHelper.createFlexiblePageable(page, size, totalRecords);
+        pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
+
         return repository.findAllByIdEnterpriseAndStatus(idEnterprise, status, pageable)
                 .map(dataMapper::toDomain);
     }

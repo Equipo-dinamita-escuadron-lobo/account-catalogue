@@ -54,11 +54,9 @@ public class PaymentMethodController {
     public ResponseEntity<?> listByStatus(
             @PathVariable String enterpriseId,
             @RequestParam Boolean status,
-            @RequestParam(defaultValue = "0") Integer page,
-            @RequestParam(defaultValue = "10") Integer size,
-            @RequestParam(defaultValue = "name") String sortField,
-            @RequestParam(defaultValue = "asc") String sortOrder) {
-        return ResponseEntity.ok(service.findAllByEnterpriseAndStatus(enterpriseId, status, page, size, sortField, sortOrder)
+            @RequestParam(required = false) Optional<Integer> page,
+            @RequestParam(required = false) Optional<Integer> size) {
+        return ResponseEntity.ok(service.findAllByEnterpriseAndStatus(enterpriseId, status, page, size)
                 .map(mapper::toRes));
     }
 

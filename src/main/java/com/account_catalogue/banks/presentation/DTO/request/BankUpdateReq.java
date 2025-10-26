@@ -21,6 +21,7 @@ public class BankUpdateReq {
 
     @NotBlank(message = "El código del banco es obligatorio")
     @Pattern(regexp = "^\\d{2}$", message = "El código debe tener exactamente 2 dígitos (01-99)")
+    @Positive(message = "El código debe ser positivo")
     private String code;
 
     @NotBlank(message = "El nombre del banco es obligatorio")

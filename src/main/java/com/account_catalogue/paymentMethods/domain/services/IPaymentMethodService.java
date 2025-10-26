@@ -6,6 +6,8 @@ import com.account_catalogue.paymentMethods.domain.model.PaymentMethod;
 import com.account_catalogue.paymentMethods.presentation.DTO.request.PaymentMethodCreateReq;
 import com.account_catalogue.paymentMethods.presentation.DTO.request.PaymentMethodUpdateReq;
 
+import java.util.Optional;
+
 public interface IPaymentMethodService {
 
     PaymentMethod create(PaymentMethodCreateReq request);
@@ -14,7 +16,7 @@ public interface IPaymentMethodService {
 
     PaymentMethod findById(Long id, String idEnterprise);
 
-    Page<PaymentMethod> findAllByEnterprise(String idEnterprise, int page, int size, String sortField, String sortOrder);
+    Page<PaymentMethod> findAllByEnterprise(String idEnterprise, Optional<Integer> page, Optional<Integer> size, String sortField, String sortOrder);
 
     Page<PaymentMethod> findAllByEnterpriseAndStatus(String idEnterprise, Boolean status, int page, int size, String sortField, String sortOrder);
 

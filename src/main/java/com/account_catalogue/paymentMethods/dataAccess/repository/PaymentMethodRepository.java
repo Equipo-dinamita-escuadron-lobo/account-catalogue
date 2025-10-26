@@ -22,4 +22,6 @@ public interface PaymentMethodRepository extends JpaRepository<PaymentMethodEnti
     @EntityGraph(attributePaths = "accountingAccount")
     Page<PaymentMethodEntity> findAllByIdEnterpriseAndStatus(String idEnterprise, Boolean status, Pageable pageable);
 
+    long countByIdEnterprise(String idEnterprise);
+
 }

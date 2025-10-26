@@ -15,6 +15,7 @@ import com.account_catalogue.paymentMethods.domain.mapper.PaymentMethodDomainMap
 import com.account_catalogue.paymentMethods.domain.model.PaymentMethod;
 import com.account_catalogue.paymentMethods.presentation.DTO.request.PaymentMethodCreateReq;
 import com.account_catalogue.paymentMethods.presentation.DTO.request.PaymentMethodUpdateReq;
+import com.account_catalogue.commons.utils.PaginationHelper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -24,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Locale;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +35,7 @@ public class PaymentMethodServiceImpl implements IPaymentMethodService {
     private final PaymentMethodDataMapper dataMapper;
     private final PaymentMethodDomainMapper domainMapper;
     private final AccountCatalogueValidationService accountCatalogueValidationService;
+    private final PaginationHelper paginationHelper;
 
 
     @Transactional
@@ -107,9 +110,13 @@ public class PaymentMethodServiceImpl implements IPaymentMethodService {
     }
 
     @Transactional(readOnly = true)
-    public Page<PaymentMethod> findAllByEnterprise(String idEnterprise, int page, int size, String sortField, String sortOrder) {
+    public Page<PaymentMethod> findAllByEnterprise(String idEnterprise, Optional<Integer> page, Optional<Integer> size, String sortField, String sortOrder) {
+        long totalRecords = repository.countByIdEnterprise(idEnterprise);
         Sort sort = Sort.by(sortOrder.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC, sortField);
-        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Pageable pageable = paginationHelper.createFlexiblePageable(page, size, totalRecords);
+        pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
+
         return repository.findAllByIdEnterprise(idEnterprise, pageable).map(dataMapper::toDomain);
     }
 

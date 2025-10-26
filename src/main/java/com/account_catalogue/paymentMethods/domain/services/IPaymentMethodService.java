@@ -18,7 +18,7 @@ public interface IPaymentMethodService {
 
     Page<PaymentMethod> findAllByEnterprise(String idEnterprise, Optional<Integer> page, Optional<Integer> size, String sortField, String sortOrder);
 
-    Page<PaymentMethod> findAllByEnterpriseAndStatus(String idEnterprise, Boolean status, Optional<Integer> page, Optional<Integer> size);
+    Page<PaymentMethod> findAllActiveByEnterprise(String idEnterprise, Optional<Integer> page, Optional<Integer> size);
 
     PaymentMethod changeState(Long id, String idEnterprise, Boolean newState);
 

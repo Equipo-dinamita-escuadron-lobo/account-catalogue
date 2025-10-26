@@ -50,13 +50,12 @@ public class PaymentMethodController {
                 .map(mapper::toRes));
     }
 
-    @GetMapping("/findAllByStatus/{enterpriseId}")
-    public ResponseEntity<?> listByStatus(
+    @GetMapping("/findAllActive/{enterpriseId}")
+    public ResponseEntity<?> findAllActive(
             @PathVariable String enterpriseId,
-            @RequestParam Boolean status,
             @RequestParam(required = false) Optional<Integer> page,
             @RequestParam(required = false) Optional<Integer> size) {
-        return ResponseEntity.ok(service.findAllByEnterpriseAndStatus(enterpriseId, status, page, size)
+        return ResponseEntity.ok(service.findAllActiveByEnterprise(enterpriseId, page, size)
                 .map(mapper::toRes));
     }
 

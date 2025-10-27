@@ -5,15 +5,14 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.TenantId;
 
+import java.util.Set;
+
 @Entity
-@Table(
-    name = "banks",
-    indexes = {
+@Table(name = "banks", indexes = {
         @Index(name = "idx_bank_id_enterprise", columnList = "id_enterprise"),
         @Index(name = "idx_bank_code", columnList = "code"),
         @Index(name = "idx_bank_name", columnList = "name")
-    }
-)
+})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -31,9 +30,11 @@ public class BankEntity {
     @Column(name = "name", nullable = false)
     private String name;
 
+    @ElementCollection(targetClass = Currency.class, fetch = FetchType.EAGER)
+    @CollectionTable(name = "bank_currencies", joinColumns = @JoinColumn(name = "bank_id"), indexes = @Index(name = "idx_bank_currencies_bank_id", columnList = "bank_id"))
     @Enumerated(EnumType.STRING)
     @Column(name = "currency", nullable = false)
-    private Currency currency;
+    private Set<Currency> currencies;
 
     @Column(name = "status", nullable = false)
     @Builder.Default

@@ -4,6 +4,8 @@ import com.account_catalogue.banks.domain.enums.Currency;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
+import java.util.Set;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -19,14 +21,15 @@ public class BankUpdateReq {
 
     @NotBlank(message = "El código del banco es obligatorio")
     @Pattern(regexp = "^\\d{2}$", message = "El código debe tener exactamente 2 dígitos (01-99)")
+    @Positive(message = "El código debe ser positivo")
     private String code;
 
     @NotBlank(message = "El nombre del banco es obligatorio")
     @Size(max = 100, message = "El nombre no debe exceder 100 caracteres")
     private String name;
 
-    @NotNull(message = "La moneda es obligatoria")
-    private Currency currency;
+    @NotEmpty(message = "Debe seleccionar al menos una moneda")
+    private Set<Currency> currencies;
 
     @NotNull(message = "El estado es obligatorio")
     private Boolean status;

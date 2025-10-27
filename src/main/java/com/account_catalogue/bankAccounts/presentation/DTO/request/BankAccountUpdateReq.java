@@ -20,6 +20,7 @@ public class BankAccountUpdateReq {
     @NotNull(message = "El número de cuenta es obligatorio")
     @Min(value = 10000000L, message = "El número de cuenta debe tener al menos 8 dígitos")
     @Max(value = 9999999999999999L, message = "El número de cuenta debe tener máximo 16 dígitos")
+    @Positive(message = "El número de cuenta debe ser positivo")
     private Long accountNumber;
 
     @NotNull(message = "El banco es obligatorio")

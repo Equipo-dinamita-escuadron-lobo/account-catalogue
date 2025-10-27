@@ -5,13 +5,16 @@ import com.account_catalogue.taxes.application.output.ITaxUpdateOutputPort;
 import com.account_catalogue.taxes.domain.DTO.TaxDTO;
 import com.account_catalogue.taxes.domain.models.Tax;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import org.springframework.stereotype.Service;
 
 @Service
+@AllArgsConstructor
+@Data
 public class TaxUpdateService implements ITaxUpdateInputPort {
-    @Autowired
-    private ITaxUpdateOutputPort taxUpdateOutputPort;
+    private final ITaxUpdateOutputPort taxUpdateOutputPort;
+    private final TaxValidationService taxValidationService;
 
     /**
      * Actualiza los detalles de un impuesto.
@@ -23,6 +26,16 @@ public class TaxUpdateService implements ITaxUpdateInputPort {
      */
     @Override
     public Tax update(TaxDTO taxDTO, long id) {
+        // Validar que el impuesto existe
+        taxValidationService.validateTaxExists(id, taxDTO.getIdEnterprise());
+
+        // Validar unicidad del código usando normalización, excluyendo el registro actual
+        taxValidationService.validateTaxCodeNotExistsExcludingId(taxDTO.getCode(), taxDTO.getIdEnterprise(), id);
+
+        // Validar cuentas de impuesto
+        taxValidationService.validateAccountDigits(taxDTO.getSalesTaxId(), taxDTO.getPurchaseTaxId(), taxDTO.getIdEnterprise());
+        taxValidationService.validateDifferentTaxAccounts(taxDTO.getSalesTaxId(), taxDTO.getPurchaseTaxId());
+
         return taxUpdateOutputPort.update(taxDTO, id);
     }
 }

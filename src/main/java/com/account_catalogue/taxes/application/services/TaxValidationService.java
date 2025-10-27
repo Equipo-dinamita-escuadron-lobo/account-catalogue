@@ -1,5 +1,7 @@
 package com.account_catalogue.taxes.application.services;
 
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 
 import com.account_catalogue.catalogue.application.output.IAccountCatalogueSearchOutputPort;
@@ -10,6 +12,7 @@ import com.account_catalogue.commons.exceptions.taxes.DuplicateTaxAccountsExcept
 import com.account_catalogue.commons.exceptions.taxes.InvalidAccountDigitsException;
 import com.account_catalogue.commons.exceptions.taxes.TaxAlreadyExistsException;
 import com.account_catalogue.commons.exceptions.taxes.TaxNotFoundException;
+import com.account_catalogue.commons.utils.StringStandardizationUtils;
 import com.account_catalogue.taxes.application.output.ITaxSearchOutputPort;
 import com.account_catalogue.taxes.domain.models.Tax;
 
@@ -89,16 +92,61 @@ public class TaxValidationService {
 
     /**
      * Valida que no exista un impuesto con el mismo código para la empresa.
-     * 
+     * La comparación se realiza usando normalización (ignorando mayúsculas/minúsculas y espacios).
+     *
      * @param code         código del impuesto
      * @param idEnterprise ID de la empresa
      * @throws TaxAlreadyExistsException si el impuesto ya existe
      */
     public void validateTaxCodeNotExists(String code, String idEnterprise) {
-        Tax existingTax = taxSearchOutputPort.getTax(code, idEnterprise);
-        if (existingTax != null) {
-            throw new TaxAlreadyExistsException(
-                    "El impuesto con código '" + code + "' ya fue creado para esta empresa");
+        if (code == null || code.trim().isEmpty()) {
+            return; // No validar códigos vacíos o nulos
+        }
+
+        String normalizedCode = StringStandardizationUtils.standardizeCode(code);
+
+        // Buscar todos los impuestos de la empresa y comparar códigos normalizados
+        List<Tax> allTaxes = taxSearchOutputPort.getTaxesByEnterprise(idEnterprise);
+
+        for (Tax tax : allTaxes) {
+            if (tax.getCode() != null) {
+                String existingNormalizedCode = StringStandardizationUtils.standardizeCode(tax.getCode());
+                if (normalizedCode.equals(existingNormalizedCode)) {
+                    throw new TaxAlreadyExistsException(
+                            "Ya existe un impuesto con código '" + code + "'");
+                }
+            }
+        }
+    }
+
+    /**
+     * Valida que no exista un impuesto con el mismo código para la empresa, excluyendo un ID específico.
+     * Usado para validación en edición. La comparación se realiza usando normalización.
+     *
+     * @param code         código del impuesto
+     * @param idEnterprise ID de la empresa
+     * @param excludeId    ID del impuesto a excluir de la validación
+     * @throws TaxAlreadyExistsException si el impuesto ya existe
+     */
+    public void validateTaxCodeNotExistsExcludingId(String code, String idEnterprise, Long excludeId) {
+        if (code == null || code.trim().isEmpty()) {
+            return; // No validar códigos vacíos o nulos
+        }
+
+        String normalizedCode = StringStandardizationUtils.standardizeCode(code);
+
+        // Buscar todos los impuestos de la empresa y comparar códigos normalizados
+        List<Tax> allTaxes = taxSearchOutputPort.getTaxesByEnterprise(idEnterprise);
+
+        for (Tax tax : allTaxes) {
+            // Excluir el impuesto que se está editando
+            if (!tax.getId().equals(excludeId) && tax.getCode() != null) {
+                String existingNormalizedCode = StringStandardizationUtils.standardizeCode(tax.getCode());
+                if (normalizedCode.equals(existingNormalizedCode)) {
+                    throw new TaxAlreadyExistsException(
+                            "Ya existe un impuesto con código '" + code + "'");
+                }
+            }
         }
     }
 

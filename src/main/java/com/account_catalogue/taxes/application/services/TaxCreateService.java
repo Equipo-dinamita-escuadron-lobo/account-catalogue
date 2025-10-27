@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 @Data
 public class TaxCreateService implements ITaxCreateInputPort {
     private final ITaxCreateOutputPort taxCreateOutputPort;
+    private final TaxValidationService taxValidationService;
 
     /**
      * Crea una nueva entrada de impuesto en el sistema.
@@ -23,6 +24,13 @@ public class TaxCreateService implements ITaxCreateInputPort {
      */
     @Override
     public Tax createTax(TaxDTO tax) {
+        // Validar unicidad del código usando normalización
+        taxValidationService.validateTaxCodeNotExists(tax.getCode(), tax.getIdEnterprise());
+
+        // Validar cuentas de impuesto
+        taxValidationService.validateAccountDigits(tax.getSalesTaxId(), tax.getPurchaseTaxId(), tax.getIdEnterprise());
+        taxValidationService.validateDifferentTaxAccounts(tax.getSalesTaxId(), tax.getPurchaseTaxId());
+
         return taxCreateOutputPort.createTax(tax);
     }
 }

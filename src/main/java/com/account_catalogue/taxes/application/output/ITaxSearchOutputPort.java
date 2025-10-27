@@ -9,6 +9,7 @@ public interface ITaxSearchOutputPort {
 
     Tax getTax(String code, String idEnterprise);
     List<Tax> getActiveTaxes(String idEnterprise);
+    List<Tax> getTaxesByEnterprise(String idEnterprise);
     Page<Tax> getTaxesPaginated(String idEnterprise, int page, int size, String sortField, String sortOrder);
     Page<Tax> getTaxesByCodeOrDescriptionPaginated(String idEnterprise, String search, int page, int size, String sortField, String sortOrder);
     long countTaxesByEnterprise(String idEnterprise);

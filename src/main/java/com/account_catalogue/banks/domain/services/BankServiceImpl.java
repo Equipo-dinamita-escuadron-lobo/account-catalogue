@@ -86,7 +86,7 @@ public class BankServiceImpl implements IBankService {
 
         current.setCode(request.getCode());
         current.setName(standardizedName);
-        current.setCurrency(request.getCurrency());
+        current.setCurrencies(request.getCurrencies());
         current.setStatus(request.getStatus());
 
         BankEntity saved = repository.save(current);

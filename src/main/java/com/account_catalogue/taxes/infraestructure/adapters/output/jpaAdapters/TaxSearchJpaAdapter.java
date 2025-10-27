@@ -49,6 +49,18 @@ public class TaxSearchJpaAdapter implements ITaxSearchOutputPort {
     }
 
     /**
+     * Obtiene una lista de todos los impuestos asociados al ID de empresa proporcionado.
+     *
+     * @param idEnterprise el ID de la empresa
+     * @return una lista de todos los impuestos asociados al ID de empresa proporcionado
+     */
+    @Override
+    public List<Tax> getTaxesByEnterprise(String idEnterprise) {
+        List<TaxEntity> taxEntities = taxRepository.findAllByIdEnterprise(idEnterprise);
+        return taxSearchMapper.toDomainList(taxEntities);
+    }
+
+    /**
      * Obtiene un impuesto por ID y empresa.
      * Método optimizado que valida que el impuesto pertenece a la empresa especificada.
      * 

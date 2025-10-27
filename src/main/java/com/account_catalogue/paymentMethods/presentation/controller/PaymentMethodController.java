@@ -8,6 +8,10 @@ import com.account_catalogue.paymentMethods.presentation.DTO.request.PaymentMeth
 import com.account_catalogue.paymentMethods.presentation.DTO.response.PaymentMethodRes;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
+import java.util.Optional;
+
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -37,25 +41,23 @@ public class PaymentMethodController {
     }
 
     @GetMapping("/findAll/{enterpriseId}")
-    public ResponseEntity<?> list(
-            @PathVariable("enterpriseId") String enterpriseId,
-            @RequestParam(defaultValue = "0") Integer page,
-            @RequestParam(defaultValue = "10") Integer size,
+    public ResponseEntity<Page<PaymentMethodRes>> list(
+            @PathVariable String enterpriseId,
+            @RequestParam(required = false) Optional<Integer> page,
+            @RequestParam(required = false) Optional<Integer> size,
             @RequestParam(defaultValue = "name") String sortField,
-            @RequestParam(defaultValue = "asc") String sortOrder) {
-        return ResponseEntity.ok(service.findAllByEnterprise(enterpriseId, page, size, sortField, sortOrder)
+            @RequestParam(defaultValue = "asc") String sortOrder,
+            @RequestParam(required = false) String search) {
+        return ResponseEntity.ok(service.findAllByEnterprise(enterpriseId, page, size, sortField, sortOrder, search)
                 .map(mapper::toRes));
     }
 
-    @GetMapping("/findAllByStatus/{enterpriseId}")
-    public ResponseEntity<?> listByStatus(
-            @PathVariable("enterpriseId") String enterpriseId,
-            @RequestParam Boolean status,
-            @RequestParam(defaultValue = "0") Integer page,
-            @RequestParam(defaultValue = "10") Integer size,
-            @RequestParam(defaultValue = "name") String sortField,
-            @RequestParam(defaultValue = "asc") String sortOrder) {
-        return ResponseEntity.ok(service.findAllByEnterpriseAndStatus(enterpriseId, status, page, size, sortField, sortOrder)
+    @GetMapping("/findAllActive/{enterpriseId}")
+    public ResponseEntity<Page<PaymentMethodRes>> findAllActive(
+            @PathVariable String enterpriseId,
+            @RequestParam(required = false) Optional<Integer> page,
+            @RequestParam(required = false) Optional<Integer> size) {
+        return ResponseEntity.ok(service.findAllActiveByEnterprise(enterpriseId, page, size)
                 .map(mapper::toRes));
     }
 

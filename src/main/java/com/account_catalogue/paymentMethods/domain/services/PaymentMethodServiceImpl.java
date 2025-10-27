@@ -3,7 +3,6 @@ package com.account_catalogue.paymentMethods.domain.services;
 import com.account_catalogue.commons.exceptions.paymentMethods.PaymentMethodsAlreadyExistsException;
 import com.account_catalogue.commons.exceptions.paymentMethods.PaymentMethodsNotFoundException;
 import com.account_catalogue.commons.exceptions.paymentMethods.InvalidAccountingAccountException;
-import com.account_catalogue.commons.exceptions.paymentMethods.AccountingAccountImmutableException;
 import com.account_catalogue.catalogue.application.services.AccountCatalogueValidationService;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
 import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.entity.AccountCatalogueEntity;
@@ -15,6 +14,8 @@ import com.account_catalogue.paymentMethods.domain.mapper.PaymentMethodDomainMap
 import com.account_catalogue.paymentMethods.domain.model.PaymentMethod;
 import com.account_catalogue.paymentMethods.presentation.DTO.request.PaymentMethodCreateReq;
 import com.account_catalogue.paymentMethods.presentation.DTO.request.PaymentMethodUpdateReq;
+import com.account_catalogue.commons.utils.PaginationHelper;
+import com.account_catalogue.commons.utils.StringStandardizationUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -22,8 +23,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
-import java.util.Locale;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -33,27 +36,31 @@ public class PaymentMethodServiceImpl implements IPaymentMethodService {
     private final PaymentMethodDataMapper dataMapper;
     private final PaymentMethodDomainMapper domainMapper;
     private final AccountCatalogueValidationService accountCatalogueValidationService;
-
+    private final PaginationHelper paginationHelper;
 
     @Transactional
     public PaymentMethod create(PaymentMethodCreateReq request) {
-        // Estandarización de nombre
-        String standardizedName = standardizeName(request.getName());
+        // Normalizar nombre solo para validación de unicidad (no para almacenamiento)
+        String normalizedNameForValidation = StringStandardizationUtils.standardizeName(request.getName());
 
         // Validar que la cuenta contable existe por ID y empresa
         AccountCatalogue account = accountCatalogueValidationService.validateAccountExistsByIdAndEnterprise(
-            request.getAccountingAccountId(), request.getIdEnterprise());
+                request.getAccountingAccountId(), request.getIdEnterprise());
 
         // Validar que la cuenta contable es auxiliar
         validateAccountingAccount(account.getCode(), request.getIdEnterprise());
 
-        // Validar unicidad por empresa (solo entre registros no eliminados)
-        if (repository.existsByNameAndIdEnterprise(standardizedName, request.getIdEnterprise())) {
-            throw new PaymentMethodsAlreadyExistsException("nombre", standardizedName, request.getIdEnterprise());
+        // Validar unicidad por empresa comparando nombres normalizados
+        List<PaymentMethodEntity> existingMethods = repository.findAllByIdEnterprise(request.getIdEnterprise(), Pageable.unpaged()).getContent();
+        boolean nameExists = existingMethods.stream()
+                .anyMatch(method -> StringStandardizationUtils.standardizeName(method.getName())
+                        .equals(normalizedNameForValidation));
+        if (nameExists) {
+            throw new PaymentMethodsAlreadyExistsException("nombre", normalizedNameForValidation, request.getIdEnterprise());
         }
 
         PaymentMethod domain = domainMapper.toDomain(request);
-        domain.setName(standardizedName);
+        // Guardar el nombre tal como lo ingresó el usuario (sin normalizar)
 
         // Crear el dominio con la entidad de cuenta
         domain.setAccountingAccountEntity(account);
@@ -76,25 +83,35 @@ public class PaymentMethodServiceImpl implements IPaymentMethodService {
         PaymentMethodEntity current = repository.findByIdAndIdEnterprise(request.getId(), request.getIdEnterprise())
                 .orElseThrow(PaymentMethodsNotFoundException::new);
 
-        String standardizedName = standardizeName(request.getName());
+        // Validar que la nueva cuenta contable existe y es auxiliar (si se está cambiando)
+        AccountCatalogue newAccount = accountCatalogueValidationService.validateAccountExistsByIdAndEnterprise(
+                request.getAccountingAccountId(), request.getIdEnterprise());
+        validateAccountingAccount(newAccount.getCode(), request.getIdEnterprise());
 
-        // Validar que no se esté intentando cambiar la cuenta contable
-        Long currentAccountId = current.getAccountingAccount() != null ? current.getAccountingAccount().getId() : null;
-        if (currentAccountId != null && !request.getAccountingAccountId().equals(currentAccountId)) {
-            throw new AccountingAccountImmutableException(
-                "No se puede modificar la cuenta contable. ID actual: '" + currentAccountId +
-                "', ID solicitado: '" + request.getAccountingAccountId() + "'"
-            );
+        // Normalizar nombre solo para validación de unicidad
+        String normalizedNameForValidation = StringStandardizationUtils.standardizeName(request.getName());
+
+        String currentNormalizedName = StringStandardizationUtils.standardizeName(current.getName());
+        if (!normalizedNameForValidation.equals(currentNormalizedName)) {
+            List<PaymentMethodEntity> existingMethods = repository.findAllByIdEnterprise(request.getIdEnterprise(), Pageable.unpaged()).getContent();
+            boolean nameExists = existingMethods.stream()
+                    .filter(method -> !method.getId().equals(current.getId())) // Excluir el registro actual
+                    .anyMatch(method -> StringStandardizationUtils.standardizeName(method.getName())
+                            .equals(normalizedNameForValidation));
+            if (nameExists) {
+                throw new PaymentMethodsAlreadyExistsException("nombre", normalizedNameForValidation, request.getIdEnterprise());
+            }
         }
 
-        // Validar unicidad si el nombre cambió (solo entre registros no eliminados)
-        if (!standardizedName.equals(current.getName()) &&
-            repository.existsByNameAndIdEnterpriseAndIdNot(standardizedName, request.getIdEnterprise(), current.getId())) {
-            throw new PaymentMethodsAlreadyExistsException("nombre", standardizedName, request.getIdEnterprise());
-        }
+        // Guardar el nombre tal como lo ingresó el usuario (sin normalizar)
+        current.setName(request.getName());
 
-        current.setName(standardizedName);
-        // No se modifica la cuenta contable - es inmutable después de la creación
+        // Actualizar la cuenta contable
+        AccountCatalogueEntity accountEntity = new AccountCatalogueEntity();
+        accountEntity.setId(newAccount.getId());
+        accountEntity.setCode(newAccount.getCode());
+        accountEntity.setDescription(newAccount.getDescription());
+        current.setAccountingAccount(accountEntity);
 
         PaymentMethodEntity saved = repository.save(current);
         return dataMapper.toDomain(saved);
@@ -107,17 +124,45 @@ public class PaymentMethodServiceImpl implements IPaymentMethodService {
     }
 
     @Transactional(readOnly = true)
-    public Page<PaymentMethod> findAllByEnterprise(String idEnterprise, int page, int size, String sortField, String sortOrder) {
+    public Page<PaymentMethod> findAllByEnterprise(String idEnterprise, Optional<Integer> page, Optional<Integer> size,
+            String sortField, String sortOrder, String search) {
+        long totalRecords;
+        if (StringUtils.hasText(search)) {
+            totalRecords = repository.countByIdEnterpriseAndSearch(idEnterprise, search.trim());
+        } else {
+            totalRecords = repository.countByIdEnterprise(idEnterprise);
+        }
+
         Sort sort = Sort.by(sortOrder.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC, sortField);
-        Pageable pageable = PageRequest.of(page, size, sort);
-        return repository.findAllByIdEnterprise(idEnterprise, pageable).map(dataMapper::toDomain);
+
+        Pageable pageable = paginationHelper.createFlexiblePageable(page, size, totalRecords);
+        pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
+
+        // Ejecutar consulta con filtros
+        Page<PaymentMethodEntity> result;
+        if (StringUtils.hasText(search)) {
+            // Búsqueda por nombre o cuenta contable
+            result = repository.findByIdEnterpriseAndSearch(idEnterprise, search.trim(), pageable);
+        } else {
+            // Sin búsqueda
+            result = repository.findAllByIdEnterprise(idEnterprise, pageable);
+        }
+
+        return result.map(dataMapper::toDomain);
     }
 
     @Transactional(readOnly = true)
-    public Page<PaymentMethod> findAllByEnterpriseAndStatus(String idEnterprise, Boolean status, int page, int size, String sortField, String sortOrder) {
-        Sort sort = Sort.by(sortOrder.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC, sortField);
-        Pageable pageable = PageRequest.of(page, size, sort);
-        return repository.findAllByIdEnterpriseAndStatus(idEnterprise, status, pageable)
+    public Page<PaymentMethod> findAllActiveByEnterprise(String idEnterprise, Optional<Integer> page,
+            Optional<Integer> size) {
+
+        long totalRecords = repository.countByIdEnterpriseAndStatus(idEnterprise, true);
+
+        Sort sort = Sort.by(Sort.Direction.ASC, "name");
+
+        Pageable pageable = paginationHelper.createFlexiblePageable(page, size, totalRecords);
+        pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
+
+        return repository.findAllByIdEnterpriseAndStatus(idEnterprise, true, pageable)
                 .map(dataMapper::toDomain);
     }
 
@@ -141,19 +186,15 @@ public class PaymentMethodServiceImpl implements IPaymentMethodService {
         return domain;
     }
 
-    private String standardizeName(String input) {
-        if (input == null) return null;
-        String s = input.trim().replaceAll("\\s+", " ").toLowerCase(new Locale("es", "ES"));
-        if (s.isEmpty()) return s;
-        return s.substring(0, 1).toUpperCase(new Locale("es", "ES")) + s.substring(1);
-    }
 
     /**
-     * Valida que la cuenta contable existe y es una cuenta auxiliar (8 dígitos exactamente).
+     * Valida que la cuenta contable existe y es una cuenta auxiliar (8 dígitos
+     * exactamente).
      * 
      * @param accountingAccount el código de la cuenta contable
-     * @param idEnterprise el ID de la empresa
-     * @throws InvalidAccountingAccountException si la cuenta no existe o no es auxiliar
+     * @param idEnterprise      el ID de la empresa
+     * @throws InvalidAccountingAccountException si la cuenta no existe o no es
+     *                                           auxiliar
      */
     private void validateAccountingAccount(String accountingAccount, String idEnterprise) {
         if (accountingAccount == null || accountingAccount.trim().isEmpty()) {
@@ -165,25 +206,25 @@ public class PaymentMethodServiceImpl implements IPaymentMethodService {
         // Validar que la cuenta tenga exactamente 8 dígitos (cuenta auxiliar)
         if (!trimmedAccount.matches("^\\d{8}$")) {
             throw new InvalidAccountingAccountException(
-                "La cuenta contable debe ser una cuenta auxiliar de exactamente 8 dígitos. Cuenta proporcionada: '" + trimmedAccount + "'"
-            );
+                    "La cuenta contable debe ser una cuenta auxiliar de exactamente 8 dígitos.");
         }
 
         // Validar que la cuenta existe en el catálogo
         try {
-            AccountCatalogue account = accountCatalogueValidationService.validateAccountExists(trimmedAccount, idEnterprise);
+            AccountCatalogue account = accountCatalogueValidationService.validateAccountExists(trimmedAccount,
+                    idEnterprise);
             if (account == null) {
                 throw new InvalidAccountingAccountException(
-                    "La cuenta contable '" + trimmedAccount + "' no existe en el catálogo de cuentas para la empresa '" + idEnterprise + "'"
-                );
+                        "La cuenta contable '" + trimmedAccount
+                                + "' no existe en el catálogo de cuentas para la empresa '" + idEnterprise + "'");
             }
         } catch (Exception e) {
             if (e instanceof InvalidAccountingAccountException) {
                 throw e;
             }
             throw new InvalidAccountingAccountException(
-                "La cuenta contable '" + trimmedAccount + "' no existe en el catálogo de cuentas para la empresa '" + idEnterprise + "'"
-            );
+                    "La cuenta contable '" + trimmedAccount + "' no existe en el catálogo de cuentas para la empresa '"
+                            + idEnterprise + "'");
         }
     }
 }

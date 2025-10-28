@@ -9,12 +9,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.account_catalogue.catalogue.application.input.IAccountingSearchInputPort;
-import com.account_catalogue.catalogue.domain.models.AccountingEntry;
-import com.account_catalogue.catalogue.domain.models.AccountingMovement;
-import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.response.AccountingEntryResponse;
-import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.response.AccountingMovementResponse;
-import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.mapper.IAccountingRestMapper;
+import com.account_catalogue.accounting.application.input.IAccountingSearchInputPort;
+import com.account_catalogue.accounting.domain.models.AccountingEntry;
+import com.account_catalogue.accounting.domain.models.AccountingMovement;
+import com.account_catalogue.accounting.infraestructure.adapters.input.data.response.AccountingEntryResponse;
+import com.account_catalogue.accounting.infraestructure.adapters.input.data.response.AccountingMovementResponse;
+import com.account_catalogue.accounting.infraestructure.adapters.input.mapper.IAccountingRestMapper;
 
 import lombok.RequiredArgsConstructor;
 

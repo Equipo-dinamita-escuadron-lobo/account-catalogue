@@ -28,10 +28,7 @@ public class ReceiptRabbitConfig {
     public static final String RECEIPT_ACCOUNTING_DLQ = "receipt.accounting.dlq";
     public static final String RECEIPT_ACCOUNTING_RETRY_QUEUE = "receipt.accounting.retry.queue";
 
-    @Bean
-    Jackson2JsonMessageConverter jsonMessageConverter() {
-        return new Jackson2JsonMessageConverter();
-    }
+    
 
     // STATEMENT EXCHANGES
     @Bean
@@ -78,10 +75,13 @@ public class ReceiptRabbitConfig {
         return BindingBuilder.bind(receiptAccountingRetryQueue()).to(receiptAccountingDlx());
     }
 
+    // --- RABBIT TEMPLATE Y LISTENER FACTORY ESPECÍFICOS PARA RECIBOS ---
+
+    // CORRECCIÓN: Nombre del bean cambiado para evitar conflicto.
     @Bean
-    RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
+    public RabbitTemplate receiptRabbitTemplate(ConnectionFactory connectionFactory, Jackson2JsonMessageConverter jsonMessageConverter) {
         RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
-        rabbitTemplate.setMessageConverter(jsonMessageConverter());
+        rabbitTemplate.setMessageConverter(jsonMessageConverter); // Reutiliza el bean existente
         rabbitTemplate.setMandatory(true);
         rabbitTemplate.setReturnsCallback(returned -> {
             log.error("Message returned:{}", returned.getMessage());
@@ -93,17 +93,17 @@ public class ReceiptRabbitConfig {
             }
         });
         return rabbitTemplate;
-
     }
 
+    // CORRECCIÓN: Nombre del bean cambiado para evitar conflicto.
     @Bean
-    public RabbitListenerContainerFactory<SimpleMessageListenerContainer> rabbitListenerContainerFactory(
+    public RabbitListenerContainerFactory<SimpleMessageListenerContainer> receiptRabbitListenerContainerFactory(
             ConnectionFactory connectionFactory,
-            SimpleRabbitListenerContainerFactoryConfigurer configurer) {
+            SimpleRabbitListenerContainerFactoryConfigurer configurer,
+            Jackson2JsonMessageConverter jsonMessageConverter) {
         SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
         configurer.configure(factory, connectionFactory);
-        factory.setMessageConverter(jsonMessageConverter());
+        factory.setMessageConverter(jsonMessageConverter); // Reutiliza el bean existente
         return factory;
     }
-
 }

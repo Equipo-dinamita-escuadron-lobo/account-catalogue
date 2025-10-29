@@ -1,0 +1,7 @@
+package com.account_catalogue.accounting.domain.enums;
+
+public enum InvoiceStatus {
+    PENDING,
+    PAID,
+    WRITTEN_OFF
+}

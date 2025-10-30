@@ -61,16 +61,10 @@ public class InvoiceEventListener extends AbstractMessageListener<EventDTO<Invoi
                 case "SALE":
                     log.info("Processing SALE event for invoice factCode: {}", dto.getFactCode());
                     invoicePersistenceAdapter.saveOrUpdate(dto);
+                    invoiceProcessInputPort.processInvoiceCreation(dto);
                     log.info("Successfully processed sale for invoice factCode: {}", dto.getFactCode());
                     break;
-                
-                case "UPDATE":
-                    log.info("Processing UPDATE event for invoice factCode: {}", dto.getFactCode());
-                    invoiceProcessInputPort.processInvoiceCreation(dto);
-                    log.info("Successfully processed update for invoice factCode: {}", dto.getFactCode());
-                    break;
                     
-
                 case "DELETED":
                     log.info("Processing DELETE event for invoice factCode: {}", dto.getFactCode());
                     invoicePersistenceAdapter.delete(dto.getFactCode());

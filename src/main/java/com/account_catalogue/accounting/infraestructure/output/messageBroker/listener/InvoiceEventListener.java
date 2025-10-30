@@ -1,5 +1,6 @@
 package com.account_catalogue.accounting.infraestructure.output.messageBroker.listener;
 
+import com.account_catalogue.accounting.application.input.IInvoiceProcessInputPort;
 import com.account_catalogue.accounting.domain.ports.IEventRecoveryActionPort;
 import com.account_catalogue.accounting.domain.ports.IMessageErrorHandlingPort;
 import com.account_catalogue.accounting.infraestructure.output.messageBroker.adapter.InvoicePersistenceAdapter;
@@ -29,6 +30,7 @@ public class InvoiceEventListener extends AbstractMessageListener<EventDTO<Invoi
     private final InvoicePersistenceAdapter invoicePersistenceAdapter;
     private final IMessageErrorHandlingPort messageErrorHandlingPortImpl;
     private final IEventRecoveryActionPort<EventDTO<InvoiceSyncDto>> productRecoveryActionPort;
+    private final IInvoiceProcessInputPort invoiceProcessInputPort;
 
     @PostConstruct
     private void init() {
@@ -36,7 +38,7 @@ public class InvoiceEventListener extends AbstractMessageListener<EventDTO<Invoi
         this.eventRecoveryActionPort = productRecoveryActionPort;
     }
 
-    @RabbitListener(queues = RabbitConfig.INVOICE_PAYMENTS_QUEUE, containerFactory = "rabbitListenerContainerFactory")
+    @RabbitListener(queues = RabbitConfig.INVOICE_ACCOUNTING_QUEUE, containerFactory = "rabbitListenerContainerFactory")
     public void handleInvoiceEvent(
             Message message,
             EventDTO<InvoiceSyncDto> event, Channel channel,
@@ -59,9 +61,10 @@ public class InvoiceEventListener extends AbstractMessageListener<EventDTO<Invoi
                 case "SALE":
                     log.info("Processing SALE event for invoice factCode: {}", dto.getFactCode());
                     invoicePersistenceAdapter.saveOrUpdate(dto);
+                    invoiceProcessInputPort.processInvoiceCreation(dto);
                     log.info("Successfully processed sale for invoice factCode: {}", dto.getFactCode());
                     break;
-
+                    
                 case "DELETED":
                     log.info("Processing DELETE event for invoice factCode: {}", dto.getFactCode());
                     invoicePersistenceAdapter.delete(dto.getFactCode());

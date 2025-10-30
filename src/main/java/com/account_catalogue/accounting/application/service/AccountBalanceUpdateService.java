@@ -33,7 +33,7 @@ public class AccountBalanceUpdateService implements IAccountBalanceUpdateInputPo
         }
     }
 
-    private void updateSingleAccountHierarchy(Long accountId, BigDecimal debit, BigDecimal credit, String idEnterprise) {
+    public void updateSingleAccountHierarchy(Long accountId, BigDecimal debit, BigDecimal credit, String idEnterprise) {
         log.info("Actualizando saldos para la cuenta contable {}", idEnterprise);
         // 1. Obtener la cuenta auxiliar (la que recibe el movimiento directo)
         AccountCatalogue currentAccount = accountCatalogueSearchOutputPort.getAccountCatalogueById(accountId , idEnterprise);

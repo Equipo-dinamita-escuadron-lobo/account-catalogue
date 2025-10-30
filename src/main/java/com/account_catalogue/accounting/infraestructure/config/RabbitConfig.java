@@ -25,10 +25,10 @@ import org.springframework.boot.autoconfigure.amqp.SimpleRabbitListenerContainer
 public class RabbitConfig {
     //Constants for invoice
     public static final String INVOICE_EXCHANGE = "invoice.exchange";
-    public static final String INVOICE_PAYMENTS_QUEUE = "invoice.payments.queue";
-    public static final String INVOICE_PAYMENTS_DLX = "invoice.payments.dlx";
-    public static final String INVOICE_PAYMENTS_DLQ = "invoice.payments.dlq";
-    public static final String INVOICE_PAYMENTS_RETRY_QUEUE = "invoice.payments.retry.queue";
+    public static final String INVOICE_ACCOUNTING_QUEUE = "invoice.accounting.queue";
+    public static final String INVOICE_ACCOUNTING_DLX = "invoice.accounting.dlx";
+    public static final String INVOICE_ACCOUNTING_DLQ = "invoice.accounting.dlq";
+    public static final String INVOICE_ACCOUNTING_RETRY_QUEUE = "invoice.accounting.retry.queue";
 
     //Jackson2JsonMessageConverter
     @Bean
@@ -44,45 +44,45 @@ public class RabbitConfig {
     }
 
     @Bean
-    FanoutExchange invoicePaymentsDlx() {
-        return new FanoutExchange(INVOICE_PAYMENTS_DLX, true, false);
+    FanoutExchange invoiceAccountingDlx() {
+        return new FanoutExchange(INVOICE_ACCOUNTING_DLX, true, false);
     }
 
     // STATEMENT OF QUEUES AND BINDINGS
     // Invoice Queues and Bindings
     @Bean
-    Queue invoicePaymentsQueue() {
-        return QueueBuilder.durable(INVOICE_PAYMENTS_QUEUE)
-                .withArgument("x-dead-letter-exchange", INVOICE_PAYMENTS_DLX)
+    Queue invoiceAccountingQueue() {
+        return QueueBuilder.durable(INVOICE_ACCOUNTING_QUEUE)
+                .withArgument("x-dead-letter-exchange", INVOICE_ACCOUNTING_DLX)
                 .build();
     }
 
     @Bean
-    Queue invoicePaymentsDlq() {
-        return QueueBuilder.durable(INVOICE_PAYMENTS_DLQ).build();
+    Queue invoiceAccountingDlq() {
+        return QueueBuilder.durable(INVOICE_ACCOUNTING_DLQ).build();
     }
 
     @Bean
-    Queue invoicePaymentsRetryQueue() {
-        return QueueBuilder.durable(INVOICE_PAYMENTS_RETRY_QUEUE)
+    Queue invoiceAccountingRetryQueue() {
+        return QueueBuilder.durable(INVOICE_ACCOUNTING_RETRY_QUEUE)
                 .withArgument("x-message-ttl", 60000) // 1 minuto de espera para reintento
-                .withArgument("x-dead-letter-exchange", INVOICE_PAYMENTS_DLX) // Si falla después de reintento, va al DLX
+                .withArgument("x-dead-letter-exchange", INVOICE_ACCOUNTING_DLX) // Si falla después de reintento, va al DLX
                 .build();
     }
 
     @Bean
-    Binding invoicePaymentsBinding() {
-        return BindingBuilder.bind(invoicePaymentsQueue()).to(invoiceExchange());
+    Binding invoiceAccountingBinding() {
+        return BindingBuilder.bind(invoiceAccountingQueue()).to(invoiceExchange());
     }
 
     @Bean
-    Binding invoicePaymentsDlqBinding() {
-        return BindingBuilder.bind(invoicePaymentsDlq()).to(invoicePaymentsDlx());
+    Binding invoiceAccountingDlqBinding() {
+        return BindingBuilder.bind(invoiceAccountingDlq()).to(invoiceAccountingDlx());
     }
 
     @Bean
-    Binding invoicePaymentsRetryBinding() {
-        return BindingBuilder.bind(invoicePaymentsRetryQueue()).to(invoicePaymentsDlx());
+    Binding invoiceAccountingRetryBinding() {
+        return BindingBuilder.bind(invoiceAccountingRetryQueue()).to(invoiceAccountingDlx());
     }
 
     @Bean

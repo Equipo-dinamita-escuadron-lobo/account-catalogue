@@ -6,7 +6,10 @@ import org.springframework.stereotype.Service;
 
 import com.account_catalogue.accounting.application.input.IInvoiceProcessInputPort;
 import com.account_catalogue.accounting.infraestructure.output.messageBroker.DTO.InvoiceSyncDto;
+import com.account_catalogue.catalogue.application.output.IAccountCatalogueSearchOutputPort;
+import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
 
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -17,8 +20,10 @@ public class InvoiceProcessService implements IInvoiceProcessInputPort {
     
     // Inyectamos el servicio que ya sabe cómo actualizar saldos jerárquicamente.
     private final AccountBalanceUpdateService accountBalanceUpdateService;
+    private final IAccountCatalogueSearchOutputPort accountCatalogueSearchOutputPort;
 
     @Override
+    @Transactional
     public void processInvoiceCreation(InvoiceSyncDto invoiceDto) {
         log.info("Iniciando actualización de saldos para la nueva factura {}", invoiceDto.getFactCode());
 
@@ -28,7 +33,16 @@ public class InvoiceProcessService implements IInvoiceProcessInputPort {
             return;
         }
 
-        Long accountId = invoiceDto.getAccountingAccount();
+        // Buscar cuenta contable por codigo
+        AccountCatalogue accountCatalogue = accountCatalogueSearchOutputPort.getAccountCatalogueByCode(invoiceDto.getAccountingAccount().toString(), invoiceDto.getEntId());
+        if (accountCatalogue == null) {
+            log.error("No se encontró la cuenta contable con ID: {} para la factura {}. Se omite la actualización de saldo.", invoiceDto.getAccountingAccount(), invoiceDto.getFactCode());
+            // Considera lanzar una excepción si esto es un estado irrecuperable
+            return;
+        }
+
+
+        Long accountId = accountCatalogue.getId();
         String enterpriseId = invoiceDto.getEntId();
         
         // Convertimos el valor pendiente (Long) a BigDecimal.

@@ -6,7 +6,7 @@ import org.springframework.ui.ModelMap;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.context.request.WebRequestInterceptor;
 
-import com.account_catalogue.catalogue.infraestructure.adapters.output.messageBroker.aspect.JwtTokenService;
+import com.account_catalogue.accounting.infraestructure.output.messageBroker.aspect.JwtTokenService;
 import com.account_catalogue.commons.multitenancy.utils.TenantContext;
 @Component
 public class TenantInterceptor implements WebRequestInterceptor {

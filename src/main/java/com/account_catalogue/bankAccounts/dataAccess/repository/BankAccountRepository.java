@@ -32,4 +32,14 @@ public interface BankAccountRepository extends JpaRepository<BankAccountEntity, 
 
     @Query("SELECT COUNT(ba) FROM BankAccountEntity ba WHERE ba.idEnterprise = ?1 AND CAST(ba.accountNumber AS string) LIKE LOWER(CONCAT('%', ?2, '%'))")
     long countByIdEnterpriseAndAccountNumberSearch(String idEnterprise, String search);
+
+    /**
+     * Verifica si existen cuentas bancarias asociadas a una cuenta contable específica.
+     */
+    boolean existsByAccountingAccountIdAndIdEnterprise(Long accountingAccountId, String idEnterprise);
+
+    /**
+     * Cuenta el número de cuentas bancarias asociadas a una cuenta contable específica.
+     */
+    long countByAccountingAccountIdAndIdEnterprise(Long accountingAccountId, String idEnterprise);
 }

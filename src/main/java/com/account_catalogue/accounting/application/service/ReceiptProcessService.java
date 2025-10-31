@@ -152,6 +152,7 @@ public class ReceiptProcessService implements IReceiptProcessInputPort {
         }
 
         @Override
+        @Transactional
         public void processReceiptVoid(Receipt receiptEventData) {
                 log.info("Iniciando procesamiento de ANULACIÓN para recibo con código: {}",
                                 receiptEventData.getReceiptCode());
@@ -195,49 +196,22 @@ public class ReceiptProcessService implements IReceiptProcessInputPort {
                         return;
                 }
 
-                // 5. CREAR EL ASIENTO DE REVERSIÓN
-                AccountingEntry reversalEntry = createReversalEntry(originalEntry, receiptEventData);
+                // 5. REVERTIR LOS SALDOS DE LAS CUENTAS USANDO EL ASIENTO ORIGINAL
+                accountBalanceUpdateInputPort.reverseBalancesFromAccountingEntry(originalEntry);
+                log.info("Los saldos de las cuentas afectadas por el asiento {} han sido revertidos.",
+                                originalEntry.getCode());
 
                 // 6. ACTUALIZAR ESTADOS Y PERSISTIR (todo dentro de una transacción)
                 originalEntry.setStatus(AccountingEntryStatus.VOIDED);
                 accountingEntryPersistenceOutputPort.save(originalEntry);
                 log.info("Asiento contable original {} marcado como VOIDED.", originalEntry.getCode());
 
-                accountingEntryPersistenceOutputPort.save(reversalEntry);
-                log.info("Nuevo asiento de reversión {} generado y guardado.", reversalEntry.getCode());
+                // La creación del asiento de reversión ha sido eliminada.
 
                 localReceipt.setProcessingStatus(ProcessingStatus.VOIDED);
-                localReceipt.setStatus("VOIDED");
+                localReceipt.setStatus("VOIDED"); // Sincroniza el estado del recibo
                 receiptPersistenceOutputPort.save(localReceipt);
                 log.info("Recibo local {} actualizado a estado VOIDED.", localReceipt.getId());
-        }
-
-        /**
-         * Construye un nuevo asiento contable que es la reversión del original.
-         */
-        private AccountingEntry createReversalEntry(AccountingEntry originalEntry, Receipt voidEventData) {
-                List<AccountingMovement> reversalMovements = new ArrayList<>();
-
-                for (AccountingMovement originalMovement : originalEntry.getMovements()) {
-                        reversalMovements.add(AccountingMovement.builder()
-                                        .account(originalMovement.getAccount())
-                                        .thirdPartyId(originalMovement.getThirdPartyId())
-                                        .description("ANULACIÓN: " + originalMovement.getDescription())
-                                        // ¡La magia está aquí! Invertimos débito y crédito.
-                                        .debit(originalMovement.getCredit())
-                                        .credit(originalMovement.getDebit())
-                                        .build());
-                }
-
-                return AccountingEntry.builder()
-                                .code("REV-" + originalEntry.getCode()) // Un código que lo identifique como reversión
-                                .date(voidEventData.getIssueDate()) // Usar la fecha del evento de anulación
-                                .description("Asiento de anulación para Recibo de Caja "
-                                                + voidEventData.getReceiptCode())
-                                .status(AccountingEntryStatus.ACTIVE) // El asiento de anulación en sí está activo
-                                .sourceDocumentId(originalEntry.getSourceDocumentId()) // Apunta al mismo recibo origen
-                                .movements(reversalMovements)
-                                .build();
         }
 
         private void validateDoubleEntry(List<AccountingMovement> movements) {

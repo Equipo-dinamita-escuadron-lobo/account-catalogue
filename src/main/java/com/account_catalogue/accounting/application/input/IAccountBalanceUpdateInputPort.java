@@ -9,4 +9,11 @@ public interface IAccountBalanceUpdateInputPort {
      * @param accountingEntry El asiento contable que contiene los movimientos a procesar.
      */
     void updateBalancesFromAccountingEntry(AccountingEntry accountingEntry);
+
+     /**
+     * Revierte los saldos de las cuentas contables basándose en los movimientos de un asiento original.
+     * Esta operación es la inversa de updateBalancesFromAccountingEntry.
+     * @param accountingEntry El asiento contable original que se va a anular.
+     */
+    void reverseBalancesFromAccountingEntry(AccountingEntry accountingEntry); // NUEVO MÉTODO
 }

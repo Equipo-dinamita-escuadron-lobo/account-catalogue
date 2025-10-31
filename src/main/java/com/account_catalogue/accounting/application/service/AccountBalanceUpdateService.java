@@ -33,6 +33,43 @@ public class AccountBalanceUpdateService implements IAccountBalanceUpdateInputPo
         }
     }
 
+     @Override
+    public void reverseBalancesFromAccountingEntry(AccountingEntry accountingEntry) {
+        log.info("Iniciando REVERSIÓN de saldos para el asiento contable {}", accountingEntry.getCode());
+        for (AccountingMovement movement : accountingEntry.getMovements()) {
+            reverseSingleAccountHierarchy(movement.getAccount(), movement.getDebit(), movement.getCredit(), accountingEntry.getIdEnterprise());
+        }
+    }
+
+    private void reverseSingleAccountHierarchy(Long accountId, BigDecimal debit, BigDecimal credit, String idEnterprise) {
+        log.info("Revirtiendo saldos para la jerarquía de la cuenta ID: {}", accountId);
+        AccountCatalogue currentAccount = accountCatalogueSearchOutputPort.getAccountCatalogueById(accountId , idEnterprise);
+        if (currentAccount == null) {
+            log.error("No se encontró la cuenta contable con ID: {}. Se omite la reversión de saldo.", accountId);
+            return;
+        }
+
+        while (currentAccount != null) {
+            log.debug("Revirtiendo saldo para la cuenta: {} ({})", currentAccount.getCode(), currentAccount.getDescription());
+
+            BigDecimal amountToUpdate = calculateAmountByNature(currentAccount.getNature(), debit, credit);
+
+            // LA LÓGICA CLAVE: Usamos .subtract() en lugar de .add()
+            BigDecimal newBalance = currentAccount.getAmount().subtract(amountToUpdate);
+            currentAccount.setAmount(newBalance);
+
+            accountCatalogueUpdateOutputPort.updateAccountCatalogue(currentAccount.getId(), currentAccount);
+
+            log.debug("Nuevo saldo (revertido) para la cuenta {}: {}", currentAccount.getCode(), newBalance);
+
+            if (currentAccount.getParent() == null || currentAccount.getParent().getId() == null) {
+                break;
+            }
+
+            currentAccount = accountCatalogueSearchOutputPort.getAccountCatalogueById(currentAccount.getParent().getId(), idEnterprise);
+        }
+    }
+
     public void updateSingleAccountHierarchy(Long accountId, BigDecimal debit, BigDecimal credit, String idEnterprise) {
         log.info("Actualizando saldos para la cuenta contable {}", idEnterprise);
         // 1. Obtener la cuenta auxiliar (la que recibe el movimiento directo)

@@ -14,4 +14,14 @@ public interface IAccountingSearchOutputPort {
     List<AccountingMovement> findMovementsByAccountId(Long accountId);
     
     List<AccountingMovement> findMovementsByThirdPartyId(Long thirdPartyId);
+
+    /**
+     * Busca un asiento contable por el ID y TIPO del documento de origen.
+     */
+    Optional<AccountingEntry> findBySourceDocumentIdAndType(Long sourceDocumentId, String type);
+
+    /**
+     * Verifica si existe un asiento contable asociado a un ID y TIPO de documento de origen.
+     */
+    boolean existsBySourceDocumentIdAndType(Long sourceDocumentId, String type);
 }

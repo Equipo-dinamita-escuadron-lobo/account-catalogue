@@ -19,19 +19,19 @@ import lombok.RequiredArgsConstructor;
 @Component
 @RequiredArgsConstructor
 public class AccountingSearchJpaAdapter implements IAccountingSearchOutputPort {
-    private final IAccountingEntryRepository entryRepository;
+    private final IAccountingEntryRepository  accountingEntryRepository;
     private final IAccountingMovementRepository movementRepository;
-    private final IAccountingEntryMapper entryMapper;
+    private final IAccountingEntryMapper accountingEntryMapper;
     private final IAccountingMovementMapper movementMapper;
 
     @Override
     public Optional<AccountingEntry> findById(Long id) {
-        return entryRepository.findByIdWithMovements(id).map(entryMapper::toDomain);
+        return  accountingEntryRepository.findByIdWithMovements(id).map(accountingEntryMapper::toDomain);
     }
 
     @Override
     public Optional<AccountingEntry> findByReceiptId(Long receiptId) {
-        return entryRepository.findBySourceDocumentId(receiptId).map(entryMapper::toDomain);
+        return  accountingEntryRepository.findBySourceDocumentId(receiptId).map(accountingEntryMapper::toDomain);
     }
 
     @Override
@@ -47,4 +47,18 @@ public class AccountingSearchJpaAdapter implements IAccountingSearchOutputPort {
                 .map(movementMapper::toDomain)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public Optional<AccountingEntry> findBySourceDocumentIdAndType(Long sourceDocumentId, String type) {
+        return  accountingEntryRepository.findBySourceDocumentIdAndType(sourceDocumentId, type)
+            .map(accountingEntryMapper::toDomain);
+            
+    }
+
+    @Override
+    public boolean existsBySourceDocumentIdAndType(Long sourceDocumentId, String type) {
+        return  accountingEntryRepository.existsBySourceDocumentIdAndType(sourceDocumentId, type);
+    }
+
+
 }

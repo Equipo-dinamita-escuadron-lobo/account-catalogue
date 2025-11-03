@@ -19,6 +19,7 @@ public class AccountingEntry {
     private String description;        // Descripción general del asiento. Ej: "Contabilización de Recibo de Caja RC-12345".
     private AccountingEntryStatus status;        // Estado del asiento, ej: ACTIVE, VOIDED.
     private Long sourceDocumentId;        // ID del documento que originó este asiento (el ID de nuestro modelo Receipt).
+    private String type; // Tipo del documento que originó este asiento (ej. RECEIPT, PORTFOLIO_WRITEOFF).
     private List<AccountingMovement> movements;        // La lista de movimientos (débitos y créditos) que componen este asiento.
     private String idEnterprise; // ID de la empresa a la que pertenece el asiento contable.
 }

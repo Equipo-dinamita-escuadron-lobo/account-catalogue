@@ -16,4 +16,9 @@ public interface IAccountingEntryRepository extends JpaRepository<AccountingEntr
     // este podría incluir un JOIN FETCH si queremos cargar los movimientos de una vez.
     @Query("SELECT ae FROM AccountingEntryEntity ae JOIN FETCH ae.movements WHERE ae.id = :id")
     Optional<AccountingEntryEntity> findByIdWithMovements(@Param("id") Long id);
+
+    Optional<AccountingEntryEntity> findBySourceDocumentIdAndType(Long sourceDocumentId, String type);
+    boolean existsBySourceDocumentIdAndType(Long sourceDocumentId, String type);
+
+    
 }

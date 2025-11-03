@@ -56,7 +56,7 @@ public class ReceiptMessageListener {
                     break;
                 case "RECEIPT_VOIDED":
                     receiptProcessInputPort.processReceiptVoid(receipt);
-                    break;
+                    break; 
                 default:
                     log.warn("Tipo de evento no soportado: '{}'. El mensaje será ignorado.", eventType);
                     break;

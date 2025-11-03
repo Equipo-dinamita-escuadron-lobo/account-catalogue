@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.account_catalogue.accounting.application.input.IAccountingSearchInputPort;
+import com.account_catalogue.accounting.application.output.IAccountingEntryPersistenceOutputPort;
 import com.account_catalogue.accounting.application.output.IAccountingSearchOutputPort;
 import com.account_catalogue.accounting.domain.models.AccountingEntry;
 import com.account_catalogue.accounting.domain.models.AccountingMovement;
@@ -16,7 +17,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AccountingSearchService implements IAccountingSearchInputPort {
 
-    private final  IAccountingSearchOutputPort accountingSearchOutputPort;
+    private final IAccountingSearchOutputPort accountingSearchOutputPort;
+
 
     @Override
     public AccountingEntry findAccountingEntryById(Long id) {
@@ -38,5 +40,11 @@ public class AccountingSearchService implements IAccountingSearchInputPort {
     @Override
     public List<AccountingMovement> findMovementsByThirdPartyId(Long thirdPartyId) {
         return accountingSearchOutputPort.findMovementsByThirdPartyId(thirdPartyId);
+    }
+
+    @Override
+    public AccountingEntry findAccountingEntryBySourceDocumentIdAndType(Long sourceDocumentId, String type) {
+        return accountingSearchOutputPort.findBySourceDocumentIdAndType(sourceDocumentId, type)
+                .orElseThrow();
     }
 }

@@ -36,5 +36,7 @@ public class AccountingEntryPersistenceJpaAdapter implements IAccountingEntryPer
         return accountingEntryRepository.findBySourceDocumentId(sourceDocumentId)
             .map(accountingEntryMapper::toDomain);
     }
+
+    
     
 }

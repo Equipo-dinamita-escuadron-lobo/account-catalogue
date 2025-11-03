@@ -49,6 +49,9 @@ public class AccountingEntryEntity {
     // Usamos una relación directa con el recibo
     @Column(name = "source_document_id", nullable = false)
     private Long sourceDocumentId;
+
+    @Column(name = "type", nullable = false, length = 50)
+    private String type; 
     
     @OneToMany(mappedBy = "accountingEntry", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<AccountingMovementEntity> movements;

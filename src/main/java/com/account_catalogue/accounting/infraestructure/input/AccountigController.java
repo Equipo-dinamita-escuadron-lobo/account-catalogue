@@ -1,4 +1,4 @@
-package com.account_catalogue.catalogue.infraestructure.adapters.input.rest;
+package com.account_catalogue.accounting.infraestructure.input;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -25,6 +25,7 @@ public class AccountigController {
     private final IAccountingSearchInputPort accountingSearchInputPort;
     private final IAccountingRestMapper accountingRestMapper;
 
+
     @GetMapping("/entries/{id}")
     public ResponseEntity<AccountingEntryResponse> getEntryById(@PathVariable Long id) {
         AccountingEntry entry = accountingSearchInputPort.findAccountingEntryById(id);
@@ -37,7 +38,11 @@ public class AccountigController {
         return ResponseEntity.ok(accountingRestMapper.toEntryResponse(entry));
     }
 
-
+     @GetMapping("/entries/by-source/{sourceDocumentId}/{type}")
+    public ResponseEntity<AccountingEntryResponse> getEntryBySourceDocumentIdAndType(@PathVariable Long sourceDocumentId, @PathVariable String type) {
+        AccountingEntry entry = accountingSearchInputPort.findAccountingEntryBySourceDocumentIdAndType(sourceDocumentId, type);
+        return ResponseEntity.ok(accountingRestMapper.toEntryResponse(entry));
+    }
 
     @GetMapping("/movements/by-account/{accountId}")
     public ResponseEntity<List<AccountingMovementResponse>> getMovementsByAccount(@PathVariable Long accountId) {
@@ -56,4 +61,7 @@ public class AccountigController {
                 .collect(Collectors.toList());
         return ResponseEntity.ok(response);
     }    
+
+   
+
 }

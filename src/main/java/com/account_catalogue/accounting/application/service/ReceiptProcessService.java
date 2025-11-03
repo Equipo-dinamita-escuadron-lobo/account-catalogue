@@ -10,9 +10,11 @@ import org.springframework.stereotype.Service;
 import com.account_catalogue.accounting.application.input.IAccountBalanceUpdateInputPort;
 import com.account_catalogue.accounting.application.input.IReceiptProcessInputPort;
 import com.account_catalogue.accounting.application.output.IAccountingEntryPersistenceOutputPort;
+import com.account_catalogue.accounting.application.output.IAccountingSearchOutputPort;
 import com.account_catalogue.accounting.application.output.IReceiptPersistenceOutputPort;
 import com.account_catalogue.accounting.domain.enums.AccountingEntryStatus;
 import com.account_catalogue.accounting.domain.enums.ProcessingStatus;
+import com.account_catalogue.accounting.domain.enums.SourceDocumentType;
 import com.account_catalogue.accounting.domain.models.AccountingEntry;
 import com.account_catalogue.accounting.domain.models.AccountingMovement;
 import com.account_catalogue.accounting.domain.models.Receipt;
@@ -29,6 +31,7 @@ import java.util.function.Function;
 @AllArgsConstructor
 @Slf4j
 public class ReceiptProcessService implements IReceiptProcessInputPort {
+        private final IAccountingSearchOutputPort accountingSearchOutputPort;
         private final IReceiptPersistenceOutputPort receiptPersistenceOutputPort;
         private final IAccountingEntryPersistenceOutputPort accountingEntryPersistenceOutputPort;
         private final IAccountCatalogueSearchOutputPort accountCatalogueSearchOutputPort;
@@ -145,7 +148,7 @@ public class ReceiptProcessService implements IReceiptProcessInputPort {
                                 .description("Contabilización de Recibo de Caja " + receipt.getReceiptCode())
                                 .status(AccountingEntryStatus.ACTIVE)
                                 .sourceDocumentId(receipt.getId()) // Importante: usamos el ID del recibo guardado
-                                                                   // localmente
+                                .type(SourceDocumentType.RECEIPT.name())
                                 .idEnterprise(receipt.getEnterpriseId())
                                 .movements(movements)
                                 .build();
@@ -176,14 +179,16 @@ public class ReceiptProcessService implements IReceiptProcessInputPort {
                         return;
                 }
 
+
+
                 // 3. BUSCAR EL ASIENTO CONTABLE ORIGINAL
-                AccountingEntry originalEntry = accountingEntryPersistenceOutputPort
-                                .findBySourceDocumentId(localReceipt.getId())
+                AccountingEntry originalEntry = accountingSearchOutputPort
+                                .findBySourceDocumentIdAndType(localReceipt.getOriginalReceiptId(), SourceDocumentType.RECEIPT.name())
                                 .orElseThrow(() -> {
-                                        log.error("Se encontró el recibo local ID {}, pero no su asiento contable asociado. La data es inconsistente.",
+                                        log.error("Inconsistencia de datos: se encontró el recibo local ID {}, pero no su asiento contable asociado.",
                                                         localReceipt.getId());
                                         return new IllegalStateException(
-                                                        "Inconsistencia de datos: no se encontró el asiento contable original.");
+                                                        "No se encontró el asiento contable original para el recibo " + localReceipt.getReceiptCode());
                                 });
 
                 // 4. VERIFICAR IDEMPOTENCIA (capa extra): ¿El asiento ya está anulado?

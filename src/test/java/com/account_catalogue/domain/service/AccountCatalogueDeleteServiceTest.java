@@ -41,7 +41,9 @@ public class AccountCatalogueDeleteServiceTest {
         // Mock del validation service
         given(validationService.validateAccountExistsByIdAndEnterprise(accountId, enterpriseId))
                 .willReturn(mockAccount);
-        willDoNothing().given(validationService).validateAccountNotAssociatedWithTaxes(mockAccount);
+        willDoNothing().given(validationService).validateAccountAndChildrenNotAssociatedWithTaxes(mockAccount);
+        willDoNothing().given(validationService).validateAccountAndChildrenNotAssociatedWithBankAccounts(mockAccount);
+        willDoNothing().given(validationService).validateAccountAndChildrenNotAssociatedWithPaymentMethods(mockAccount);
         
         // Mock del output port
         willDoNothing().given(accountCatalogueDeleteOutputPort).deleteById(accountId);
@@ -51,7 +53,9 @@ public class AccountCatalogueDeleteServiceTest {
         
         //then
         verify(validationService, times(1)).validateAccountExistsByIdAndEnterprise(accountId, enterpriseId);
-        verify(validationService, times(1)).validateAccountNotAssociatedWithTaxes(mockAccount);
+        verify(validationService, times(1)).validateAccountAndChildrenNotAssociatedWithTaxes(mockAccount);
+        verify(validationService, times(1)).validateAccountAndChildrenNotAssociatedWithBankAccounts(mockAccount);
+        verify(validationService, times(1)).validateAccountAndChildrenNotAssociatedWithPaymentMethods(mockAccount);
         verify(accountCatalogueDeleteOutputPort, times(1)).deleteById(accountId);
     }
 

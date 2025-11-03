@@ -53,6 +53,9 @@ public class AccountCatalogueDeleteService implements IAccountCatalogueDeleteInp
         // Validar recursivamente que ni la cuenta padre ni ninguna de sus hijas estén asociadas a cuentas bancarias
         validationService.validateAccountAndChildrenNotAssociatedWithBankAccounts(accountTreeToDelete);
         
+        // Validar recursivamente que ni la cuenta padre ni ninguna de sus hijas estén asociadas a métodos de pago
+        validationService.validateAccountAndChildrenNotAssociatedWithPaymentMethods(accountTreeToDelete);
+        
         // Proceder con la eliminación recursiva
         accountCatalogueDeleteOutputPort.deleteById(id);
     }

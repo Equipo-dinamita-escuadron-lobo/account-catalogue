@@ -5,7 +5,6 @@ import java.time.LocalDate;
 import java.util.List;
 
 import com.account_catalogue.accounting.domain.enums.ProcessingStatus;
-import com.account_catalogue.catalogue.domain.models.ReceiptDetail;
 
 import lombok.Builder;
 import lombok.Getter;

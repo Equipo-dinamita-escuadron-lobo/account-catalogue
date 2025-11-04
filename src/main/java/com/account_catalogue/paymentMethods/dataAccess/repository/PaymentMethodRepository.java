@@ -33,4 +33,6 @@ public interface PaymentMethodRepository extends JpaRepository<PaymentMethodEnti
     @Query("SELECT COUNT(pm) FROM PaymentMethodEntity pm LEFT JOIN pm.accountingAccount ac WHERE pm.idEnterprise = ?1 AND (LOWER(pm.name) LIKE LOWER(CONCAT('%', ?2, '%')) OR LOWER(ac.code) LIKE LOWER(CONCAT('%', ?2, '%')) OR LOWER(ac.description) LIKE LOWER(CONCAT('%', ?2, '%')))")
     long countByIdEnterpriseAndSearch(String idEnterprise, String search);
 
+    boolean existsByAccountingAccountIdAndIdEnterprise(Long accountingAccountId, String idEnterprise);
+
 }

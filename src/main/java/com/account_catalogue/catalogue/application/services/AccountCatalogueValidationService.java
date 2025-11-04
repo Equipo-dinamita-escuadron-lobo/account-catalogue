@@ -5,11 +5,13 @@ import java.util.regex.Pattern;
 import org.springframework.stereotype.Service;
 
 import com.account_catalogue.bankAccounts.dataAccess.repository.BankAccountRepository;
+import com.account_catalogue.paymentMethods.dataAccess.repository.PaymentMethodRepository;
 import com.account_catalogue.catalogue.application.output.IAccountCatalogueSearchOutputPort;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
 import com.account_catalogue.catalogue.domain.enums.FinancialStatusEnum;
 import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueAlreadyExistsException;
 import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueAssociatedWithBankAccountException;
+import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueAssociatedWithPaymentMethodException;
 import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueAssociatedWithTaxException;
 import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueDescriptionAlreadyExistsException;
 import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueNotFoundException;
@@ -23,6 +25,7 @@ public class AccountCatalogueValidationService {
 
     private final IAccountCatalogueSearchOutputPort accountCatalogueSearchOutputPort;
     private final BankAccountRepository bankAccountRepository;
+    private final PaymentMethodRepository paymentMethodRepository;
 
     /**
      * Valida el código de cuenta según las reglas de negocio.
@@ -176,8 +179,10 @@ public class AccountCatalogueValidationService {
      * Valida que la cuenta no esté asociada a cuentas bancarias.
      * 
      * @param account la cuenta a validar
-     * @throws AccountCatalogueAssociatedWithBankAccountException si la cuenta está asociada
-     *                                                            a cuentas bancarias
+     * @throws AccountCatalogueAssociatedWithBankAccountException si la cuenta está
+     *                                                            asociada
+     *                                                            a cuentas
+     *                                                            bancarias
      */
     public void validateAccountNotAssociatedWithBankAccounts(AccountCatalogue account) {
         boolean hasBankAccounts = bankAccountRepository.existsByAccountingAccountIdAndIdEnterprise(
@@ -197,8 +202,10 @@ public class AccountCatalogueValidationService {
      * jerarquía puede ser eliminada.
      * 
      * @param account la cuenta padre a validar junto con todas sus cuentas hijas
-     * @throws AccountCatalogueAssociatedWithBankAccountException si la cuenta o alguna de
-     *                                                            sus hijas está asociada a
+     * @throws AccountCatalogueAssociatedWithBankAccountException si la cuenta o
+     *                                                            alguna de
+     *                                                            sus hijas está
+     *                                                            asociada a
      *                                                            cuentas bancarias
      */
     public void validateAccountAndChildrenNotAssociatedWithBankAccounts(AccountCatalogue account) {
@@ -209,6 +216,51 @@ public class AccountCatalogueValidationService {
         if (account.getChildren() != null && !account.getChildren().isEmpty()) {
             for (AccountCatalogue child : account.getChildren()) {
                 validateAccountAndChildrenNotAssociatedWithBankAccounts(child);
+            }
+        }
+    }
+
+    /**
+     * Valida que la cuenta no esté asociada a métodos de pago.
+     * 
+     * @param account la cuenta a validar
+     * @throws AccountCatalogueAssociatedWithPaymentMethodException si la cuenta
+     *                                                              está asociada
+     *                                                              a métodos de
+     *                                                              pago
+     */
+    public void validateAccountNotAssociatedWithPaymentMethods(AccountCatalogue account) {
+        boolean hasPaymentMethods = paymentMethodRepository.existsByAccountingAccountIdAndIdEnterprise(
+                account.getId(), account.getIdEnterprise());
+
+        if (hasPaymentMethods) {
+            throw new AccountCatalogueAssociatedWithPaymentMethodException(
+                    "No se puede eliminar la cuenta '" + account.getCode()
+                            + "' porque está asociada a uno o más métodos de pago.");
+        }
+    }
+
+    /**
+     * Valida recursivamente que ni la cuenta ni ninguna de sus cuentas hijas estén
+     * asociadas a métodos de pago.
+     * Esta validación se usa antes de la eliminación para asegurar que toda la
+     * jerarquía puede ser eliminada.
+     * 
+     * @param account la cuenta padre a validar junto con todas sus cuentas hijas
+     * @throws AccountCatalogueAssociatedWithPaymentMethodException si la cuenta o
+     *                                                              alguna de
+     *                                                              sus hijas está
+     *                                                              asociada a
+     *                                                              métodos de pago
+     */
+    public void validateAccountAndChildrenNotAssociatedWithPaymentMethods(AccountCatalogue account) {
+        // Validar la cuenta principal
+        validateAccountNotAssociatedWithPaymentMethods(account);
+
+        // Validar recursivamente todas las cuentas hijas
+        if (account.getChildren() != null && !account.getChildren().isEmpty()) {
+            for (AccountCatalogue child : account.getChildren()) {
+                validateAccountAndChildrenNotAssociatedWithPaymentMethods(child);
             }
         }
     }

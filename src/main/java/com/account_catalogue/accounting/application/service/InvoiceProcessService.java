@@ -1,13 +1,20 @@
 package com.account_catalogue.accounting.application.service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.List;
 
 import org.springframework.stereotype.Service;
 
 import com.account_catalogue.accounting.application.input.IInvoiceProcessInputPort;
+import com.account_catalogue.accounting.application.output.IInvoiceProviderPort;
+import com.account_catalogue.accounting.domain.enums.InvoiceStatus;
+import com.account_catalogue.accounting.domain.models.InvoiceReplica;
 import com.account_catalogue.accounting.infraestructure.output.messageBroker.DTO.InvoiceSyncDto;
 import com.account_catalogue.catalogue.application.output.IAccountCatalogueSearchOutputPort;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
+import com.account_catalogue.accounting.domain.exception.InvoiceNotFoundException;
+
 
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
@@ -21,6 +28,8 @@ public class InvoiceProcessService implements IInvoiceProcessInputPort {
     // Inyectamos el servicio que ya sabe cómo actualizar saldos jerárquicamente.
     private final AccountBalanceUpdateService accountBalanceUpdateService;
     private final IAccountCatalogueSearchOutputPort accountCatalogueSearchOutputPort;
+    private final IInvoiceProviderPort invoiceProviderPort;
+   
 
     @Override
     @Transactional
@@ -62,5 +71,36 @@ public class InvoiceProcessService implements IInvoiceProcessInputPort {
             // Lanzamos una excepción para que la transacción se revierta y el mensaje pueda ir a una DLQ.
             throw new IllegalStateException("Fallo al actualizar el saldo de la cuenta para la factura " + invoiceDto.getFactCode(), e);
         }
+    }
+
+    @Override
+    public void updateDueDate(Long invoiceId, LocalDate newDueDate) {
+        InvoiceReplica invoice = invoiceProviderPort.findInvoiceById(invoiceId)
+                .orElseThrow(() -> new InvoiceNotFoundException("No se encontró la factura con ID: " + invoiceId));
+
+        if (invoice.getStatus() == InvoiceStatus.PAID) 
+            throw new IllegalStateException("No se puede cambiar la fecha de vencimiento de una factura ya pagada.");
+
+        invoice.setExpirationDate(newDueDate);
+
+        invoice.validateDates();
+
+        invoiceProviderPort.updateInvoice(invoice);
+    }
+
+    @Override
+    public List<InvoiceReplica> findPendingInvoicesByClientId(Long clientId) {
+       return invoiceProviderPort.findPendingInvoicesByClientId(clientId);
+    }
+
+    @Override
+    public List<InvoiceReplica> findInvoicesByEnterpriseId(String enterpriseId) {
+        return invoiceProviderPort.findInvoicesByEnterpriseId(enterpriseId);
+    }
+
+    @Override
+    public InvoiceReplica findInvoiceById(Long invoiceId) {
+        return invoiceProviderPort.findInvoiceById(invoiceId).
+        orElseThrow(() -> new RuntimeException("No se encontró la factura con ID: " + invoiceId));
     }
 }

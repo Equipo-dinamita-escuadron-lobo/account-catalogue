@@ -11,16 +11,18 @@ import com.account_catalogue.accounting.application.input.IAccountBalanceUpdateI
 import com.account_catalogue.accounting.application.input.IReceiptProcessInputPort;
 import com.account_catalogue.accounting.application.output.IAccountingEntryPersistenceOutputPort;
 import com.account_catalogue.accounting.application.output.IAccountingSearchOutputPort;
+import com.account_catalogue.accounting.application.output.IInvoiceProviderPort;
 import com.account_catalogue.accounting.application.output.IReceiptPersistenceOutputPort;
 import com.account_catalogue.accounting.domain.enums.AccountingEntryStatus;
 import com.account_catalogue.accounting.domain.enums.ProcessingStatus;
 import com.account_catalogue.accounting.domain.enums.SourceDocumentType;
 import com.account_catalogue.accounting.domain.models.AccountingEntry;
 import com.account_catalogue.accounting.domain.models.AccountingMovement;
+import com.account_catalogue.accounting.domain.models.InvoiceReplica;
 import com.account_catalogue.accounting.domain.models.Receipt;
+import com.account_catalogue.accounting.domain.models.ReceiptDetail;
 import com.account_catalogue.catalogue.application.output.IAccountCatalogueSearchOutputPort;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
-import com.account_catalogue.catalogue.domain.models.ReceiptDetail;
 
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
@@ -36,6 +38,7 @@ public class ReceiptProcessService implements IReceiptProcessInputPort {
         private final IAccountingEntryPersistenceOutputPort accountingEntryPersistenceOutputPort;
         private final IAccountCatalogueSearchOutputPort accountCatalogueSearchOutputPort;
         private final IAccountBalanceUpdateInputPort accountBalanceUpdateInputPort;
+        private final IInvoiceProviderPort invoiceProviderPort;
 
         @Override
         @Transactional
@@ -55,6 +58,38 @@ public class ReceiptProcessService implements IReceiptProcessInputPort {
                                 savedReceipt.getId());
 
                 try {
+                        // --- INICIO DE LÓGICA DE ACTUALIZACIÓN DE FACTURAS ---
+                        if (savedReceipt.getReceiptTypeId() == 1L) { // TIPO: ABONO A FACTURA
+                                log.info("Recibo {} es de tipo Abono. Actualizando saldos de facturas...",
+                                                savedReceipt.getReceiptCode());
+                                for (ReceiptDetail detail : savedReceipt.getDetails()) {
+                                        InvoiceReplica invoice = invoiceProviderPort
+                                                        .findInvoiceById(detail.getOriginalInvoiceId())
+                                                        .orElseThrow(() -> new IllegalStateException(
+                                                                        "No se encontró la factura con ID "
+                                                                                        + detail.getOriginalInvoiceId()
+                                                                                        + " para aplicar el abono."));
+
+                                        // Validar que el pago no exceda el saldo
+                                        if (detail.getAmountPaid().longValue() > invoice.getPendingValue()) {
+                                                throw new IllegalArgumentException("El monto pagado ("
+                                                                + detail.getAmountPaid() + ") para la factura "
+                                                                + invoice.getFactCode() + " excede el saldo pendiente ("
+                                                                + invoice.getPendingValue() + ").");
+                                        }
+
+                                        // Actualizar saldos de la factura
+                                        invoice.setPendingValue(
+                                                        invoice.getPendingValue() - detail.getAmountPaid().longValue());
+                                        invoice.setTotalPay(invoice.getTotalPay() + detail.getAmountPaid().longValue());
+
+                                        // Guardar la factura actualizada
+                                        invoiceProviderPort.updateInvoice(invoice);
+                                        log.info("Factura {} actualizada. Nuevo saldo pendiente: {}",
+                                                        invoice.getFactCode(), invoice.getPendingValue());
+                                }
+                        }
+                        // --- FIN DE LÓGICA DE ACTUALIZACIÓN DE FACTURAS ---
                         AccountingEntry accountingEntry = buildAccountingEntryFromReceipt(savedReceipt);
                         accountingEntryPersistenceOutputPort.save(accountingEntry);
                         log.info("Asiento contable {} generado para el recibo {}", accountingEntry.getCode(),
@@ -179,16 +214,16 @@ public class ReceiptProcessService implements IReceiptProcessInputPort {
                         return;
                 }
 
-
-
                 // 3. BUSCAR EL ASIENTO CONTABLE ORIGINAL
                 AccountingEntry originalEntry = accountingSearchOutputPort
-                                .findBySourceDocumentIdAndType(localReceipt.getOriginalReceiptId(), SourceDocumentType.RECEIPT.name())
+                                .findBySourceDocumentIdAndType(localReceipt.getOriginalReceiptId(),
+                                                SourceDocumentType.RECEIPT.name())
                                 .orElseThrow(() -> {
                                         log.error("Inconsistencia de datos: se encontró el recibo local ID {}, pero no su asiento contable asociado.",
                                                         localReceipt.getId());
                                         return new IllegalStateException(
-                                                        "No se encontró el asiento contable original para el recibo " + localReceipt.getReceiptCode());
+                                                        "No se encontró el asiento contable original para el recibo "
+                                                                        + localReceipt.getReceiptCode());
                                 });
 
                 // 4. VERIFICAR IDEMPOTENCIA (capa extra): ¿El asiento ya está anulado?
@@ -200,6 +235,25 @@ public class ReceiptProcessService implements IReceiptProcessInputPort {
                         receiptPersistenceOutputPort.save(localReceipt);
                         return;
                 }
+
+
+                 // --- INICIO DE LÓGICA DE REVERSIÓN DE SALDOS DE FACTURAS ---
+                if (localReceipt.getReceiptTypeId() == 1L) { // TIPO: ABONO A FACTURA
+                        log.info("Anulando recibo de abono {}. Reversando saldos de facturas...", localReceipt.getReceiptCode());
+                        for (ReceiptDetail detail : localReceipt.getDetails()) {
+                                InvoiceReplica invoice = invoiceProviderPort.findInvoiceById(detail.getOriginalInvoiceId())
+                                                .orElseThrow(() -> new IllegalStateException("Inconsistencia de datos: No se encontró la factura con código " + detail.getInvoiceCode() + " para anular el abono."));
+
+                                // Revertir saldos
+                                invoice.setPendingValue(invoice.getPendingValue() + detail.getAmountPaid().longValue());
+                                invoice.setTotalPay(invoice.getTotalPay() - detail.getAmountPaid().longValue());
+                                
+                                invoiceProviderPort.updateInvoice(invoice);
+                                log.info("Factura {} reversada. Nuevo saldo pendiente: {}", invoice.getFactCode(), invoice.getPendingValue());
+                        }
+                }
+                // --- FIN DE LÓGICA DE REVERSIÓN DE SALDOS DE FACTURAS ---
+
 
                 // 5. REVERTIR LOS SALDOS DE LAS CUENTAS USANDO EL ASIENTO ORIGINAL
                 accountBalanceUpdateInputPort.reverseBalancesFromAccountingEntry(originalEntry);

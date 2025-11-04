@@ -7,9 +7,9 @@ import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;
 
 import com.account_catalogue.accounting.domain.models.Receipt;
+import com.account_catalogue.accounting.domain.models.ReceiptDetail;
 import com.account_catalogue.accounting.infraestructure.output.messageBroker.DTO.ReceiptDetailEventDTO;
 import com.account_catalogue.accounting.infraestructure.output.messageBroker.DTO.ReceiptEventDTO;
-import com.account_catalogue.catalogue.domain.models.ReceiptDetail;
 
 import jakarta.inject.Named;
 

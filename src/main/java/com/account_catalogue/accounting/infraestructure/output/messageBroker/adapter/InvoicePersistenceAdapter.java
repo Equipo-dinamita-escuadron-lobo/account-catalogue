@@ -93,4 +93,10 @@ public class InvoicePersistenceAdapter implements IInvoiceProviderPort {
         return invoiceMapper.toInvoiceReplicaList(invoiceEntityList);
     }
 
+    @Override
+    public List<InvoiceReplica> findInvoicesByEnterpriseId(String enterpriseId) {
+        var invoiceEntityList = invoiceRepository.findByEntIdAndStatus(enterpriseId, InvoiceStatus.PENDING);
+        return invoiceMapper.toInvoiceReplicaList(invoiceEntityList);
+    }
+
 }

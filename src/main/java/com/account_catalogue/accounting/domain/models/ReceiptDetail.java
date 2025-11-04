@@ -1,4 +1,4 @@
-package com.account_catalogue.catalogue.domain.models;
+package com.account_catalogue.accounting.domain.models;
 
 import java.math.BigDecimal;
 

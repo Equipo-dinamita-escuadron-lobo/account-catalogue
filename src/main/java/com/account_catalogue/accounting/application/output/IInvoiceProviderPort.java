@@ -40,4 +40,11 @@ public interface IInvoiceProviderPort {
      *         Si un ID no corresponde a ninguna factura, simplemente no será incluido en la lista de resultados.
      */
     List<InvoiceReplica> findInvoicesByIds(List<Long> invoiceIds);
+
+    /**
+     * Busca una lista de facturas por el ID de la empresa.
+     * @param enterpriseId El ID de la empresa.
+     * @return Una lista de objetos de dominio InvoiceReplica que pertenecen a la empresa especificada.
+     */
+    List<InvoiceReplica> findInvoicesByEnterpriseId(String enterpriseId);
 }

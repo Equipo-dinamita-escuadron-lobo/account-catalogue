@@ -57,15 +57,6 @@ public interface IBankAccountService {
      */
     Page<BankAccount> findAllActiveByEnterprise(String idEnterprise, Integer page, Integer size);
 
-    /**
-     * @brief Consulta cuentas por empresa y banco específico
-     * @param idEnterprise ID de la empresa
-     * @param bankId ID del banco
-     * @param page Número de página
-     * @param size Tamaño de página
-     * @return Página de cuentas bancarias del banco especificado
-     */
-    Page<BankAccount> findAllByEnterpriseAndBank(String idEnterprise, Long bankId, int page, int size);
 
     /**
      * @brief Cambia el estado activo/inactivo de una cuenta bancaria

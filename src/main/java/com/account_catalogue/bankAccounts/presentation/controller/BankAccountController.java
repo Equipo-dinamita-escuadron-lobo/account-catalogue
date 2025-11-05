@@ -58,15 +58,6 @@ public class BankAccountController {
                 .map(mapper::toRes));
     }
 
-    @GetMapping("/findAllByBank/{enterpriseId}")
-    public ResponseEntity<Page<BankAccountRes>> listByBank(
-            @PathVariable String enterpriseId,
-            @RequestParam Long bankId,
-            @RequestParam(defaultValue = "0") Integer page,
-            @RequestParam(defaultValue = "10") Integer size) {
-        return ResponseEntity.ok(service.findAllByEnterpriseAndBank(enterpriseId, bankId, page, size)
-                .map(mapper::toRes));
-    }
 
     @PatchMapping("/changeState/{id}/{enterpriseId}")
     public ResponseEntity<BankAccountRes> changeState(

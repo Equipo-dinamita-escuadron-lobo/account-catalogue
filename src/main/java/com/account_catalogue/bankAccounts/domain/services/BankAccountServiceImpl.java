@@ -214,14 +214,6 @@ public class BankAccountServiceImpl implements IBankAccountService {
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public Page<BankAccount> findAllByEnterpriseAndBank(String idEnterprise, Long bankId, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        return repository.findAllByIdEnterpriseAndBankId(idEnterprise, bankId, pageable)
-                .map(dataMapper::toDomain);
-    }
-
-    @Override
     @Transactional
     public BankAccount changeState(Long id, String idEnterprise, Boolean newState) {
         BankAccountEntity current = repository.findByIdAndIdEnterprise(id, idEnterprise)

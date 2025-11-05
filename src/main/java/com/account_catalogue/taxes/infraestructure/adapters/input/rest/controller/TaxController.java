@@ -1,4 +1,4 @@
-package com.account_catalogue.taxes.infraestructure.adapters.input.rest;
+package com.account_catalogue.taxes.infraestructure.adapters.input.rest.controller;
 
 import com.account_catalogue.taxes.application.input.ITaxChangeStateInputPort;
 import com.account_catalogue.taxes.application.input.ITaxCreateInputPort;
@@ -33,6 +33,13 @@ import com.account_catalogue.commons.utils.PaginationHelper;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * @brief Controlador REST para operaciones de impuestos
+ *
+ * Proporciona endpoints para crear, buscar, actualizar y eliminar impuestos,
+ * así como para cambiar su estado activo/inactivo. También maneja paginación y
+ * búsqueda flexible.
+ */
 @RequestMapping("/api/tax")
 @RestController
 @AllArgsConstructor

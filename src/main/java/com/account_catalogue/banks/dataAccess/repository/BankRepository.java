@@ -7,6 +7,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import java.util.Optional;
 
+/**
+ * @brief Repositorio de datos para operaciones de bancos
+ *
+ * Proporciona métodos para consultas especializadas de bancos
+ * con filtros por empresa, estado y búsqueda por código o nombre.
+ */
 public interface BankRepository extends JpaRepository<BankEntity, Long> {
     
     boolean existsByCodeAndIdEnterprise(String code, String idEnterprise);
@@ -27,9 +33,22 @@ public interface BankRepository extends JpaRepository<BankEntity, Long> {
 
     long countByIdEnterprise(String idEnterprise);
 
+    /**
+     * @brief Busca bancos por código o nombre con búsqueda parcial
+     * @param idEnterprise ID de la empresa
+     * @param search Término de búsqueda que filtra por código o nombre
+     * @param pageable Configuración de paginación
+     * @return Página de bancos que coinciden con la búsqueda
+     */
     @Query("SELECT b FROM BankEntity b WHERE b.idEnterprise = ?1 AND (LOWER(b.code) LIKE LOWER(CONCAT('%', ?2, '%')) OR LOWER(b.name) LIKE LOWER(CONCAT('%', ?2, '%')))")
     Page<BankEntity> findByIdEnterpriseAndSearch(String idEnterprise, String search, Pageable pageable);
 
+    /**
+     * @brief Cuenta bancos por código o nombre con búsqueda parcial
+     * @param idEnterprise ID de la empresa
+     * @param search Término de búsqueda que filtra por código o nombre
+     * @return Cantidad total de bancos que coinciden con la búsqueda
+     */
     @Query("SELECT COUNT(b) FROM BankEntity b WHERE b.idEnterprise = ?1 AND (LOWER(b.code) LIKE LOWER(CONCAT('%', ?2, '%')) OR LOWER(b.name) LIKE LOWER(CONCAT('%', ?2, '%')))")
     long countByIdEnterpriseAndSearch(String idEnterprise, String search);
 }

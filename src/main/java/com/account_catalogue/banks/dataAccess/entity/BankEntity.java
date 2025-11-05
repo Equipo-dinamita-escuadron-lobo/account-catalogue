@@ -7,6 +7,13 @@ import org.hibernate.annotations.TenantId;
 
 import java.util.Set;
 
+/**
+ * @brief Entidad que representa un banco en el sistema
+ *
+ * Almacena la información de bancos con índices optimizados para
+ * consultas por empresa, código y nombre. Incluye soporte para
+ * multi-tenancy y asociación con monedas admitidas.
+ */
 @Entity
 @Table(name = "banks", indexes = {
         @Index(name = "idx_bank_id_enterprise", columnList = "id_enterprise"),

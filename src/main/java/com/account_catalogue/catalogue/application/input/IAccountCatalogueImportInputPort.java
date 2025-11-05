@@ -4,16 +4,17 @@ import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.response.AccountCatalogueImportResponse;
 
 /**
- * Puerto de entrada para la funcionalidad de importación de catálogo de cuentas.
- * Define el contrato para importar cuentas contables desde archivos Excel.
+ * @brief Puerto de entrada para operaciones de importación de catálogo de cuentas
+ *
+ * Define el contrato para importar cuentas contables desde archivos Excel
+ * con validaciones y procesamiento por lotes.
  */
 public interface IAccountCatalogueImportInputPort {
 
     /**
-     * Importa cuentas contables desde un archivo Excel.
-     * 
-     * @param request solicitud de importación conteniendo archivo y metadatos
-     * @return respuesta con resultados de la importación
+     * @brief Importa cuentas contables desde archivo Excel
+     * @param request solicitud con archivo Excel y configuración de importación
+     * @return respuesta con resultados del proceso de importación
      */
     AccountCatalogueImportResponse importAccountCatalogueFromExcel(AccountCatalogueImportRequest request);
 }

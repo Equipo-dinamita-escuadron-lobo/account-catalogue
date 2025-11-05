@@ -5,6 +5,12 @@ import lombok.*;
 
 import java.util.Set;
 
+/**
+ * @brief DTO de respuesta para bancos
+ *
+ * Contiene la información completa de un banco
+ * para respuestas de la API REST.
+ */
 @Getter
 @Setter
 @NoArgsConstructor

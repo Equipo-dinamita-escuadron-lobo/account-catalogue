@@ -35,6 +35,7 @@ public class BankServiceImpl implements IBankService {
     private final BankAccountRepository bankAccountRepository;
     private final PaginationHelper paginationHelper;
 
+    @Override
     @Transactional
     public Bank create(BankCreateReq request) {
         // Validar formato del código
@@ -61,6 +62,7 @@ public class BankServiceImpl implements IBankService {
         return dataMapper.toDomain(saved);
     }
 
+    @Override
     @Transactional
     public Bank update(BankUpdateReq request) {
         BankEntity current = repository.findByIdAndIdEnterprise(request.getId(), request.getIdEnterprise())
@@ -93,12 +95,14 @@ public class BankServiceImpl implements IBankService {
         return dataMapper.toDomain(saved);
     }
 
+    @Override
     @Transactional(readOnly = true)
     public Bank findById(Long id, String idEnterprise) {
         return dataMapper.toDomain(repository.findByIdAndIdEnterprise(id, idEnterprise)
                 .orElseThrow(BankNotFoundException::new));
     }
 
+    @Override
     @Transactional(readOnly = true)
     public Page<Bank> findAllByEnterpriseWithFilters(String idEnterprise, Integer page, Integer size,
                                                    String sortField, String sortOrder, String search) {
@@ -159,6 +163,7 @@ public class BankServiceImpl implements IBankService {
         return result.map(dataMapper::toDomain);
     }
 
+    @Override
     @Transactional(readOnly = true)
     public Page<Bank> findAllActiveByEnterprise(String idEnterprise, Integer page, Integer size) {
         // Contar el total de bancos activos para paginación inteligente
@@ -179,6 +184,7 @@ public class BankServiceImpl implements IBankService {
                 .map(dataMapper::toDomain);
     }
 
+    @Override
     @Transactional
     public Bank changeState(Long id, String idEnterprise, Boolean newState) {
         BankEntity current = repository.findByIdAndIdEnterprise(id, idEnterprise)
@@ -189,6 +195,7 @@ public class BankServiceImpl implements IBankService {
         return dataMapper.toDomain(saved);
     }
 
+    @Override
     @Transactional
     public Bank delete(Long id, String idEnterprise) {
         BankEntity current = repository.findByIdAndIdEnterprise(id, idEnterprise)

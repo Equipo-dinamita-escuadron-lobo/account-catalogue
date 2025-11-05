@@ -38,6 +38,7 @@ public class PaymentMethodServiceImpl implements IPaymentMethodService {
     private final AccountCatalogueValidationService accountCatalogueValidationService;
     private final PaginationHelper paginationHelper;
 
+    @Override
     @Transactional
     public PaymentMethod create(PaymentMethodCreateReq request) {
         // Normalizar nombre solo para validación de unicidad (no para almacenamiento)
@@ -78,6 +79,7 @@ public class PaymentMethodServiceImpl implements IPaymentMethodService {
         return dataMapper.toDomain(saved);
     }
 
+    @Override
     @Transactional
     public PaymentMethod update(PaymentMethodUpdateReq request) {
         PaymentMethodEntity current = repository.findByIdAndIdEnterprise(request.getId(), request.getIdEnterprise())
@@ -117,12 +119,14 @@ public class PaymentMethodServiceImpl implements IPaymentMethodService {
         return dataMapper.toDomain(saved);
     }
 
+    @Override
     @Transactional(readOnly = true)
     public PaymentMethod findById(Long id, String idEnterprise) {
         return dataMapper.toDomain(repository.findByIdAndIdEnterprise(id, idEnterprise)
                 .orElseThrow(PaymentMethodsNotFoundException::new));
     }
 
+    @Override
     @Transactional(readOnly = true)
     public Page<PaymentMethod> findAllByEnterprise(String idEnterprise, Optional<Integer> page, Optional<Integer> size,
             String sortField, String sortOrder, String search) {
@@ -151,6 +155,7 @@ public class PaymentMethodServiceImpl implements IPaymentMethodService {
         return result.map(dataMapper::toDomain);
     }
 
+    @Override
     @Transactional(readOnly = true)
     public Page<PaymentMethod> findAllActiveByEnterprise(String idEnterprise, Optional<Integer> page,
             Optional<Integer> size) {
@@ -166,6 +171,7 @@ public class PaymentMethodServiceImpl implements IPaymentMethodService {
                 .map(dataMapper::toDomain);
     }
 
+    @Override
     @Transactional
     public PaymentMethod changeState(Long id, String idEnterprise, Boolean newState) {
         PaymentMethodEntity current = repository.findByIdAndIdEnterprise(id, idEnterprise)
@@ -176,6 +182,7 @@ public class PaymentMethodServiceImpl implements IPaymentMethodService {
         return dataMapper.toDomain(saved);
     }
 
+    @Override
     @Transactional
     public PaymentMethod delete(Long id, String idEnterprise) {
         PaymentMethodEntity current = repository.findByIdAndIdEnterprise(id, idEnterprise)

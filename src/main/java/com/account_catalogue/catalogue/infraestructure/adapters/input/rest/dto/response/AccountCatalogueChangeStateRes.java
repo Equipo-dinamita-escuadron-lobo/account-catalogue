@@ -1,4 +1,4 @@
-package com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.response;
+package com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.response;
 
 import lombok.*;
 

@@ -1,14 +1,20 @@
-package com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.response;
+package com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.response;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class AccountCatalogueUpdateRes {
-    private long id;
+public class AccountCatalogueCreateRes {
+    private Long id;
+    private String idEnterprise;
     private String code;
     private String description;
     private String nature;
@@ -18,4 +24,5 @@ public class AccountCatalogueUpdateRes {
     private Boolean crossing;
     private Boolean costCenter;
     private Boolean status;
+
 }

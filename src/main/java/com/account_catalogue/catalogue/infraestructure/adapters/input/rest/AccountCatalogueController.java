@@ -30,17 +30,16 @@ import com.account_catalogue.catalogue.application.input.IAccountCatalogueSearch
 import com.account_catalogue.catalogue.application.input.IAccountCatalogueUpdateInputPort;
 import com.account_catalogue.catalogue.domain.enums.ImportStatus;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
-
-import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.request.AccountCatalogueCreateReq;
-import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.request.AccountCatalogueImportRequest;
-import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.request.AccountCatalogueUpdateReq;
-import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.response.AccountCatalogueChangeStateRes;
-import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.response.AccountCatalogueCreateRes;
-import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.response.AccountCatalogueImportResponse;
-import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.response.AccountCatalogueListRes;
-import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.response.AccountCatalogueUpdateRes;
-import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.response.AuxiliaryAccountListRes;
-import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.response.ItemAccountCatalogueSearchRes;
+import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.request.AccountCatalogueCreateReq;
+import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.request.AccountCatalogueImportRequest;
+import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.request.AccountCatalogueUpdateReq;
+import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.response.AccountCatalogueChangeStateRes;
+import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.response.AccountCatalogueCreateRes;
+import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.response.AccountCatalogueImportResponse;
+import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.response.AccountCatalogueListRes;
+import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.response.AccountCatalogueUpdateRes;
+import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.response.AuxiliaryAccountListRes;
+import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.response.ItemAccountCatalogueSearchRes;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.mapper.IAccountChangeStateRestMapper;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.mapper.IAccountCreateRestMapper;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.mapper.IAccountSearchRestMapper;

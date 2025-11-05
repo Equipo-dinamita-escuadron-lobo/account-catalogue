@@ -3,7 +3,8 @@ package com.account_catalogue.catalogue.application.services;
 import com.account_catalogue.catalogue.domain.enums.ImportErrorType;
 import com.account_catalogue.catalogue.domain.enums.ImportStatus;
 import com.account_catalogue.catalogue.domain.models.ImportErrorDetail;
-import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.response.AccountCatalogueImportResponse;
+import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.response.AccountCatalogueImportResponse;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 

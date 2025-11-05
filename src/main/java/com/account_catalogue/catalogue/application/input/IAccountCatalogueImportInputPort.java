@@ -1,7 +1,7 @@
 package com.account_catalogue.catalogue.application.input;
 
-import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.request.AccountCatalogueImportRequest;
-import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.response.AccountCatalogueImportResponse;
+import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.request.AccountCatalogueImportRequest;
+import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.response.AccountCatalogueImportResponse;
 
 /**
  * @brief Puerto de entrada para operaciones de importación de catálogo de cuentas

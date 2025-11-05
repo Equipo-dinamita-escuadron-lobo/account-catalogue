@@ -5,8 +5,9 @@ import com.account_catalogue.catalogue.domain.enums.ImportErrorType;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogueExcelData;
 import com.account_catalogue.catalogue.domain.models.ImportErrorDetail;
 import com.account_catalogue.catalogue.domain.utils.ImportConstants;
-import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.request.AccountCatalogueImportRequest;
-import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.response.AccountCatalogueImportResponse;
+import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.request.AccountCatalogueImportRequest;
+import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.response.AccountCatalogueImportResponse;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

@@ -1,4 +1,4 @@
-package com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.request;
+package com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.request;
 
 
 import java.util.List;

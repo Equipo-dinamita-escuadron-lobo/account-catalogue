@@ -6,8 +6,8 @@ import java.util.List;
 import org.springframework.stereotype.Component;
 
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
-import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.request.AccountCatalogueCreateReq;
-import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.response.AccountCatalogueCreateRes;
+import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.request.AccountCatalogueCreateReq;
+import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.response.AccountCatalogueCreateRes;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.mapper.IAccountCreateRestMapper;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.util.AdjustEnumAccount;
 

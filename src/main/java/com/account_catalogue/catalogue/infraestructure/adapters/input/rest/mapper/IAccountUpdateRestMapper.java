@@ -1,8 +1,8 @@
 package com.account_catalogue.catalogue.infraestructure.adapters.input.rest.mapper;
 
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
-import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.request.AccountCatalogueUpdateReq;
-import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.response.AccountCatalogueUpdateRes;
+import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.request.AccountCatalogueUpdateReq;
+import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.response.AccountCatalogueUpdateRes;
 
 public interface  IAccountUpdateRestMapper {
 

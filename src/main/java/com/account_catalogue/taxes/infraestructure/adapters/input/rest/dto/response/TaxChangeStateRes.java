@@ -1,4 +1,4 @@
-package com.account_catalogue.taxes.infraestructure.adapters.input.rest.data.response;
+package com.account_catalogue.taxes.infraestructure.adapters.input.rest.dto.response;
 
 import lombok.*;
 

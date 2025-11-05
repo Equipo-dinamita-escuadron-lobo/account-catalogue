@@ -1,4 +1,4 @@
-package com.account_catalogue.taxes.infraestructure.adapters.input.rest.data.request;
+package com.account_catalogue.taxes.infraestructure.adapters.input.rest.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.NotBlank;

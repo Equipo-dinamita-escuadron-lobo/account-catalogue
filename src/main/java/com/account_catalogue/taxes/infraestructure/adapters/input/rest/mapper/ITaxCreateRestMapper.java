@@ -2,8 +2,8 @@ package com.account_catalogue.taxes.infraestructure.adapters.input.rest.mapper;
 
 import com.account_catalogue.taxes.domain.DTO.TaxDTO;
 import com.account_catalogue.taxes.domain.models.Tax;
-import com.account_catalogue.taxes.infraestructure.adapters.input.rest.data.request.TaxCreateReq;
-import com.account_catalogue.taxes.infraestructure.adapters.input.rest.data.response.TaxCreateRes;
+import com.account_catalogue.taxes.infraestructure.adapters.input.rest.dto.request.TaxCreateReq;
+import com.account_catalogue.taxes.infraestructure.adapters.input.rest.dto.response.TaxCreateRes;
 
 import org.mapstruct.Mapper;
 

@@ -5,6 +5,12 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * @brief DTO para transferencia de datos de impuestos
+ *
+ * Contiene la información esencial de un impuesto para operaciones
+ * de creación, actualización y transferencia entre capas.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

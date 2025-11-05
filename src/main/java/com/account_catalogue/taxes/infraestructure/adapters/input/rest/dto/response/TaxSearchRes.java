@@ -1,4 +1,4 @@
-package com.account_catalogue.taxes.infraestructure.adapters.input.rest.data.response;
+package com.account_catalogue.taxes.infraestructure.adapters.input.rest.dto.response;
 
 import lombok.*;
 
@@ -7,13 +7,14 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class TaxUpdateRes {
+@Data
+public class TaxSearchRes {
     private  Long id;
     private String idEnterprise;
     private String code;
     private String description;
     private double interest;
-    private Long purchaseTax;
-    private Long salesTax;
+    private String purchaseTax;
+    private String salesTax;
     private Boolean status;
 }

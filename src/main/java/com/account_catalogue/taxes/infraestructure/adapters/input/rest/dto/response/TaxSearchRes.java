@@ -2,6 +2,12 @@ package com.account_catalogue.taxes.infraestructure.adapters.input.rest.dto.resp
 
 import lombok.*;
 
+/**
+ * @brief DTO de respuesta para consultas de impuestos
+ *
+ * Contiene la información completa de un impuesto para respuestas
+ * de la API REST con cuentas contables formateadas.
+ */
 @Getter
 @Setter
 @AllArgsConstructor

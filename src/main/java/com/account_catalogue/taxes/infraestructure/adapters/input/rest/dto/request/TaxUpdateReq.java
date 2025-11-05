@@ -5,6 +5,12 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
+/**
+ * @brief DTO de solicitud para actualizar impuestos
+ *
+ * Contiene los campos necesarios para actualizar un impuesto existente
+ * con validaciones de formato y obligatoriedad.
+ */
 @Getter
 @Setter
 @AllArgsConstructor

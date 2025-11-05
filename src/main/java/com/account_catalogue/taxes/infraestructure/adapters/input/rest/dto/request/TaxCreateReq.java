@@ -5,6 +5,12 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
+/**
+ * @brief DTO de solicitud para crear impuestos
+ *
+ * Contiene los campos requeridos para crear un nuevo impuesto
+ * con validaciones de formato y obligatoriedad.
+ */
 @Getter
 @Setter
 @AllArgsConstructor

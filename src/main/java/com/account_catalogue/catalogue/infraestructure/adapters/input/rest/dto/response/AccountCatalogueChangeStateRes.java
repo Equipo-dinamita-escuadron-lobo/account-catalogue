@@ -2,6 +2,12 @@ package com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.
 
 import lombok.*;
 
+/**
+ * @brief DTO para respuesta de cambio de estado de cuenta contable
+ *
+ * Contiene confirmación del cambio de estado (activación/desactivación)
+ * de una cuenta junto con mensaje informativo del resultado.
+ */
 @Getter
 @Setter
 @AllArgsConstructor

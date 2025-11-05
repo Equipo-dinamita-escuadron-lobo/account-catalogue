@@ -51,6 +51,12 @@ import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.util.
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 
+/**
+ * @brief Controlador REST para gestión completa del catálogo de cuentas
+ *
+ * Expone endpoints para operaciones CRUD, importación/exportación Excel,
+ * búsqueda jerárquica y gestión de estados de cuentas contables.
+ */
 @RequestMapping("/api/accountCatalogue")
 @RestController
 @AllArgsConstructor
@@ -72,6 +78,11 @@ public class AccountCatalogueController {
     private final AccountCatalogueExcelFileNameGenerator fileNameGenerator;
 
 
+    /**
+     * @brief Crea nueva cuenta contable en el catálogo
+     * @param accountCatalogueCreateReq datos de la cuenta a crear
+     * @return respuesta con datos de la cuenta creada
+     */
     @PostMapping("/")
     public ResponseEntity<AccountCatalogueCreateRes> createAccountCatalogue(
             @Valid @RequestBody AccountCatalogueCreateReq accountCatalogueCreateReq) {
@@ -84,6 +95,12 @@ public class AccountCatalogueController {
         return ResponseEntity.ok(accountCreateRestMapper.toCreateResponse(account));
     }
 
+    /**
+     * @brief Actualiza cuenta contable existente
+     * @param id identificador único de la cuenta
+     * @param accountCatalogueUpdateReq datos actualizados de la cuenta
+     * @return respuesta con datos de la cuenta actualizada
+     */
     @PutMapping("/{id}")
     public ResponseEntity<AccountCatalogueUpdateRes> updateAccountCatalogue(@PathVariable("id") int id,
             @Valid @RequestBody AccountCatalogueUpdateReq accountCatalogueUpdateReq) {
@@ -95,6 +112,12 @@ public class AccountCatalogueController {
         return ResponseEntity.ok(accountUpdateRestMapper.toUpdateResponse(updateAccountCatalogue));
     }
 
+    /**
+     * @brief Obtiene cuenta contable por código y empresa
+     * @param code código de la cuenta a buscar
+     * @param idEnterprise ID de la empresa
+     * @return respuesta con datos de la cuenta encontrada
+     */
     @GetMapping("/accountByCode/{code}/{idEnterprise}")
     public ResponseEntity<ItemAccountCatalogueSearchRes> getAccountCatalogue(@PathVariable String code,
             @PathVariable String idEnterprise) {
@@ -102,6 +125,12 @@ public class AccountCatalogueController {
         return ResponseEntity.ok(itemAccountSearchRestMapper.toItemAccountCatalogueSearch(accountCatalogue));
     }
 
+    /**
+     * @brief Elimina cuenta contable por ID y empresa
+     * @param id identificador único de la cuenta
+     * @param idEnterprise ID de la empresa
+     * @return respuesta sin contenido (204)
+     */
     @DeleteMapping("/{id}/{idEnterprise}")
     public ResponseEntity<Void> deleteByCode(@PathVariable Long id, @PathVariable String idEnterprise) {
         accountCatalogueDeleteInputPort.deleteById(id, idEnterprise);
@@ -177,6 +206,11 @@ public class AccountCatalogueController {
     }
 
     
+    /**
+     * @brief Descarga plantilla Excel para importación de cuentas
+     * @param entId identificador de la empresa
+     * @return archivo Excel con estructura de plantilla
+     */
     @GetMapping("/template/excel")
     public ResponseEntity<Resource> exportAccountCatalogueTemplate(
             @RequestParam String entId) {
@@ -190,6 +224,13 @@ public class AccountCatalogueController {
                 .body(templateFile);
     }
 
+    /**
+     * @brief Exporta catálogo de cuentas con validaciones a Excel
+     * @param entId identificador de la empresa
+     * @param companyName nombre de la empresa (opcional)
+     * @param status estado de las cuentas a incluir (opcional)
+     * @return archivo Excel con catálogo de cuentas exportado
+     */
     @GetMapping("/export/excel")
     public ResponseEntity<Resource> exportAccountCatalogueWithValidations(
             @RequestParam String entId,
@@ -206,6 +247,12 @@ public class AccountCatalogueController {
     }
 
     
+    /**
+     * @brief Importa cuentas contables desde archivo Excel
+     * @param entId identificador de la empresa
+     * @param file archivo Excel con datos de cuentas
+     * @return respuesta con resultado del proceso de importación
+     */
     @PostMapping("/import/excel")
     public ResponseEntity<AccountCatalogueImportResponse> importFromExcel(
             @RequestParam String entId,

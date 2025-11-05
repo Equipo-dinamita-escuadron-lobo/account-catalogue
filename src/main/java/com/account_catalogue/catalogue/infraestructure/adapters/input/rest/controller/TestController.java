@@ -5,6 +5,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * @brief Controlador de pruebas para testing de endpoints
+ *
+ * Proporciona endpoints simples para verificar funcionamiento básico
+ * y validación de autorizaciones en el módulo de catálogo de cuentas.
+ */
 @RestController
 @RequestMapping("/api/accountCatalogue/test")
 public class TestController {

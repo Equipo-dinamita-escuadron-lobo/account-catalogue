@@ -7,13 +7,18 @@ import org.mapstruct.Mapper;
 
 import java.util.List;
 
+/**
+ * @brief Mapeador de datos para operaciones de consulta de impuestos
+ *
+ * Gestiona la conversión de entidades JPA a modelos de dominio
+ * para operaciones de lectura y búsqueda de impuestos.
+ */
 @Mapper
 public interface ITaxSearchMapper {
     /**
-     * Mapea un objeto TaxEntity a un objeto Tax.
-     *
-     * @param taxEntity el objeto TaxEntity a mapear
-     * @return el objeto Tax mapeado, o null si el objeto TaxEntity es null
+     * @brief Convierte entidad JPA a modelo de dominio
+     * @param taxEntity entidad con relaciones JPA cargadas
+     * @return modelo de dominio con entidades relacionadas mapeadas
      */
     default Tax toDomain(TaxEntity taxEntity) {
         if (taxEntity == null) {
@@ -32,11 +37,9 @@ public interface ITaxSearchMapper {
     }
 
     /**
-     * Mapea una lista de objetos TaxEntity a una lista de objetos Tax.
-     *
-     * @param taxes la lista de objetos TaxEntity a mapear
-     * @return una lista de objetos Tax mapeados, o null si la lista de entrada es
-     *         null
+     * @brief Convierte lista de entidades JPA a lista de modelos de dominio
+     * @param taxes lista de entidades con relaciones JPA cargadas
+     * @return lista de modelos de dominio con entidades relacionadas mapeadas
      */
     default List<Tax> toDomainList(List<TaxEntity> taxes) {
         if (taxes == null) {

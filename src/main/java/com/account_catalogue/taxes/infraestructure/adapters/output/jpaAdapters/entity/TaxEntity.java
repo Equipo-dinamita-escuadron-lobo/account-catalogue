@@ -10,13 +10,19 @@ import org.hibernate.annotations.TenantId;
 
 import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.entity.AccountCatalogueEntity;
 
-
+/**
+ * @brief Entidad que representa un impuesto en el sistema
+ *
+ * Almacena la información de impuestos con índices optimizados para
+ * consultas por empresa, código y estado. Incluye relaciones con
+ * cuentas contables de venta y compra, y soporte para multi-tenancy.
+ */
 @Entity
 @Builder
 @AllArgsConstructor
 @Data
 @NoArgsConstructor
-@Table(name="Tax", 
+@Table(name="Tax",
     indexes = {
         @Index(name = "idx_tax_id_enterprise", columnList = "idEnterprise"),
         @Index(name = "idx_tax_code", columnList = "code"),

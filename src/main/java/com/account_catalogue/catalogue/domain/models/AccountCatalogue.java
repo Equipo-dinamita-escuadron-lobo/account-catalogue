@@ -15,6 +15,12 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * @brief Modelo de dominio para cuentas contables del catálogo
+ *
+ * Representa una cuenta contable completa con toda su información jerárquica,
+ * asociaciones con impuestos y campos opcionales para funcionalidad avanzada.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

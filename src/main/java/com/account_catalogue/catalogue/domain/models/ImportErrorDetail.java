@@ -7,8 +7,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * DTO que representa un error específico durante la importación.
- * Proporciona información detallada para facilitar la corrección.
+ * @brief DTO para representar errores detallados durante importación Excel
+ *
+ * Contiene información completa de localización y contexto de errores encontrados
+ * durante el proceso de importación masiva de cuentas contables.
  */
 @Data
 @Builder
@@ -16,39 +18,12 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ImportErrorDetail {
 
-    /**
-     * Número de fila en el Excel donde ocurrió el error (base 1).
-     */
     private Integer rowNumber;
-
-    /**
-     * Número de columna donde ocurrió el error (base 1).
-     */
     private Integer columnNumber;
-
-    /**
-     * Nombre de la columna donde ocurrió el error.
-     */
     private String columnName;
-
-    /**
-     * Valor que causó el error.
-     */
     private String fieldValue;
-
-    /**
-     * Código del error para categorización.
-     */
     private String errorCode;
-
-    /**
-     * Mensaje descriptivo del error.
-     */
     private String errorMessage;
-
-    /**
-     * Tipo de error para clasificación.
-     */
     private ImportErrorType errorType;
 }
 

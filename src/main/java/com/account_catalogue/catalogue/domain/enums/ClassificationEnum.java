@@ -2,6 +2,12 @@ package com.account_catalogue.catalogue.domain.enums;
 
 import lombok.Getter;
 
+/**
+ * @brief Clasificaciones contables principales según normas internacionales
+ *
+ * Define las categorías de clasificación para cuentas contables basadas en
+ * principios de contabilidad generalmente aceptados.
+ */
 @Getter
 public enum ClassificationEnum {
     CURRENTASSETS("Activo Corriente"),

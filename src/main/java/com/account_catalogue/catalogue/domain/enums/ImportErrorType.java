@@ -3,52 +3,27 @@ package com.account_catalogue.catalogue.domain.enums;
 import lombok.Getter;
 
 /**
- * Tipos de errores que pueden ocurrir durante la importación de catálogo de cuentas.
- * Clasifica los errores para facilitar su manejo y presentación al usuario.
+ * @brief Clasificación de tipos de errores durante importación Excel
+ *
+ * Define categorías de errores que pueden ocurrir durante el proceso de importación
+ * masiva de cuentas contables, facilitando el manejo, priorización y presentación al usuario.
  */
 @Getter
 public enum ImportErrorType {
     
-    /**
-     * Error en la validación de formato o contenido de campos.
-     * Ejemplos: campo requerido faltante, formato de código inválido.
-     */
+    
     VALIDATION_ERROR("Error de Validación"),
     
-    /**
-     * Error en el formato de datos dentro del archivo.
-     * Ejemplos: tipo de dato incorrecto, enum inválido.
-     */
     FORMAT_ERROR("Error de Formato"),
     
-    /**
-     * Error de referencia a datos maestros inexistentes.
-     * Ejemplos: cuenta padre no existe.
-     */
     REFERENCE_ERROR("Error de Referencia"),
     
-    /**
-     * Error en la aplicación de reglas de negocio.
-     * Ejemplos: crossing no permitido, costCenter sin Estado de Resultados.
-     */
     BUSINESS_RULE_ERROR("Error de Regla de Negocio"),
     
-    /**
-     * Error por registro duplicado interno o con la base de datos.
-     * Ejemplos: código ya existe, descripción duplicada.
-     */
     DUPLICATE_ERROR("Error de Duplicado"),
     
-    /**
-     * Error en la jerarquía de cuentas.
-     * Ejemplos: cuenta hija sin padre, código padre no existe.
-     */
     HIERARCHY_ERROR("Error de Jerarquía"),
     
-    /**
-     * Error del sistema durante el procesamiento.
-     * Ejemplos: error de base de datos, error de conexión.
-     */
     SYSTEM_ERROR("Error del Sistema");
 
     private final String description;
@@ -58,19 +33,16 @@ public enum ImportErrorType {
     }
 
     /**
-     * Verifica si el error es de tipo recuperable.
-     * Los errores recuperables pueden ser corregidos por el usuario.
-     * 
-     * @return true si el error es recuperable
+     * @brief Determina si el error puede ser corregido por el usuario
+     * @return true si el error no es SYSTEM_ERROR (todos los demás son recuperables)
      */
     public boolean isRecoverable() {
         return this != SYSTEM_ERROR;
     }
 
     /**
-     * Verifica si el error requiere acción del usuario.
-     * 
-     * @return true si requiere corrección por parte del usuario
+     * @brief Determina si el error necesita intervención del usuario para resolverse
+     * @return true si el error requiere corrección manual (todos excepto SYSTEM_ERROR)
      */
     public boolean requiresUserAction() {
         return this == VALIDATION_ERROR || 
@@ -82,10 +54,8 @@ public enum ImportErrorType {
     }
 
     /**
-     * Obtiene la prioridad del error para ordenamiento.
-     * Menor número = mayor prioridad.
-     * 
-     * @return nivel de prioridad (1-7)
+     * @brief Obtiene nivel de prioridad para ordenamiento y presentación de errores
+     * @return número de prioridad (1=máxima, 7=mínima) basado en criticidad del error
      */
     public int getPriority() {
         return switch (this) {

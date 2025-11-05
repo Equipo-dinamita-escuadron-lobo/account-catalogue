@@ -193,7 +193,7 @@ public class AccountCatalogueBatchProcessor {
     /**
      * @brief Divide lista en sublistas para procesamiento por lotes
      *
-     * Implementa algoritmo de particionamiento eficiente que divide una lista grande
+     * Implementa algoritmo de particionamiento que divide una lista grande
      * en sublistas más pequeñas de tamaño batchSize. Usa Math.min para manejar
      * el último lote que puede ser más pequeño que batchSize.
      * @param list lista original a dividir

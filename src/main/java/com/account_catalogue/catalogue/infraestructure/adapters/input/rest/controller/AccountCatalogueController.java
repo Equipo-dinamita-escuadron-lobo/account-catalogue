@@ -1,4 +1,4 @@
-package com.account_catalogue.catalogue.infraestructure.adapters.input.rest;
+package com.account_catalogue.catalogue.infraestructure.adapters.input.rest.controller;
 
 import java.util.List;
 import java.util.stream.Collectors;

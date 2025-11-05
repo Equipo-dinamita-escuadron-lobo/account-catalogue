@@ -17,6 +17,12 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * @brief Servicio para importación masiva de cuentas contables desde Excel
+ *
+ * Coordina el proceso completo de importación de cuentas desde archivos Excel,
+ * incluyendo validación, procesamiento por lotes y manejo de errores.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor

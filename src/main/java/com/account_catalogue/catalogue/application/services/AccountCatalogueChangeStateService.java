@@ -9,6 +9,12 @@ import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 
+/**
+ * @brief Servicio para cambio de estado de cuentas contables
+ *
+ * Maneja la activación/desactivación de cuentas del catálogo,
+ * aplicando cambios a la cuenta y todos sus descendientes jerárquicos.
+ */
 @Service
 @AllArgsConstructor
 public class AccountCatalogueChangeStateService implements IAccountCatalogueChangeStateInputPort {

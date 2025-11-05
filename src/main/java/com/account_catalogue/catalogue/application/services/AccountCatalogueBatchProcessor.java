@@ -19,6 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 
 /**
+ * @brief Servicio para procesamiento por lotes de cuentas contables
+ *
  * Servicio especializado en procesamiento por lotes de cuentas contables.
  * Procesa registros en lotes transaccionales para optimizar rendimiento.
  */

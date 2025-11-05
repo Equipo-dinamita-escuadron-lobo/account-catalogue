@@ -9,6 +9,12 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+/**
+ * @brief Servicio para construcción de respuestas de importación
+ *
+ * Construye respuestas estructuradas para operaciones de importación,
+ * incluyendo estadísticas de éxito, errores y métricas de procesamiento.
+ */
 @Slf4j
 @Service
 public class AccountCatalogueImportResponseBuilder {

@@ -17,6 +17,12 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
+/**
+ * @brief Servicio para detección de duplicados en importación de cuentas
+ *
+ * Identifica y maneja registros duplicados durante el proceso de importación
+ * masiva de cuentas contables desde archivos Excel.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor

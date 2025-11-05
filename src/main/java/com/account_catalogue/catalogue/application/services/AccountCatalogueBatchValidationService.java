@@ -18,6 +18,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * @brief Servicio para validación por lotes de cuentas contables
+ *
+ * Realiza validaciones masivas en lotes de datos de cuentas durante
+ * el proceso de importación desde archivos Excel.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor

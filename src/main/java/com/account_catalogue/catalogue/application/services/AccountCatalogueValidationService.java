@@ -19,6 +19,12 @@ import com.account_catalogue.commons.exceptions.catalogue.InvalidAccountCodeExce
 
 import lombok.AllArgsConstructor;
 
+/**
+ * @brief Servicio de validaciones para cuentas contables
+ *
+ * Centraliza todas las reglas de validación de negocio para cuentas contables,
+ * incluyendo códigos, descripciones, jerarquías y asociaciones.
+ */
 @Service
 @AllArgsConstructor
 public class AccountCatalogueValidationService {

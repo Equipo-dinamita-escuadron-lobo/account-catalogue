@@ -11,6 +11,12 @@ import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
 import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueHasChildrenException;
 import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueNotFoundException;
 
+/**
+ * @brief Servicio para operaciones de eliminación de cuentas contables
+ *
+ * Maneja la eliminación de cuentas del catálogo mediante soft delete,
+ * con validaciones para asegurar integridad referencial.
+ */
 @Service
 @AllArgsConstructor
 public class AccountCatalogueDeleteService implements IAccountCatalogueDeleteInputPort {

@@ -7,6 +7,12 @@ import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+/**
+ * @brief Servicio para operaciones de actualización de cuentas contables
+ *
+ * Maneja la actualización de cuentas existentes del catálogo con validaciones
+ * de integridad y reglas de negocio específicas para modificaciones.
+ */
 @Service
 @AllArgsConstructor
 public class AccountCatalogueUpdateService implements IAccountCatalogueUpdateInputPort {

@@ -24,6 +24,8 @@ import java.io.IOException;
 import java.util.*;
 
 /**
+ * @brief Servicio para parseo y procesamiento de archivos Excel
+ *
  * Servicio especializado en el parseo de archivos Excel para importación de catálogo de cuentas.
  * Maneja la lectura, validación de formato y conversión de datos desde Excel.
  */

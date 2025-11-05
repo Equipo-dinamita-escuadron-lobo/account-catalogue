@@ -15,6 +15,12 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+/**
+ * @brief Servicio para validación y generación de archivos Excel
+ *
+ * Maneja la creación de plantillas Excel con validaciones y la generación
+ * de archivos de error para el proceso de importación/exportación.
+ */
 @Slf4j
 @Service
 public class AccountCatalogueExcelValidationService {

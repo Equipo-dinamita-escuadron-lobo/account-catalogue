@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
+ * @brief Servicio para validación de archivos de importación
+ *
  * Servicio para validación directa de archivos de importación.
  * Valida tamaño, extensión y contenido básico del archivo.
  */

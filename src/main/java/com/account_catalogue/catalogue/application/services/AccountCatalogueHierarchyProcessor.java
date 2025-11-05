@@ -14,6 +14,12 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * @brief Servicio para procesamiento de jerarquías de cuentas contables
+ *
+ * Maneja el ordenamiento y procesamiento de cuentas según su jerarquía,
+ * asegurando que las cuentas padre se procesen antes que las hijas.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor

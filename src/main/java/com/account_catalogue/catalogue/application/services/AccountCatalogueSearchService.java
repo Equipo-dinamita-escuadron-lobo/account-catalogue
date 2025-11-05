@@ -14,6 +14,12 @@ import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueNotFou
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+/**
+ * @brief Servicio para operaciones de búsqueda y consulta de cuentas contables
+ *
+ * Proporciona métodos para buscar cuentas por diferentes criterios,
+ * incluyendo búsqueda paginada y consultas jerárquicas.
+ */
 @Service
 @AllArgsConstructor
 public class AccountCatalogueSearchService implements IAccountCatalogueSearchInputPort {

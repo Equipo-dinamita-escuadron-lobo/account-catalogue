@@ -27,6 +27,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * @brief Servicio para exportación del catálogo de cuentas a formato Excel
+ *
  * Servicio para la exportación del catálogo de cuentas a formato Excel.
  */
 @Slf4j

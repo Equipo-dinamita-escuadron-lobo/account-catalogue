@@ -11,7 +11,12 @@ import org.springframework.stereotype.Service;
 
 import java.util.Map;
 
-
+/**
+ * @brief Servicio para conversión de datos de Excel a entidades de dominio
+ *
+ * Convierte datos extraídos de archivos Excel a entidades del dominio
+ * de cuentas contables, manejando relaciones jerárquicas y normalización.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor

@@ -3,8 +3,8 @@ package com.account_catalogue.accounting.infraestructure.output.jpaAdapter.mappe
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
+import com.account_catalogue.accounting.domain.models.ReceiptDetail;
 import com.account_catalogue.accounting.infraestructure.output.jpaAdapter.entity.ReceiptDetailEntity;
-import com.account_catalogue.catalogue.domain.models.ReceiptDetail;
 
 @Mapper(componentModel = "spring")
 public interface IReceiptDetailMapper {

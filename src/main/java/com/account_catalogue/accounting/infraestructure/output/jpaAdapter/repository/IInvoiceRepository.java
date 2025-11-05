@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
+import com.account_catalogue.accounting.domain.enums.InvoiceStatus;
 import com.account_catalogue.accounting.infraestructure.output.jpaAdapter.entity.InvoiceReplicaEntity;
 
 @Repository
@@ -34,4 +36,9 @@ public interface IInvoiceRepository extends JpaRepository<InvoiceReplicaEntity, 
     @Modifying
     @Query("UPDATE InvoiceReplicaEntity e SET e.status = 'WRITTEN_OFF', e.pendingValue = 0 WHERE e.id IN :ids")
     void writeOffInvoicesByIds(@Param("ids") List<Long> ids);
+
+    /**
+     * Buscar facturas por Id de la empresa y estado activo.
+     */
+    List<InvoiceReplicaEntity> findByEntIdAndStatus(String entId, InvoiceStatus status);
 }

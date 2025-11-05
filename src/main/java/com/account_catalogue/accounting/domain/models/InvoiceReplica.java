@@ -21,6 +21,7 @@ public class InvoiceReplica {
     private Long thirdId;
     private Long pendingValue;
     private Long accountingAccount;
+    private LocalDate creationDate;
     private LocalDate expirationDate;
     private String entId;
     private InvoiceStatus status;
@@ -39,5 +40,15 @@ public class InvoiceReplica {
         
         this.status = InvoiceStatus.WRITTEN_OFF;
         this.pendingValue = 0L;
+    }
+
+    
+    /**
+     * Metodo para validar que la fecha de vencimiento no sea anterior a la fecha de creacion.
+     */
+    public void validateDates() {
+        if (this.expirationDate.isBefore(this.creationDate)) {
+            throw new IllegalArgumentException("Expiration date cannot be before creation date. FactCode: " + this.factCode);
+        }
     }
 }

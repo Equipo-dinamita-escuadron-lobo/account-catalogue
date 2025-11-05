@@ -1,5 +1,7 @@
 package com.account_catalogue.accounting.application.input;
 
+import java.util.List;
+
 import com.account_catalogue.accounting.domain.models.PortfolioWriteOff;
 
 public interface IWriteOffProcessInputPort {
@@ -20,4 +22,13 @@ public interface IWriteOffProcessInputPort {
      * @param portfolioWriteOff El objeto de dominio que representa el evento de anulación del castigo.
      */
     void processWriteOffAnnulment(PortfolioWriteOff portfolioWriteOff);
+
+    /**
+     * Marca una o varias facturas como castigadas.
+     * @param invoiceIds Lista de IDs de las facturas a castigar.
+     * @throws debt_payments.domain.exception.InvoiceNotFoundException si alguna de las facturas
+     *         especificadas en la lista no se encuentra en el sistema.
+     * @throws IllegalStateException si se intenta castigar una factura que ya ha sido pagada.
+     */
+    void writeOffInvoices(List<Long> invoiceIds);
 }

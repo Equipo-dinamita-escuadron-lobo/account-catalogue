@@ -15,6 +15,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * @brief Controlador REST para gestión de métodos de pago
+ *
+ * Expone endpoints HTTP para operaciones CRUD de métodos de pago
+ * con soporte para filtros, paginación y búsqueda por nombre o cuenta contable.
+ */
 @RestController
 @RequestMapping("/api/accountCatalogue/payment-methods")
 @RequiredArgsConstructor

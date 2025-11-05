@@ -21,12 +21,10 @@ public class AccountCatalogueUpdateService implements IAccountCatalogueUpdateInp
     private final AccountCatalogueValidationService validationService;
 
     /**
-     * Actualiza un catálogo de cuenta con validaciones.
-     * Permite actualizar cuentas que tienen hijos, pero valida que no esté asociada a impuestos.
-     *
-     * @param id El id del catálogo de cuenta a actualizar.
-     * @param accountCatalogue El catálogo de cuenta actualizado.
-     * @return El catálogo de cuenta actualizado.
+     * @brief Actualiza cuenta contable con validaciones de integridad completas    
+     * @param id ID de la cuenta a actualizar
+     * @param accountCatalogue datos actualizados con todas las validaciones aplicadas
+     * @return cuenta actualizada después de validaciones y persistencia
      */
     @Override
     public AccountCatalogue updateAccountCatalogue(long id, AccountCatalogue accountCatalogue) {

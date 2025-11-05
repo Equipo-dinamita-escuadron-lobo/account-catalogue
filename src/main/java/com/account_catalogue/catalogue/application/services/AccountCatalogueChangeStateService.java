@@ -23,14 +23,11 @@ public class AccountCatalogueChangeStateService implements IAccountCatalogueChan
     private final AccountCatalogueValidationService validationService;
 
     /**
-     * Cambia el estado (activo/inactivo) de una cuenta del catálogo y todos sus descendientes.
-     * Valida que la cuenta exista antes de cambiar su estado.
-     *
-     * @param id el ID de la cuenta
-     * @param idEnterprise el ID de la empresa
-     * @param status el nuevo estado (true = activo, false = inactivo) - requerido
-     * @return la cuenta actualizada
-     * @throws IllegalArgumentException si status es null
+     * @brief Cambia estado de cuenta y jerarquía completa
+     * @param id ID de la cuenta
+     * @param idEnterprise ID de la empresa
+     * @param status nuevo estado (true=activo, false=inactivo)
+     * @return cuenta actualizada
      */
     @Transactional
     @Override

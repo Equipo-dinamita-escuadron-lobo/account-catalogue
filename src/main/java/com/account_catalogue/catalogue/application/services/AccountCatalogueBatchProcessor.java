@@ -34,12 +34,14 @@ public class AccountCatalogueBatchProcessor {
     private final AccountCatalogueHierarchyProcessor hierarchyProcessor;
 
     /**
-     * Procesa un lote de cuentas en transacciones.
-     * Cada lote se procesa en una transacción independiente.
-     * 
-     * @param accountsData lista ordenada de cuentas a procesar
-     * @param entId identificador de la empresa
-     * @return resultado del procesamiento con estadísticas
+     * @brief Coordina procesamiento por lotes con particionamiento y transacciones independientes
+     *
+     * Divide la lista de cuentas en lotes de tamaño BATCH_SIZE, procesa cada lote
+     * en una transacción independiente, mantiene mapa de cuentas procesadas para
+     * resolución jerárquica, y acumula estadísticas de éxito/fallo/omisión.
+     * @param accountsData lista ordenada jerárquicamente de cuentas a procesar
+     * @param entId ID de empresa para aislamiento de datos
+     * @return estadísticas completas del procesamiento por lotes
      */
     public BatchProcessingResult processBatch(List<AccountCatalogueExcelData> accountsData, String entId) {
         List<ImportErrorDetail> errors = new ArrayList<>();
@@ -102,7 +104,12 @@ public class AccountCatalogueBatchProcessor {
     }
 
     /**
-     * Procesa un lote individual en una transacción.
+     * @brief Ejecuta procesamiento transaccional de un lote individual con resolución jerárquica
+     *
+     * Extrae códigos de padres requeridos, construye mapa de padres desde BD,
+     * procesa cada registro convirtiendo a dominio y creando en BD.
+     * Actualiza mapa de procesados para uso en lotes posteriores.
+     * Maneja errores por registro según configuración CONTINUE_ON_ERROR.
      */
     @Transactional
     protected BatchResult processSingleBatch(List<AccountCatalogueExcelData> batch, String entId, 
@@ -164,7 +171,11 @@ public class AccountCatalogueBatchProcessor {
     }
 
     /**
-     * Extrae los códigos de padres necesarios para un lote.
+     * @brief Extrae códigos de padres requeridos para resolución jerárquica
+     *
+     * Analiza cada cuenta del lote, extrae el código padre usando AccountCodeUtils,
+     * y acumula códigos únicos en un Set para evitar duplicados.
+     * Los códigos padre serán usados para consultar entidades existentes en BD.
      */
     private Set<String> extractRequiredParentCodes(List<AccountCatalogueExcelData> batch) {
         Set<String> parentCodes = new HashSet<>();
@@ -180,7 +191,14 @@ public class AccountCatalogueBatchProcessor {
     }
 
     /**
-     * Divide una lista en sublistas del tamaño especificado.
+     * @brief Divide lista en sublistas para procesamiento por lotes
+     *
+     * Implementa algoritmo de particionamiento eficiente que divide una lista grande
+     * en sublistas más pequeñas de tamaño batchSize. Usa Math.min para manejar
+     * el último lote que puede ser más pequeño que batchSize.
+     * @param list lista original a dividir
+     * @param batchSize tamaño máximo de cada sublista
+     * @return lista de sublistas, cada una con máximo batchSize elementos
      */
     private <T> List<List<T>> partitionList(List<T> list, int batchSize) {
         List<List<T>> batches = new ArrayList<>();
@@ -194,7 +212,10 @@ public class AccountCatalogueBatchProcessor {
     }
 
     /**
-     * Clase interna para resultado de procesamiento de un lote.
+     * @brief Resultado de procesamiento de un lote individual
+     *
+     * Contiene estadísticas de éxito/fallo/omisión y errores específicos
+     * de un lote procesado en una transacción independiente.
      */
     @Data
     @Builder
@@ -208,7 +229,10 @@ public class AccountCatalogueBatchProcessor {
     }
 
     /**
-     * Clase que representa el resultado de procesamiento completo.
+     * @brief Resultado completo del procesamiento por lotes
+     *
+     * Agrega estadísticas acumuladas de todos los lotes procesados,
+     * incluyendo total procesado y lista completa de errores.
      */
     @Data
     @Builder

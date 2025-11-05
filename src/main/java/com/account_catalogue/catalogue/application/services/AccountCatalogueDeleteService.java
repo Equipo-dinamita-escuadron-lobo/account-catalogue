@@ -26,13 +26,9 @@ public class AccountCatalogueDeleteService implements IAccountCatalogueDeleteInp
     private final AccountCatalogueValidationService validationService;
 
     /**
-     * Realiza una eliminación de un catálogo de cuenta por su ID para una empresa específica.
-     * Elimina la cuenta y todas sus cuentas hijas de forma física.
-     * Valida recursivamente que ni la cuenta padre ni ninguna de sus cuentas hijas 
-     * estén asociadas a impuestos antes de eliminarlas.
-     * 
+     * @brief Elimina cuenta y jerarquía completa con validaciones
      * @param id ID del catálogo de cuenta a eliminar
-     * @param idEnterprise ID de la empresa para la cual eliminar la cuenta
+     * @param idEnterprise ID de la empresa
      */
     @Transactional
     @Override

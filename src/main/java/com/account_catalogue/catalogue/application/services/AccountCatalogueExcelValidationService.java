@@ -30,7 +30,8 @@ public class AccountCatalogueExcelValidationService {
     // ========== MÉTODOS PARA GENERACIÓN DE EXCEL ==========
 
     /**
-     * Obtiene todas las opciones de naturaleza.
+     * @brief Obtiene todas las opciones de naturaleza.
+     * @return lista de opciones de naturaleza
      */
     public List<String> getNatureOptions() {
         return List.of(
@@ -40,7 +41,8 @@ public class AccountCatalogueExcelValidationService {
     }
 
     /**
-     * Obtiene todas las opciones de estado financiero.
+     * @brief Obtiene todas las opciones de estado financiero.
+     * @return lista de opciones de estado financiero
      */
     public List<String> getFinancialStatusOptions() {
         return List.of(
@@ -50,7 +52,8 @@ public class AccountCatalogueExcelValidationService {
     }
 
     /**
-     * Obtiene todas las opciones de clasificación.
+     * @brief Obtiene todas las opciones de clasificación.
+     * @return lista de opciones de clasificación
      */
     public List<String> getClassificationOptions() {
         return List.of(
@@ -68,11 +71,13 @@ public class AccountCatalogueExcelValidationService {
     // ========== MÉTODOS DE APLICACIÓN DE VALIDACIONES ==========
 
     /**
-     * Aplica todas las validaciones de datos a una hoja de Excel para catálogo de cuentas.
+     * @brief Aplica conjunto completo de validaciones Excel para catálogo de cuentas
      *
-     * @param sheet hoja de Excel
-     * @param startRow fila inicial
-     * @param endRow fila final
+     * Coordina aplicación de múltiples tipos de validación: código numérico personalizado,
+     * listas desplegables para enums, y validaciones condicionales para campos opcionales.
+     * @param sheet hoja Excel donde aplicar validaciones
+     * @param startRow fila inicial del rango de validación
+     * @param endRow fila final del rango de validación
      */
     public void applyAccountCatalogueValidations(Sheet sheet, int startRow, int endRow) throws ExcelValidationException {
         // Columna 0: Código (validación numérica personalizada)
@@ -98,8 +103,15 @@ public class AccountCatalogueExcelValidationService {
     }
 
     /**
-     * Aplica validación personalizada para el código de cuenta.
-     * Debe ser positivo y tener exactamente 1, 2, 4, 6 u 8 dígitos.
+     * @brief Implementa validación personalizada de código con fórmula Excel compleja
+     *
+     * Crea restricción con fórmula que valida: número positivo con longitud específica
+     * (1,2,4,6,8 dígitos) usando funciones LEN y TEXT de Excel.
+     * @param sheet hoja de Excel donde aplicar validaciones
+     * @param columnIndex índice de la columna
+     * @param startRow fila inicial del rango de validación
+     * @param endRow fila final del rango de validación
+     * @throws ExcelValidationException si ocurre un error al aplicar la validación
      */
     public void applyCodeValidation(Sheet sheet, int columnIndex, int startRow, int endRow) throws ExcelValidationException {
         try {
@@ -137,7 +149,14 @@ public class AccountCatalogueExcelValidationService {
     }
 
     /**
-     * Aplica validación de lista desplegable a una columna específica.
+     * @brief Configura lista desplegable con opciones predefinidas y mensajes de error
+     * @param sheet hoja de Excel donde aplicar validaciones
+     * @param columnIndex índice de la columna
+     * @param startRow fila inicial del rango de validación
+     * @param endRow fila final del rango de validación
+     * @param options opciones de la lista desplegable
+     * @param errorMessage mensaje de error
+     * @throws ExcelValidationException si ocurre un error al aplicar la validación
      */
     public void applyDropdownValidation(Sheet sheet, int columnIndex, int startRow, int endRow,
             List<String> options, String errorMessage) throws ExcelValidationException {
@@ -171,9 +190,12 @@ public class AccountCatalogueExcelValidationService {
     }
 
     /**
-     * Aplica validación condicional para Cruce.
-     * Solo permitida cuando el código tiene exactamente 8 dígitos.
-     * Usa lista desplegable SI/NO con tooltip personalizado.
+     * @brief Configura validación condicional para cruce basada en longitud del código
+     * @param sheet hoja de Excel donde aplicar validaciones
+     * @param columnIndex índice de la columna
+     * @param startRow fila inicial del rango de validación
+     * @param endRow fila final del rango de validación
+     * @throws ExcelValidationException si ocurre un error al aplicar la validación
      */
     public void applyCruceValidation(Sheet sheet, int columnIndex, int startRow, int endRow) throws ExcelValidationException {
         applyConditionalDropdownValidation(sheet, columnIndex, startRow, endRow,
@@ -183,9 +205,12 @@ public class AccountCatalogueExcelValidationService {
     }
 
     /**
-     * Aplica validación condicional para Centro de Costo.
-     * Solo permitida cuando el código tiene 8 dígitos Y Estado Financiero es "Estado de Resultados".
-     * Usa lista desplegable SI/NO con tooltip personalizado.
+     * @brief Configura validación condicional doble para centro de costo (longitud + estado)
+     * @param sheet hoja de Excel donde aplicar validaciones
+     * @param columnIndex índice de la columna
+     * @param startRow fila inicial del rango de validación
+     * @param endRow fila final del rango de validación
+     * @throws ExcelValidationException si ocurre un error al aplicar la validación
      */
     public void applyCentroCostoValidation(Sheet sheet, int columnIndex, int startRow, int endRow) throws ExcelValidationException {
         applyConditionalDropdownValidation(sheet, columnIndex, startRow, endRow,
@@ -195,8 +220,15 @@ public class AccountCatalogueExcelValidationService {
     }
 
     /**
-     * Aplica validación condicional de lista desplegable.
-     * Muestra lista desplegable SI/NO solo cuando se cumple la condición.
+     * @brief Implementa validación condicional usando hoja oculta y fórmulas Excel
+     * @param sheet hoja de Excel donde aplicar validaciones
+     * @param columnIndex índice de la columna
+     * @param startRow fila inicial del rango de validación
+     * @param endRow fila final del rango de validación
+     * @param conditionFormula fórmula condicional
+     * @param errorMessage mensaje de error
+     * @param promptMessage mensaje de prompt
+     * @throws ExcelValidationException si ocurre un error al aplicar la validación
      */
     private void applyConditionalDropdownValidation(Sheet sheet, int columnIndex, int startRow, int endRow,
             String conditionFormula, String errorMessage, String promptMessage) throws ExcelValidationException {

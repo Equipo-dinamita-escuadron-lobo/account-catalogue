@@ -21,10 +21,9 @@ public class AccountCatalogueCreateService implements IAccountCatalogueCreateInp
     private final AccountCatalogueValidationService validationService;
 
     /**
-     * Crea un catálogo de cuenta con validaciones completas.
-     *
-     * @param accountCatalogue El catálogo de cuenta a crear.
-     * @return El catálogo de cuenta creado.
+     * @brief Crea cuenta contable con validaciones completas
+     * @param accountCatalogue datos de la cuenta a crear
+     * @return cuenta creada con ID generado
      */
     @Override
     public AccountCatalogue createAccountCatalogue(AccountCatalogue accountCatalogue) {

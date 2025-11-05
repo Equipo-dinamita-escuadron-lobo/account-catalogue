@@ -32,7 +32,8 @@ public class AccountCatalogueFileValidationService {
     }
 
     /**
-     * Valida que el archivo no sea null.
+     * @brief Valida que archivo no sea null
+     * @param file archivo a validar
      */
     private void validateNotNull(MultipartFile file) {
         if (file == null) {
@@ -41,7 +42,8 @@ public class AccountCatalogueFileValidationService {
     }
 
     /**
-     * Valida que el archivo no esté vacío.
+     * @brief Valida que archivo no esté vacío
+     * @param file archivo a validar
      */
     private void validateNotEmpty(MultipartFile file) {
         if (file.isEmpty() || file.getSize() == 0) {
@@ -50,7 +52,8 @@ public class AccountCatalogueFileValidationService {
     }
 
     /**
-     * Valida que el tamaño del archivo no exceda el máximo permitido.
+     * @brief Valida tamaño máximo del archivo
+     * @param file archivo a validar
      */
     private void validateSize(MultipartFile file) {
         if (file.getSize() > ImportConstants.MAX_FILE_SIZE) {
@@ -59,7 +62,8 @@ public class AccountCatalogueFileValidationService {
     }
 
     /**
-     * Valida que la extensión del archivo sea permitida (.xlsx o .xls).
+     * @brief Valida extensión de archivo Excel
+     * @param file archivo a validar
      */
     private void validateExtension(MultipartFile file) {
         String filename = file.getOriginalFilename();

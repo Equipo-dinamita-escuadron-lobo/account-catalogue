@@ -20,8 +20,9 @@ import java.util.stream.Collectors;
 /**
  * @brief Servicio para importación masiva de cuentas contables desde Excel
  *
- * Coordina el proceso completo de importación de cuentas desde archivos Excel,
- * incluyendo validación, procesamiento por lotes y manejo de errores.
+ *        Coordina el proceso completo de importación de cuentas desde archivos
+ *        Excel,
+ *        incluyendo validación, procesamiento por lotes y manejo de errores.
  */
 @Slf4j
 @Service
@@ -37,7 +38,13 @@ public class AccountCatalogueImportService implements IAccountCatalogueImportInp
         private final AccountCatalogueImportResponseBuilder responseBuilder;
 
         /**
-         * Maneja la lógica de duplicados cuando no hay registros únicos.
+         * @brief Maneja lógica de duplicados sin registros únicos
+         * @param entId ID de empresa
+         * @param fileName nombre del archivo
+         * @param parsingResult resultado del parsing del archivo
+         * @param duplicateResult resultado de la detección de duplicados
+         * @param allErrors errores de validación
+         * @return respuesta de importación
          */
         private AccountCatalogueImportResponse handleNoUniqueRecords(String entId, String fileName,
                         AccountCatalogueExcelParsingService.ExcelParsingResult parsingResult,
@@ -79,7 +86,13 @@ public class AccountCatalogueImportService implements IAccountCatalogueImportInp
         }
 
         /**
-         * Maneja la lógica cuando no quedan cuentas después de filtrar errores de jerarquía.
+         * @brief Maneja caso sin cuentas válidas después de filtro jerárquico
+         * @param entId ID de empresa
+         * @param fileName nombre del archivo
+         * @param parsingResult resultado del parsing del archivo
+         * @param duplicateResult resultado de la detección de duplicados
+         * @param allErrors errores de validación
+         * @return respuesta de importación
          */
         private AccountCatalogueImportResponse handleEmptyAccountsAfterHierarchyFilter(String entId, String fileName,
                         AccountCatalogueExcelParsingService.ExcelParsingResult parsingResult,
@@ -109,7 +122,9 @@ public class AccountCatalogueImportService implements IAccountCatalogueImportInp
         }
 
         /**
-         * Importa catálogo de cuentas desde un archivo Excel.
+         * @brief Coordina proceso completo de importación desde Excel
+         * @param request solicitud con archivo Excel y configuración
+         * @return respuesta detallada con resultados de importación
          */
         @Override
         public AccountCatalogueImportResponse importAccountCatalogueFromExcel(AccountCatalogueImportRequest request) {
@@ -148,7 +163,8 @@ public class AccountCatalogueImportService implements IAccountCatalogueImportInp
 
                         // Si no hay registros únicos
                         if (duplicateResult.getUniqueRecords().isEmpty()) {
-                                return handleNoUniqueRecords(entId, fileName, parsingResult, duplicateResult, allErrors);
+                                return handleNoUniqueRecords(entId, fileName, parsingResult, duplicateResult,
+                                                allErrors);
                         }
 
                         List<AccountCatalogueExcelData> sortedAccounts = hierarchyProcessor
@@ -177,7 +193,8 @@ public class AccountCatalogueImportService implements IAccountCatalogueImportInp
 
                         // Si no quedan cuentas después de filtrar errores de jerarquía
                         if (sortedAccounts.isEmpty()) {
-                                return handleEmptyAccountsAfterHierarchyFilter(entId, fileName, parsingResult, duplicateResult, allErrors);
+                                return handleEmptyAccountsAfterHierarchyFilter(entId, fileName, parsingResult,
+                                                duplicateResult, allErrors);
                         }
 
                         AccountCatalogueBatchProcessor.BatchProcessingResult processingResult = batchProcessor

@@ -12,6 +12,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * @brief Controlador REST para gestión de cuentas bancarias
+ *
+ * Expone endpoints HTTP para operaciones CRUD de cuentas bancarias
+ * con soporte para filtros, paginación y búsqueda.
+ */
 @RestController
 @RequestMapping("/api/accountCatalogue/bank-accounts")
 @RequiredArgsConstructor

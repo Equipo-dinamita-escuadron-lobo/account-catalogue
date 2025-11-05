@@ -118,11 +118,9 @@ public class BankServiceImpl implements IBankService {
                 throw new IllegalArgumentException("El campo de ordenamiento debe ser 'code' o 'name'");
             }
         } else {
-            // Por defecto ordenar por nombre
             sortField = "name";
         }
 
-        // Validar sortOrder - solo permitir "asc" y "desc"
         Sort.Direction direction = Sort.Direction.ASC;
         if (sortOrder != null && !sortOrder.isEmpty()) {
             if ("desc".equalsIgnoreCase(sortOrder)) {
@@ -135,14 +133,12 @@ public class BankServiceImpl implements IBankService {
         // Determinar el número total de registros (considerando búsqueda si existe)
         long totalRecords;
         if (StringUtils.hasText(search)) {
-            // Si hay búsqueda, contar registros que coincidan con la búsqueda
             totalRecords = repository.countByIdEnterpriseAndSearch(idEnterprise, search.trim());
         } else {
-            // Sin búsqueda, contar todos los registros
             totalRecords = repository.countByIdEnterprise(idEnterprise);
         }
 
-        // Crear paginación inteligente
+        // Crear paginación
         Pageable pageable = paginationHelper.createFlexiblePageable(
             Optional.ofNullable(page),
             Optional.ofNullable(size),
@@ -156,13 +152,10 @@ public class BankServiceImpl implements IBankService {
             Sort.by(direction, sortField)
         );
 
-        // Ejecutar consulta con filtros
         Page<BankEntity> result;
         if (StringUtils.hasText(search)) {
-            // Búsqueda por código o nombre
             result = repository.findByIdEnterpriseAndSearch(idEnterprise, search.trim(), pageableWithSort);
         } else {
-            // Sin búsqueda
             result = repository.findAllByIdEnterprise(idEnterprise, pageableWithSort);
         }
 
@@ -172,7 +165,7 @@ public class BankServiceImpl implements IBankService {
     @Override
     @Transactional(readOnly = true)
     public Page<Bank> findAllActiveByEnterprise(String idEnterprise, Integer page, Integer size) {
-        // Contar el total de bancos activos para paginación inteligente
+        
         long totalRecords = repository.countByIdEnterpriseAndStatus(idEnterprise, true);
 
         Pageable pageable = paginationHelper.createFlexiblePageable(

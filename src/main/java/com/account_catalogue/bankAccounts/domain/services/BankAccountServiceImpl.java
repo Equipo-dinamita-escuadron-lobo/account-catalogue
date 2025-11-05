@@ -52,6 +52,7 @@ public class BankAccountServiceImpl implements IBankAccountService {
      * @param request Datos de creación de la cuenta bancaria
      * @return Cuenta bancaria creada con ID generado
      */
+    @Override
     @Transactional
     public BankAccount create(BankAccountCreateReq request) {
         validateAccountNumber(request.getAccountNumber());
@@ -85,6 +86,7 @@ public class BankAccountServiceImpl implements IBankAccountService {
      * @param request Datos de actualización de la cuenta bancaria
      * @return Cuenta bancaria actualizada
      */
+    @Override
     @Transactional
     public BankAccount update(BankAccountUpdateReq request) {
         BankAccountEntity current = repository.findByIdAndIdEnterprise(request.getId(), request.getIdEnterprise())
@@ -121,6 +123,7 @@ public class BankAccountServiceImpl implements IBankAccountService {
         return dataMapper.toDomain(saved);
     }
 
+    @Override
     @Transactional(readOnly = true)
     public BankAccount findById(Long id, String idEnterprise) {
         return dataMapper.toDomain(repository.findByIdAndIdEnterprise(id, idEnterprise)
@@ -137,6 +140,7 @@ public class BankAccountServiceImpl implements IBankAccountService {
      * @param search Término de búsqueda parcial por número de cuenta
      * @return Página de cuentas bancarias filtradas
      */
+    @Override
     @Transactional(readOnly = true)
     public Page<BankAccount> findAllByEnterpriseWithFilters(String idEnterprise, Integer page, Integer size,
                                                           String sortField, String sortOrder, String search) {
@@ -187,6 +191,7 @@ public class BankAccountServiceImpl implements IBankAccountService {
         return result.map(dataMapper::toDomain);
     }
 
+    @Override
     @Transactional(readOnly = true)
     public Page<BankAccount> findAllActiveByEnterprise(String idEnterprise, Integer page, Integer size) {
         
@@ -208,6 +213,7 @@ public class BankAccountServiceImpl implements IBankAccountService {
                 .map(dataMapper::toDomain);
     }
 
+    @Override
     @Transactional(readOnly = true)
     public Page<BankAccount> findAllByEnterpriseAndBank(String idEnterprise, Long bankId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
@@ -215,6 +221,7 @@ public class BankAccountServiceImpl implements IBankAccountService {
                 .map(dataMapper::toDomain);
     }
 
+    @Override
     @Transactional
     public BankAccount changeState(Long id, String idEnterprise, Boolean newState) {
         BankAccountEntity current = repository.findByIdAndIdEnterprise(id, idEnterprise)
@@ -225,6 +232,7 @@ public class BankAccountServiceImpl implements IBankAccountService {
         return dataMapper.toDomain(saved);
     }
 
+    @Override
     @Transactional
     public BankAccount delete(Long id, String idEnterprise) {
         BankAccountEntity current = repository.findByIdAndIdEnterprise(id, idEnterprise)

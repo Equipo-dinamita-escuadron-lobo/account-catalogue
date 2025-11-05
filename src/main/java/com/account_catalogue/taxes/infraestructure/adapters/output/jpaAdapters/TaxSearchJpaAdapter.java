@@ -15,6 +15,12 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+/**
+ * @brief Adaptador JPA para operaciones de consulta de impuestos
+ *
+ * Implementa consultas paginadas y filtradas de impuestos
+ * con conversión automática a modelos de dominio.
+ */
 @Component
 @Data
 public class TaxSearchJpaAdapter implements ITaxSearchOutputPort {
@@ -22,13 +28,10 @@ public class TaxSearchJpaAdapter implements ITaxSearchOutputPort {
     private final ITaxSearchMapper taxSearchMapper;
 
     /**
-     * Obtiene la información del impuesto basada en el c digo y el ID de empresa
-     * proporcionados.
-     *
-     * @param code         el c digo del impuesto
-     * @param idEnterprise el ID de la empresa
-     * @return el impuesto correspondiente al c digo y ID de empresa
-     *         proporcionados
+     * @brief Obtiene la información del impuesto basada en el c digo y el ID de empresa
+     * @param code código del impuesto
+     * @param idEnterprise ID de la empresa
+     * @return impuesto correspondiente al código y ID de empresa proporcionados
      */
     @Override
     public Tax getTax(String code, String idEnterprise) {
@@ -37,10 +40,9 @@ public class TaxSearchJpaAdapter implements ITaxSearchOutputPort {
     }
 
     /**
-     * Obtiene una lista de impuestos activos asociados al ID de empresa proporcionado.
-     *
-     * @param idEnterprise el ID de la empresa
-     * @return una lista de impuestos activos asociados al ID de empresa proporcionado
+     * @brief Obtiene una lista de impuestos activos asociados al ID de empresa proporcionado.
+     * @param idEnterprise ID de la empresa
+     * @return lista de impuestos activos asociados al ID de empresa proporcionado
      */
     @Override
     public List<Tax> getActiveTaxes(String idEnterprise) {
@@ -49,10 +51,9 @@ public class TaxSearchJpaAdapter implements ITaxSearchOutputPort {
     }
 
     /**
-     * Obtiene una lista de todos los impuestos asociados al ID de empresa proporcionado.
-     *
-     * @param idEnterprise el ID de la empresa
-     * @return una lista de todos los impuestos asociados al ID de empresa proporcionado
+     * @brief Obtiene una lista de todos los impuestos asociados al ID de empresa proporcionado.
+     * @param idEnterprise ID de la empresa
+     * @return lista de todos los impuestos asociados al ID de empresa proporcionado
      */
     @Override
     public List<Tax> getTaxesByEnterprise(String idEnterprise) {
@@ -61,12 +62,11 @@ public class TaxSearchJpaAdapter implements ITaxSearchOutputPort {
     }
 
     /**
-     * Obtiene un impuesto por ID y empresa.
+     * @brief Obtiene un impuesto por ID y empresa.
      * Método optimizado que valida que el impuesto pertenece a la empresa especificada.
-     * 
-     * @param id el ID del impuesto
-     * @param idEnterprise el ID de la empresa
-     * @return el impuesto encontrado o null si no existe
+     * @param id ID del impuesto
+     * @param idEnterprise ID de la empresa
+     * @return impuesto encontrado o null si no existe
      */
     @Override
     public Tax getTaxByIdAndEnterprise(Long id, String idEnterprise) {
@@ -75,14 +75,13 @@ public class TaxSearchJpaAdapter implements ITaxSearchOutputPort {
     }
 
     /**
-     * Obtiene una página de impuestos por empresa con paginación y ordenamiento.
-     * 
-     * @param idEnterprise el ID de la empresa
-     * @param page número de página
+     * @brief Obtiene página paginada de impuestos por empresa
+     * @param idEnterprise ID de la empresa
+     * @param page número de página (0-based)
      * @param size tamaño de página
-     * @param sortField campo de ordenamiento
-     * @param sortOrder orden (asc/desc)
-     * @return página de impuestos
+     * @param sortField campo para ordenamiento
+     * @param sortOrder dirección del ordenamiento
+     * @return página de impuestos con conversión automática
      */
     @Override
     public Page<Tax> getTaxesPaginated(String idEnterprise, int page, int size, String sortField, String sortOrder) {
@@ -93,15 +92,14 @@ public class TaxSearchJpaAdapter implements ITaxSearchOutputPort {
     }
 
     /**
-     * Obtiene una página de impuestos por empresa y código o descripción con paginación y ordenamiento.
-     *
-     * @param idEnterprise el ID de la empresa
-     * @param search término de búsqueda en el código o descripción
-     * @param page número de página
+     * @brief Obtiene página filtrada de impuestos por búsqueda
+     * @param idEnterprise ID de la empresa
+     * @param search término de búsqueda parcial (código/descripción)
+     * @param page número de página (0-based)
      * @param size tamaño de página
-     * @param sortField campo de ordenamiento
-     * @param sortOrder orden (asc/desc)
-     * @return página de impuestos que coinciden con la búsqueda
+     * @param sortField campo para ordenamiento
+     * @param sortOrder dirección del ordenamiento
+     * @return página de impuestos filtrados con conversión automática
      */
     @Override
     public Page<Tax> getTaxesByCodeOrDescriptionPaginated(String idEnterprise, String search, int page, int size, String sortField, String sortOrder) {
@@ -112,10 +110,9 @@ public class TaxSearchJpaAdapter implements ITaxSearchOutputPort {
     }
 
     /**
-     * Cuenta el total de impuestos por empresa.
-     *
-     * @param idEnterprise el ID de la empresa
-     * @return número total de impuestos
+     * @brief Cuenta el total de impuestos por empresa.
+     * @param idEnterprise ID de la empresa
+     * @return cantidad total de impuestos
      */
     @Override
     public long countTaxesByEnterprise(String idEnterprise) {
@@ -123,11 +120,10 @@ public class TaxSearchJpaAdapter implements ITaxSearchOutputPort {
     }
 
     /**
-     * Cuenta impuestos por empresa y código o descripción.
-     *
-     * @param idEnterprise el ID de la empresa
+     * @brief Cuenta impuestos por empresa y código o descripción.
+     * @param idEnterprise ID de la empresa
      * @param search término de búsqueda en el código o descripción
-     * @return número total de impuestos que coinciden con la búsqueda
+     * @return cantidad de impuestos que coinciden con la búsqueda
      */
     @Override
     public long countTaxesByEnterpriseAndCodeOrDescription(String idEnterprise, String search) {

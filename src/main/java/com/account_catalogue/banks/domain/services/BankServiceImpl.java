@@ -25,6 +25,12 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Locale;
 import java.util.Optional;
 
+/**
+ * @brief Implementación de servicios para gestión de bancos
+ *
+ * Proporciona operaciones CRUD completas con validaciones de negocio,
+ * filtros avanzados, búsqueda y estandarización de datos.
+ */
 @Service
 @RequiredArgsConstructor
 public class BankServiceImpl implements IBankService {
@@ -214,7 +220,10 @@ public class BankServiceImpl implements IBankService {
     }
 
     /**
-     * Estandariza el nombre del banco convirtiéndolo a mayúsculas.
+     * @brief Estandariza el nombre del banco a mayúsculas.
+     *
+     * @param input el nombre original del banco
+     * @return el nombre estandarizado en mayúsculas, o null si input es null
      */
     private String standardizeName(String input) {
         if (input == null)
@@ -223,8 +232,9 @@ public class BankServiceImpl implements IBankService {
     }
 
     /**
-     * Valida que el código del banco tenga el formato correcto (exactamente 2
-     * dígitos: 01-99).
+     * @brief Valida el formato del código bancario.
+     *
+     * @param codigo el código del banco a validar
      */
     private void validateBankCode(String codigo) {
         if (codigo == null || codigo.trim().isEmpty()) {

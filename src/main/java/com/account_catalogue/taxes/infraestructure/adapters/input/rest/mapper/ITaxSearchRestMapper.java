@@ -7,14 +7,18 @@ import org.mapstruct.Mapper;
 
 import java.util.List;
 
+/**
+ * @brief Mapeador REST para operaciones de consulta de impuestos
+ *
+ * Gestiona la conversión de modelos de dominio a DTOs de respuesta
+ * con formato especial para cuentas contables (códigos en lugar de IDs).
+ */
 @Mapper
 public interface ITaxSearchRestMapper {
     /**
-     * Mapea un objeto de dominio Tax a un objeto de respuesta TaxSearchRes.
-     *
-     * @param tax el objeto de dominio Tax a mapear
-     * @return un objeto de respuesta TaxSearchRes con la información mapeada, o
-     *         null si el objeto Tax de entrada es null
+     * @brief Convierte modelo de dominio a response de búsqueda
+     * @param tax modelo de dominio con entidades relacionadas cargadas
+     * @return response con códigos de cuentas contables formateados
      */
     default TaxSearchRes toSearchResponse(Tax tax) {
         if (tax == null) {
@@ -33,12 +37,9 @@ public interface ITaxSearchRestMapper {
     }
 
     /**
-     * Mapea una lista de objetos de dominio Tax a una lista de objetos de respuesta
-     * TaxSearchRes.
-     *
-     * @param taxes la lista de objetos de dominio Tax a mapear
-     * @return una lista de objetos de respuesta TaxSearchRes con la información
-     *         mapeada, o null si la lista de entrada es null
+     * @brief Convierte lista de modelos de dominio a lista de responses
+     * @param taxes lista de modelos de dominio con entidades relacionadas
+     * @return lista de responses con códigos de cuentas contables formateados
      */
     default List<TaxSearchRes> toSearchListResponse(List<Tax> taxes) {
         if (taxes == null) {

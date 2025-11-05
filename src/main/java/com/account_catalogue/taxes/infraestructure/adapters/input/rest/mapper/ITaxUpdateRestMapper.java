@@ -7,14 +7,18 @@ import com.account_catalogue.taxes.infraestructure.adapters.input.rest.dto.respo
 
 import org.mapstruct.Mapper;
 
+/**
+ * @brief Mapeador REST para operaciones de actualización de impuestos
+ *
+ * Gestiona la conversión entre DTOs de presentación y modelos de dominio
+ * para operaciones de actualización de impuestos.
+ */
 @Mapper
 public interface ITaxUpdateRestMapper {
     /**
-     * Este método toma un objeto TaxUpdateReq y devuelve un objeto TaxDTO.
-     * Es una simple mapeo del request al DTO.
-     *
-     * @param taxUpdateReq el request a mapear
-     * @return el DTO mapeado, o null si el request es null
+     * @brief Convierte request de actualización a DTO de dominio
+     * @param taxUpdateReq request de actualización de impuesto
+     * @return DTO de dominio con datos mapeados
      */
     default TaxDTO toDomain(TaxUpdateReq taxUpdateReq){
         if(taxUpdateReq==null){
@@ -31,10 +35,9 @@ public interface ITaxUpdateRestMapper {
 
     }
     /**
-     * Mapea un objeto Tax a un objeto TaxUpdateRes.
-     *
-     * @param tax el objeto Tax a mapear
-     * @return un objeto TaxUpdateRes con la información mapeada, o null si el objeto Tax es null
+     * @brief Convierte modelo de dominio a response de actualización
+     * @param tax modelo de dominio con entidades relacionadas cargadas
+     * @return response con IDs de cuentas contables extraídos
      */
     default TaxUpdateRes toCreateResponse(Tax tax){
         if(tax==null){

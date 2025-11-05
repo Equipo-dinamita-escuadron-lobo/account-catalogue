@@ -7,15 +7,19 @@ import com.account_catalogue.taxes.infraestructure.adapters.input.rest.dto.respo
 
 import org.mapstruct.Mapper;
 
+/**
+ * @brief Mapeador REST para operaciones de creación de impuestos
+ *
+ * Gestiona la conversión entre DTOs de presentación y modelos de dominio
+ * para operaciones de creación de impuestos.
+ */
 @Mapper
 public interface ITaxCreateRestMapper {
 
     /**
-     * Este método toma un objeto TaxCreateReq y devuelve un objeto TaxDTO.
-     * Es una simple mapeo del request al DTO.
-     *
-     * @param taxCreateReq el request a mapear
-     * @return el DTO mapeado, o null si el request es null
+     * @brief Convierte request de creación a DTO de dominio
+     * @param taxCreateReq request de creación de impuesto
+     * @return DTO de dominio con datos mapeados
      */
     default TaxDTO toDomain(TaxCreateReq taxCreateReq) {
         if (taxCreateReq == null) {
@@ -32,11 +36,9 @@ public interface ITaxCreateRestMapper {
     }
 
     /**
-     * Este método toma un objeto Tax y devuelve un objeto TaxCreateRes.
-     * Es una simple mapeo del Tax a la respuesta.
-     *
-     * @param tax el Tax a mapear
-     * @return la respuesta mapeada, o null si el Tax es null
+     * @brief Convierte modelo de dominio a response de creación
+     * @param tax modelo de dominio con entidades relacionadas cargadas
+     * @return response con IDs de cuentas contables extraídos
      */
     default TaxCreateRes toCreateResponse(Tax tax) {
         if (tax == null) {

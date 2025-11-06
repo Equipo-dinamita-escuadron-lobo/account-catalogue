@@ -13,6 +13,13 @@ import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapte
 
 import lombok.AllArgsConstructor;
 
+/**
+ * @brief Adaptador JPA para operaciones de cambio de estado de cuentas contables
+ *
+ * Gestiona activación/desactivación de cuentas con lógica jerárquica compleja:
+ * - Al activar: activa recursivamente toda la jerarquía padre
+ * - Al desactivar: desactiva todos los descendientes en cascada
+ */
 @Component
 @AllArgsConstructor
 public class AccountCatalogueChangeStateJpaAdapter implements IAccountCatalogueChangeStateOutputPort {
@@ -21,11 +28,14 @@ public class AccountCatalogueChangeStateJpaAdapter implements IAccountCatalogueC
     private final IAccountCatalogueUpdateMapper accountCatalogueUpdateMapper;
 
     /**
-     * Cambia el estado de una cuenta en la base de datos y todos sus descendientes.
+     * @brief Cambia estado de cuenta aplicando reglas jerárquicas complejas
      *
-     * @param id el ID de la cuenta
-     * @param status el nuevo estado
-     * @return la cuenta actualizada
+     * Gestiona cambio de estado con lógica de negocio específica:
+     * - Activación: activa recursivamente jerarquía padre
+     * - Desactivación: desactiva todos descendientes en batches para performance
+     * @param id identificador único de la cuenta
+     * @param status nuevo estado (true=activo, false=inactivo)
+     * @return cuenta actualizada con nuevo estado aplicado
      */
     @Override
     @Transactional
@@ -55,9 +65,11 @@ public class AccountCatalogueChangeStateJpaAdapter implements IAccountCatalogueC
     }
 
     /**
-     * Activa recursivamente toda la jerarquía de padres de una cuenta.
+     * @brief Activa jerarquía padre de forma recursiva ascendente
      *
-     * @param child la cuenta hija desde donde se inicia la activación ascendente
+     * Navega hacia arriba en jerarquía activando cada padre inactivo encontrado.
+     * Esencial para mantener consistencia cuando se activa una cuenta hija.
+     * @param child cuenta desde donde iniciar activación ascendente
      */
     private void activateParentHierarchy(AccountCatalogueEntity child) {
         if (child.getParent() != null) {
@@ -75,12 +87,14 @@ public class AccountCatalogueChangeStateJpaAdapter implements IAccountCatalogueC
     }
 
     /**
-     * Actualiza el estado de cuentas en batches para evitar problemas con listas grandes en IN clauses.
+     * @brief Actualiza estado de cuentas en batches para optimizar performance
      *
-     * @param status el nuevo estado.
-     * @param ids lista de IDs a actualizar.
-     * @param idEnterprise el id de la empresa.
-     * @param tenantId el id del tenant.
+     * Divide lista grande de IDs en batches más pequeños para evitar problemas
+     * de rendimiento y límites de BD en operaciones IN masivas.
+     * @param status estado a aplicar a todas las cuentas del batch
+     * @param ids lista completa de IDs a actualizar
+     * @param idEnterprise filtro de empresa para aislamiento de datos
+     * @param tenantId filtro de tenant para multi-tenancy
      */
     private void updateStatusInBatches(Boolean status, List<Long> ids, String idEnterprise, String tenantId) {
         int batchSize = 500; // Tamaño del batch, ajustable

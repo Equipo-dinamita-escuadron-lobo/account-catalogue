@@ -8,8 +8,11 @@ import lombok.Data;
 import org.springframework.stereotype.Component;
 
 /**
- * Adaptador para eliminar un item del catalogo de cuenta usando JPA.
- * Implementa la interfaz IAccountCatalogueDeleteOutputPort.
+ * @brief Adaptador JPA para operaciones de eliminación física de cuentas
+ *
+ * Gestiona eliminación completa de cuentas con cascada recursiva:
+ * - Eliminación de cuenta raíz y todas sus hijas
+ * - Mantiene integridad referencial eliminando de abajo hacia arriba
  */
 @Component
 @Data
@@ -18,10 +21,12 @@ public class AccountCatalogueDeleteJpaAdapter implements IAccountCatalogueDelete
     private final IAccountCatalogueRepository accountCatalogueRepository;
 
     /**
-     * Realiza una eliminación de la cuenta y todas sus cuentas hijas en cascada.
+     * @brief Elimina cuenta y jerarquía completa de forma recursiva
      *
-     * @param id del item de la cuenta que se va a eliminar
-     *
+     * Inicia proceso de eliminación física que incluye:
+     * - Validación de existencia de la cuenta
+     * - Eliminación recursiva de toda la jerarquía descendiente
+     * @param id identificador único de la cuenta raíz a eliminar
      */
     @Override
     public void deleteById(Long id) {
@@ -33,9 +38,12 @@ public class AccountCatalogueDeleteJpaAdapter implements IAccountCatalogueDelete
     }
     
     /**
-     * Elimina físicamente una cuenta y todas sus hijas recursivamente.
-     * 
-     * @param entity la cuenta a eliminar
+     * @brief Eliminación física recursiva de jerarquía padre-hijo
+     *
+     * Algoritmo recursivo que elimina desde las hojas hacia la raíz:
+     * - Primero elimina recursivamente todas las cuentas hijas
+     * - Luego elimina la cuenta padre
+     * @param entity cuenta raíz desde donde iniciar eliminación recursiva
      */
     private void deletePhysical(AccountCatalogueEntity entity) {
         // Eliminar recursivamente todas las cuentas hijas primero

@@ -8,9 +8,22 @@ import org.mapstruct.Mapper;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * @brief Mapper para operaciones de búsqueda y listado de cuentas contables
+ *
+ * Define contratos para conversión entre modelos de dominio y DTOs de respuesta
+ * en operaciones de búsqueda, incluyendo mapeo recursivo de jerarquías.
+ */
 @Mapper
 public interface IAccountSearchRestMapper {
-
+    /**
+     * @brief Convierte modelo jerárquico de dominio a respuesta de lista
+     *
+     * Mapea recursivamente la estructura de árbol de cuentas, convirtiendo enums
+     * a strings y manejando referencias padre-hijo para representación jerárquica.
+     * @param accountCatalogue modelo de dominio con jerarquía completa
+     * @return DTO de respuesta con estructura de árbol para UI
+     */
     default AccountCatalogueListRes toAccountCatalogueListRes(AccountCatalogue accountCatalogue) {
 
         if (accountCatalogue == null) {

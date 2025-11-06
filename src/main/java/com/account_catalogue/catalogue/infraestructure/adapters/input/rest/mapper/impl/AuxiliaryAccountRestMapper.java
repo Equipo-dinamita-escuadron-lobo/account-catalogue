@@ -10,15 +10,23 @@ import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.r
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.response.ItemAccountCatalogueSearchRes;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.mapper.IAuxiliaryAccountRestMapper;
 
+/**
+ * @brief Implementación del mapper para operaciones con cuentas auxiliares
+ *
+ * Convierte entre modelos de dominio y DTOs de respuesta para operaciones
+ * específicas de cuentas auxiliares, incluyendo listados y búsquedas.
+ */
 @Component
 public class AuxiliaryAccountRestMapper implements IAuxiliaryAccountRestMapper {
 
     /**
-     * Transforma una lista de AccountCatalogue en AuxiliaryAccountListRes.
-     * 
+     * @brief Convierte lista de cuentas auxiliares a respuesta paginada
+     *
+     * Transforma colección de cuentas auxiliares a DTO de respuesta con conteo total,
+     * manejando casos de listas vacías o nulas.
      * @param auxiliaryAccounts lista de cuentas auxiliares del dominio
-     * @param idEnterprise el ID de la empresa
-     * @return el objeto AuxiliaryAccountListRes con la lista transformada
+     * @param idEnterprise ID de la empresa para contexto
+     * @return DTO de respuesta con lista formateada y estadísticas
      */
     @Override
     public AuxiliaryAccountListRes toAuxiliaryAccountListRes(List<AccountCatalogue> auxiliaryAccounts, String idEnterprise) {
@@ -42,10 +50,12 @@ public class AuxiliaryAccountRestMapper implements IAuxiliaryAccountRestMapper {
     }
 
     /**
-     * Transforma un AccountCatalogue en ItemAccountCatalogueSearchRes.
-     * 
-     * @param accountCatalogue el objeto AccountCatalogue a transformar
-     * @return el objeto ItemAccountCatalogueSearchRes transformado
+     * @brief Convierte cuenta individual a item de respuesta de búsqueda
+     *
+     * Transforma entidad de cuenta auxiliar a DTO de item para respuestas de búsqueda,
+     * convirtiendo enums a strings y mapeando referencias padre.
+     * @param accountCatalogue cuenta auxiliar del dominio a convertir
+     * @return DTO de item con datos completos de la cuenta auxiliar
      */
     @Override
     public ItemAccountCatalogueSearchRes toItemAccountCatalogueSearchRes(AccountCatalogue accountCatalogue) {

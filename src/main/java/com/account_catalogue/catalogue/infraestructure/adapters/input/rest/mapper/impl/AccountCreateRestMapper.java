@@ -11,19 +11,24 @@ import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.r
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.mapper.IAccountCreateRestMapper;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.util.AdjustEnumAccount;
 
+/**
+ * @brief Implementación del mapper para operaciones de creación de cuentas
+ *
+ * Convierte entre DTOs de request/response y modelos de dominio para operaciones
+ * de creación, manejando jerarquía recursiva y ajuste de enums.
+ */
 @Component
 public class AccountCreateRestMapper implements IAccountCreateRestMapper {
 
     private AdjustEnumAccount adjustEnum = new AdjustEnumAccount();
 
     /**
-     * Convierte un modelo de dominio AccountCatalogue en un objeto de respuesta
-     * AccountCatalogueCreateRes para comunicación REST.
+     * @brief Convierte modelo de dominio a respuesta de creación
      *
-     * @param accountCatalogueRes El modelo de dominio AccountCatalogue a convertir.
-     *                            Si es null, el método devuelve null.
-     * @return Un objeto AccountCatalogueCreateRes que contiene los detalles del
-     *         AccountCatalogue proporcionado, o null si la entrada es null.
+     * Transforma entidad de dominio a DTO de respuesta, convirtiendo enums a strings
+     * y manejando referencias padre para comunicación REST.
+     * @param accountCatalogueRes modelo de dominio de cuenta creada
+     * @return DTO de respuesta con datos formateados para API
      */
     @Override
     public AccountCatalogueCreateRes toCreateResponse(AccountCatalogue accountCatalogueRes) {
@@ -49,20 +54,13 @@ public class AccountCreateRestMapper implements IAccountCreateRestMapper {
     }
 
     /**
-     * Convierte un objeto AccountCatalogueCreateReq en un objeto de modelo de
-     * dominio
-     * AccountCatalogue.
+     * @brief Convierte solicitud de creación a modelo de dominio con jerarquía
      *
-     * @param accountCatalogueCreateReq El objeto AccountCatalogueCreateReq a
-     *                                  convertir.
-     *                                  Si es null, el método devuelve null.
-     * @param padre                     El objeto de modelo de dominio
-     *                                  AccountCatalogue
-     *                                  padre, si corresponde.
-     * @return Un objeto de modelo de dominio AccountCatalogue que contiene los
-     *         detalles
-     *         del AccountCatalogueCreateReq proporcionado, o null si la entrada es
-     *         null.
+     * Transforma DTO de request a entidad de dominio, ajustando enums y procesando
+     * recursivamente la jerarquía de cuentas padre-hijo para creación masiva.
+     * @param accountCatalogueCreateReq DTO de solicitud con datos de cuenta
+     * @param padre referencia a cuenta padre para jerarquía
+     * @return entidad de dominio completa con jerarquía procesada
      */
     @Override
     public AccountCatalogue toDomain(AccountCatalogueCreateReq accountCatalogueCreateReq, AccountCatalogue padre) {

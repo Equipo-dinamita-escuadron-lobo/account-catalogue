@@ -16,7 +16,12 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-
+/**
+ * @brief Entidad JPA para persistencia de cuentas contables en base de datos
+ *
+ * Representa la tabla Account con índices optimizados para consultas frecuentes.
+ * Incluye relaciones jerárquicas padre-hijo y asociaciones con impuestos.
+ */
 @Entity
 @Builder
 @AllArgsConstructor

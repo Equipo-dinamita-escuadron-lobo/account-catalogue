@@ -9,10 +9,17 @@ import org.springframework.stereotype.Component;
 import com.account_catalogue.accounting.application.output.IAccountingSearchOutputPort;
 import com.account_catalogue.accounting.domain.models.AccountingEntry;
 import com.account_catalogue.accounting.domain.models.AccountingMovement;
+import com.account_catalogue.accounting.domain.models.InvoiceReplica;
+import com.account_catalogue.accounting.domain.models.ReceiptDetail;
+import com.account_catalogue.accounting.infraestructure.output.jpaAdapter.entity.InvoiceReplicaEntity;
 import com.account_catalogue.accounting.infraestructure.output.jpaAdapter.mapper.IAccountingEntryMapper;
 import com.account_catalogue.accounting.infraestructure.output.jpaAdapter.mapper.IAccountingMovementMapper;
+import com.account_catalogue.accounting.infraestructure.output.jpaAdapter.mapper.IInvoicePersistenceMapper;
+import com.account_catalogue.accounting.infraestructure.output.jpaAdapter.mapper.IReceiptDetailMapper;
 import com.account_catalogue.accounting.infraestructure.output.jpaAdapter.repository.IAccountingEntryRepository;
 import com.account_catalogue.accounting.infraestructure.output.jpaAdapter.repository.IAccountingMovementRepository;
+import com.account_catalogue.accounting.infraestructure.output.jpaAdapter.repository.IInvoiceRepository;
+import com.account_catalogue.accounting.infraestructure.output.jpaAdapter.repository.IReceiptDetailRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -23,6 +30,11 @@ public class AccountingSearchJpaAdapter implements IAccountingSearchOutputPort {
     private final IAccountingMovementRepository movementRepository;
     private final IAccountingEntryMapper accountingEntryMapper;
     private final IAccountingMovementMapper movementMapper;
+    private final IInvoicePersistenceMapper invoiceMapper;
+    private final IInvoiceRepository invoiceRepository;
+    private final IReceiptDetailMapper receiptDetailMapper;
+    private final IReceiptDetailRepository receiptDetailRepository;
+
 
     @Override
     public Optional<AccountingEntry> findById(Long id) {
@@ -58,6 +70,26 @@ public class AccountingSearchJpaAdapter implements IAccountingSearchOutputPort {
     @Override
     public boolean existsBySourceDocumentIdAndType(Long sourceDocumentId, String type) {
         return  accountingEntryRepository.existsBySourceDocumentIdAndType(sourceDocumentId, type);
+    }
+
+     @Override
+    public List<InvoiceReplica> findPendingInvoicesByClientIds(List<Long> clientIds) {
+        List<InvoiceReplicaEntity> entities = invoiceRepository.findByPendingValueGreaterThanAndThirdIdIn(0L, clientIds);
+        return invoiceMapper.toInvoiceReplicaList(entities);
+    }
+
+    @Override
+    public List<InvoiceReplica> findPendingInvoicesByClientId(Long clientId) {
+        List<InvoiceReplicaEntity> entities = invoiceRepository.findByThirdIdAndPendingValueGreaterThan(clientId, 0L);
+        return invoiceMapper.toInvoiceReplicaList(entities);
+    }
+
+    @Override
+    public List<ReceiptDetail> findReceiptDetailsByInvoiceId(Long invoiceId) {
+        // Asumiendo que IReceiptDetailMapper tiene un método toReceiptDetailList
+        return receiptDetailMapper.toReceiptDetailList(
+            receiptDetailRepository.findByOriginalInvoiceId(invoiceId)
+        );
     }
 
 

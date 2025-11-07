@@ -40,6 +40,7 @@ public class InvoicePersistenceAdapter implements IInvoiceProviderPort {
         entity.setActive(true); 
         entity.setStatus(InvoiceStatus.PENDING);
         entity.setAccountingAccount(dto.getAccountingAccount());
+        entity.setCreationDate(dto.getExpirationDate());
         invoiceRepository.save(entity);
     }
 

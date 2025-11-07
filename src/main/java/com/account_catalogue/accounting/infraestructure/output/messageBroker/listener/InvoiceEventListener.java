@@ -11,13 +11,13 @@ import com.account_catalogue.accounting.infraestructure.output.messageBroker.DTO
 import com.account_catalogue.accounting.infraestructure.output.messageBroker.DTO.InvoiceSyncDto;
 import com.rabbitmq.client.Channel;
 
+import java.time.LocalDate;
 
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
-
 
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -55,6 +55,15 @@ public class InvoiceEventListener extends AbstractMessageListener<EventDTO<Invoi
         InvoiceSyncDto dto = event.getData();
         String factCode = dto.getFactCode().toString() != null ? dto.getFactCode().toString() : "N/A";
 
+        // --- INICIO DE LA MODIFICACIÓN ---
+        // Si la fecha de creación es nula en el DTO recibido,
+        // la establecemos a la fecha del día actual.
+        if (dto.getCreationDate() == null) {
+            log.warn("CreationDate is null for invoice factCode: {}. Setting to current date.", factCode);
+            dto.setCreationDate(LocalDate.now());
+        }
+        // --- FIN DE LA MODIFICACIÓN ---
+
         try {
 
             switch (event.getType()) {
@@ -64,7 +73,7 @@ public class InvoiceEventListener extends AbstractMessageListener<EventDTO<Invoi
                     invoiceProcessInputPort.processInvoiceCreation(dto);
                     log.info("Successfully processed sale for invoice factCode: {}", dto.getFactCode());
                     break;
-                    
+
                 case "DELETED":
                     log.info("Processing DELETE event for invoice factCode: {}", dto.getFactCode());
                     invoicePersistenceAdapter.delete(dto.getFactCode());
@@ -141,6 +150,11 @@ public class InvoiceEventListener extends AbstractMessageListener<EventDTO<Invoi
 
         if (data.getTotalValue() == null) {
             log.warn("TotalValue is null");
+            return false;
+        }
+
+        if (data.getCreationDate() == null) {
+            log.warn("CreationDate is null");
             return false;
         }
 

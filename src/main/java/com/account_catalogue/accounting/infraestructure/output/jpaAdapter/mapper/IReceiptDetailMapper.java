@@ -1,5 +1,7 @@
 package com.account_catalogue.accounting.infraestructure.output.jpaAdapter.mapper;
 
+import java.util.List;
+
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -13,4 +15,6 @@ public interface IReceiptDetailMapper {
     ReceiptDetailEntity toEntity(ReceiptDetail domain);
 
     ReceiptDetail toDomain(ReceiptDetailEntity entity);
+
+    List<ReceiptDetail> toReceiptDetailList(List<ReceiptDetailEntity> entities);
 }

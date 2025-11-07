@@ -34,6 +34,7 @@ public interface IAccountingRestMapper {
      * @return El DTO con los datos de la factura para la API.
      */
     @Mapping(source = "thirdId", target = "clientId") // Mapea el campo 'thirdId' a 'clientId' en la respuesta
+    @Mapping(target = "daysInArrears", ignore = true)
     InvoiceDetailResponse toInvoiceDetailResponse(InvoiceReplica invoice);
     // ------------------------------------------------
 }

@@ -10,13 +10,12 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 import com.account_catalogue.accounting.application.input.IPortfolioSearchInputPort;
+import com.account_catalogue.accounting.application.output.IAccountingSearchOutputPort;
 import com.account_catalogue.accounting.domain.models.InvoiceReplica;
 import com.account_catalogue.accounting.infraestructure.input.data.response.ClientPortfolioSummaryResponse;
+import com.account_catalogue.accounting.infraestructure.input.data.response.InvoiceDetailResponse;
 import com.account_catalogue.accounting.infraestructure.input.data.response.ReceiptSummaryResponse;
-import com.account_catalogue.accounting.infraestructure.output.jpaAdapter.entity.InvoiceReplicaEntity;
 import com.account_catalogue.accounting.infraestructure.output.jpaAdapter.entity.ReceiptEntity;
-import com.account_catalogue.accounting.infraestructure.output.jpaAdapter.mapper.IInvoicePersistenceMapper;
-import com.account_catalogue.accounting.infraestructure.output.jpaAdapter.repository.IInvoiceRepository;
 import com.account_catalogue.accounting.infraestructure.output.jpaAdapter.repository.IReceiptDetailRepository;
 
 import lombok.AllArgsConstructor;
@@ -24,8 +23,7 @@ import lombok.AllArgsConstructor;
 @Service
 @AllArgsConstructor
 public class PortfolioSearchService implements IPortfolioSearchInputPort {
-    private final IInvoiceRepository invoiceRepository;
-    private final IInvoicePersistenceMapper invoiceMapper;
+    private final IAccountingSearchOutputPort accountingSearchOutputPort;
     private final IReceiptDetailRepository receiptDetailRepository;
 
     @Override
@@ -34,18 +32,17 @@ public class PortfolioSearchService implements IPortfolioSearchInputPort {
             return List.of();
 
         // 1. Obtener TODAS las facturas pendientes para los clientes solicitados
-        List<InvoiceReplicaEntity> allInvoices = invoiceRepository.findByPendingValueGreaterThanAndThirdIdIn(0L,
-                clientIds);
+        List<InvoiceReplica> allInvoices = accountingSearchOutputPort.findPendingInvoicesByClientIds(clientIds);
 
         // 2. Agrupar las facturas por el ID del cliente (thirdId)
-        Map<Long, List<InvoiceReplicaEntity>> invoicesByClient = allInvoices.stream()
-                .collect(Collectors.groupingBy(InvoiceReplicaEntity::getThirdId));
+        Map<Long, List<InvoiceReplica>> invoicesByClient = allInvoices.stream()
+                .collect(Collectors.groupingBy(InvoiceReplica::getThirdId));
 
         // 3. Procesar el mapa para calcular los resúmenes de cada cliente
         return invoicesByClient.entrySet().stream()
                 .map(entry -> {
                     Long clientId = entry.getKey();
-                    List<InvoiceReplicaEntity> clientInvoices = entry.getValue();
+                    List<InvoiceReplica> clientInvoices = entry.getValue();
                     LocalDate today = LocalDate.now();
 
                     // Calculamos el valor total de la deuda
@@ -77,8 +74,7 @@ public class PortfolioSearchService implements IPortfolioSearchInputPort {
 
     @Override
     public List<InvoiceReplica> findPendingInvoicesByClientId(Long thirdIds) {
-        return invoiceMapper.toInvoiceReplicaList(
-                invoiceRepository.findByThirdIdAndPendingValueGreaterThan(thirdIds, 0L));
+        return accountingSearchOutputPort.findPendingInvoicesByClientId(thirdIds);
     }
 
     @Override
@@ -96,5 +92,39 @@ public class PortfolioSearchService implements IPortfolioSearchInputPort {
                 })
                 .collect(Collectors.toList());
     }
+
+    public List<InvoiceDetailResponse> getInvoiceDetailsByClientId(Long clientId) {
+    // 1. Reutilizamos el método existente para obtener los modelos de dominio.
+    List<InvoiceReplica> invoices = this.findPendingInvoicesByClientId(clientId);
+    
+    // 2. Obtenemos la fecha actual una sola vez para eficiencia.
+    LocalDate today = LocalDate.now();
+
+    // 3. Mapeamos la lista de modelos de dominio (InvoiceReplica) a la lista de DTOs (InvoiceDetailResponse)
+    return invoices.stream()
+            .map(invoice -> {
+                int daysInArrears = 0;
+                
+                // 4. Calculamos los días en mora (la misma lógica que estaba en el controlador)
+                if (invoice.getExpirationDate() != null && invoice.getExpirationDate().isBefore(today)) {
+                    daysInArrears = (int) ChronoUnit.DAYS.between(invoice.getExpirationDate(), today);
+                }
+
+                // 5. Construimos el DTO de respuesta
+                return InvoiceDetailResponse.builder()
+                        .id(invoice.getId())
+                        .factCode(invoice.getFactCode())
+                        .clientId(invoice.getThirdId())
+                        .creationDate(invoice.getCreationDate())
+                        .expirationDate(invoice.getExpirationDate())
+                        .totalValue(invoice.getTotalValue())
+                        .totalPay(invoice.getTotalPay())
+                        .pendingValue(invoice.getPendingValue())
+                        .status(invoice.getStatus().toString())
+                        .daysInArrears(daysInArrears) // Asignamos el valor calculado
+                        .build();
+            })
+            .collect(Collectors.toList());
+}
 
 }

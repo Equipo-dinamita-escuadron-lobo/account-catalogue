@@ -5,6 +5,8 @@ import java.util.Optional;
 
 import com.account_catalogue.accounting.domain.models.AccountingEntry;
 import com.account_catalogue.accounting.domain.models.AccountingMovement;
+import com.account_catalogue.accounting.domain.models.InvoiceReplica;
+import com.account_catalogue.accounting.domain.models.ReceiptDetail;
 
 public interface IAccountingSearchOutputPort {
     Optional<AccountingEntry> findById(Long id);
@@ -24,4 +26,19 @@ public interface IAccountingSearchOutputPort {
      * Verifica si existe un asiento contable asociado a un ID y TIPO de documento de origen.
      */
     boolean existsBySourceDocumentIdAndType(Long sourceDocumentId, String type);
+
+     /**
+     * Busca todas las facturas con saldo pendiente para una lista de IDs de clientes.
+     */
+    List<InvoiceReplica> findPendingInvoicesByClientIds(List<Long> clientIds);
+
+    /**
+     * Busca todas las facturas con saldo pendiente para un cliente específico.
+     */
+    List<InvoiceReplica> findPendingInvoicesByClientId(Long clientId);
+
+    /**
+     * Busca todos los detalles de pago (abonos) aplicados a una factura específica.
+     */
+    List<ReceiptDetail> findReceiptDetailsByInvoiceId(Long invoiceId);
 }

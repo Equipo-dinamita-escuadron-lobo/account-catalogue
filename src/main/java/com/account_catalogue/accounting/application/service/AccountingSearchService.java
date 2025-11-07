@@ -5,7 +5,6 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.account_catalogue.accounting.application.input.IAccountingSearchInputPort;
-import com.account_catalogue.accounting.application.output.IAccountingEntryPersistenceOutputPort;
 import com.account_catalogue.accounting.application.output.IAccountingSearchOutputPort;
 import com.account_catalogue.accounting.domain.models.AccountingEntry;
 import com.account_catalogue.accounting.domain.models.AccountingMovement;

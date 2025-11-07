@@ -44,6 +44,9 @@ public class InvoiceReplicaEntity {
     @Column(name = "pending_value", nullable = false)
     private Long pendingValue;
 
+     @Column(name = "creation_date", nullable = false)
+    private LocalDate creationDate;
+
     @Column(name = "expiration_date", nullable = false)
     private LocalDate expirationDate;
 

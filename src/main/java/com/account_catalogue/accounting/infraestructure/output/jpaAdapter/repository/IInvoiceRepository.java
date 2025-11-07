@@ -41,4 +41,22 @@ public interface IInvoiceRepository extends JpaRepository<InvoiceReplicaEntity, 
      * Buscar facturas por Id de la empresa y estado activo.
      */
     List<InvoiceReplicaEntity> findByEntIdAndStatus(String entId, InvoiceStatus status);
+
+    // --- NUEVO MÉTODO PARA EL REPORTE DE CARTERA (NIVEL 1) ---
+    /**
+     * Calcula un resumen de cartera para una lista de clientes (thirdIds).
+     * Agrupa todas las facturas con saldo pendiente para los clientes dados y calcula
+     * la deuda total, la deuda vencida, la deuda por vencer y la fecha de vencimiento más antigua.
+     *
+     * @param thirdIds La lista de IDs de clientes a consultar.
+     * @return Una lista de proyecciones ClientSummaryData con los datos calculados para cada cliente.
+     */
+    /**
+     * Encuentra todas las facturas con saldo pendiente para una lista de clientes (thirdIds).
+     * Spring Data JPA generará la consulta "SELECT ... WHERE pendingValue > 0 AND thirdId IN (...)".
+     *
+     * @param thirdIds La lista de IDs de clientes a buscar.
+     * @return Una lista de todas las facturas que coinciden.
+     */
+    List<InvoiceReplicaEntity> findByPendingValueGreaterThanAndThirdIdIn(Long pendingValue, List<Long> thirdIds);
 }

@@ -1,11 +1,14 @@
 package com.account_catalogue.accounting.infraestructure.input.mapper;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 import com.account_catalogue.accounting.domain.models.AccountingEntry;
 import com.account_catalogue.accounting.domain.models.AccountingMovement;
+import com.account_catalogue.accounting.domain.models.InvoiceReplica;
 import com.account_catalogue.accounting.infraestructure.input.data.response.AccountingEntryResponse;
 import com.account_catalogue.accounting.infraestructure.input.data.response.AccountingMovementResponse;
+import com.account_catalogue.accounting.infraestructure.input.data.response.InvoiceDetailResponse;
 
 @Mapper(componentModel = "spring")
 public interface IAccountingRestMapper {
@@ -21,4 +24,17 @@ public interface IAccountingRestMapper {
      * Como los nombres de los campos coinciden, no se necesitan anotaciones @Mapping.
      */
     AccountingMovementResponse toMovementResponse(AccountingMovement accountingMovement);
+
+    // --- MÉTODO NUEVO PARA EL REPORTE DE CARTERA ---
+    /**
+     * Convierte un objeto de dominio InvoiceReplica (que representa una factura)
+     * al DTO InvoiceDetailResponse que se enviará al frontend.
+     * 
+     * @param invoice El objeto de dominio de la factura.
+     * @return El DTO con los datos de la factura para la API.
+     */
+    @Mapping(source = "thirdId", target = "clientId") // Mapea el campo 'thirdId' a 'clientId' en la respuesta
+    @Mapping(target = "daysInArrears", ignore = true)
+    InvoiceDetailResponse toInvoiceDetailResponse(InvoiceReplica invoice);
+    // ------------------------------------------------
 }

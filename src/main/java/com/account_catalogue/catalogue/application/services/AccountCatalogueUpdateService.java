@@ -84,10 +84,6 @@ public class AccountCatalogueUpdateService implements IAccountCatalogueUpdateInp
             validationService.validateParentCodePrefix(accountCatalogue.getCode(), existingAccount.getParent().getCode());
         }
 
-        // Solo validar que la cuenta no está asociada a impuestos
-        // (Se permite actualizar cuentas que tienen hijos)
-        validationService.validateAccountNotAssociatedWithTaxes(existingAccount);
-        
         // Si tiene padre, validar que el padre existe
         if (accountCatalogue.getParent() != null && accountCatalogue.getParent().getId() != null) {
             validationService.validateAccountExistsByIdAndEnterprise(accountCatalogue.getParent().getId(), accountCatalogue.getIdEnterprise());

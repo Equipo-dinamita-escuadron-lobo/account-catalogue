@@ -1,4 +1,4 @@
-package com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.request;
+package com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.request;
 
 
 import java.util.List;
@@ -11,15 +11,18 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * @brief DTO para solicitud de creación de cuenta contable
+ *
+ * Contiene los datos necesarios para crear una nueva cuenta en el catálogo,
+ * incluyendo campos obligatorios y opcionales para jerarquía y funcionalidad avanzada.
+ */
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-
-
 public class AccountCatalogueCreateReq {
-    //El id no es necesario ya que es autogenerado
     @JsonIgnore
     private Long id;
 

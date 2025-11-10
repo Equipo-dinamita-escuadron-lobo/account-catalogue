@@ -9,17 +9,22 @@ import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
+/**
+ * @brief Mapper JPA para operaciones de búsqueda y consulta de cuentas contables
+ *
+ * Define contratos para conversión bidireccional entre entidades JPA y modelos de dominio
+ * en operaciones de búsqueda, incluyendo manejo de jerarquía recursiva.
+ */
 @Mapper
 public interface IItemAccountCatalogueSearchMapper {
 
     /**
-     * Convierte un objeto AccountCatalogueEntity en un objeto AccountCatalogue.
-     * 
-     * @param accountCatalogueEntity el objeto AccountCatalogueEntity a convertir.
-     *                               Si es null, el m todo devuelve null.
-     * @return un objeto AccountCatalogue que contiene los detalles del
-     *         AccountCatalogueEntity proporcionado, o null si la entrada es
-     *         null.
+     * @brief Convierte entidad JPA a modelo de dominio con jerarquía
+     *
+     * Transforma entidad JPA a modelo de dominio, incluyendo referencias a impuestos
+     * y jerarquía padre-hijo mediante método auxiliar recursivo.
+     * @param accountCatalogueEntity entidad JPA con datos completos de BD
+     * @return modelo de dominio con todas las relaciones mapeadas
      */
     default AccountCatalogue toDomain(AccountCatalogueEntity accountCatalogueEntity) {
         if (accountCatalogueEntity == null) {
@@ -45,16 +50,24 @@ public interface IItemAccountCatalogueSearchMapper {
     }
 
     /**
-     * Convierte un objeto AccountCatalogue en un objeto AccountCatalogueEntity.
-     * 
-     * @param accountCatalogue el objeto AccountCatalogue a convertir.
-     * @return un objeto AccountCatalogueEntity que representa el objeto
-     *         AccountCatalogue proporcionado.
-     *         El campo tenantId se ignora durante el mapeo.
+     * @brief Convierte modelo de dominio a entidad JPA para consultas
+     *
+     * Transforma modelo de dominio a entidad JPA ignorando campo tenantId
+     * (manejado automáticamente por framework de multi-tenancy).
+     * @param accountCatalogue modelo de dominio a convertir
+     * @return entidad JPA equivalente sin campo tenantId
      */
     @Mapping(target = "tenantId", ignore = true)
     AccountCatalogueEntity toEntity(AccountCatalogue accountCatalogue);
 
+    /**
+     * @brief Convierte entidad JPA a modelo de dominio con árbol jerárquico completo
+     *
+     * Transforma entidad JPA a modelo de dominio incluyendo recursivamente todos los hijos,
+     * creando estructura de árbol completa para representaciones jerárquicas.
+     * @param accountCatalogueEntity entidad JPA raíz con colección de hijos
+     * @return modelo de dominio con jerarquía completa padre-hijo mapeada
+     */
     default AccountCatalogue toDomainTree(AccountCatalogueEntity accountCatalogueEntity) {
         if (accountCatalogueEntity == null) {
             return null;
@@ -90,16 +103,12 @@ public interface IItemAccountCatalogueSearchMapper {
     }
 
     /**
-     * Convierte un objeto AccountCatalogueEntity en un objeto AccountCatalogue con
-     * los campos id y code.
-     * 
-     * @param accountCatalogue el objeto AccountCatalogueEntity a convertir.
-     *                         Si es null, el m todo devuelve un objeto
-     *                         AccountCatalogue con los campos id y code
-     *                         establecidos en null.
-     * @return un objeto AccountCatalogue que contiene los campos id y code del
-     *         AccountCatalogueEntity proporcionado, o un objeto con los campos
-     *         id y code establecidos en null si la entrada es null.
+     * @brief Método auxiliar para crear referencia padre mínima
+     *
+     * Crea modelo de dominio simplificado con solo id y code para referencias padre,
+     * evitando carga completa de jerarquía en mapeos recursivos.
+     * @param accountCatalogue entidad padre (puede ser null)
+     * @return modelo padre mínimo o con campos null si entrada es null
      */
     default AccountCatalogue auxParent(AccountCatalogueEntity accountCatalogue) {
         if (accountCatalogue == null) {

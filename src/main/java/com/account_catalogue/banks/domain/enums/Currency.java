@@ -1,8 +1,10 @@
 package com.account_catalogue.banks.domain.enums;
 
 /**
- * Enum que define las monedas soportadas para los bancos.
- * Estas monedas están predefinidas en el sistema.
+ * @brief Monedas soportadas por los bancos en el sistema
+ *
+ * Enum que define las divisas admitidas para operaciones bancarias:
+ * pesos colombianos, dólares, euros, libras, francos y yenes.
  */
 public enum Currency {
     COP("Peso Colombiano"),

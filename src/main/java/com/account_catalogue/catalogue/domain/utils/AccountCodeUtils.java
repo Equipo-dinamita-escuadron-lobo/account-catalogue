@@ -6,7 +6,10 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * Utilidades para manejo de códigos de cuenta contable y jerarquía.
+ * @brief Utilidades para manejo de códigos jerárquicos de cuentas contables
+ *
+ * Proporciona métodos para extraer códigos padre, validar formatos,
+ * ordenar por jerarquía y determinar tipos de cuenta.
  */
 public final class AccountCodeUtils {
 
@@ -15,15 +18,10 @@ public final class AccountCodeUtils {
     }
 
     /**
-     * Extrae el código del padre a partir de un código de cuenta.
-     * Ejemplos:
-     * - 1105 → 110
-     * - 110501 → 11050
-     * - 11050101 → 1105010
-     * - 11 → 1
-     * - 1 → null (cuenta raíz)
-     * 
-     * @param code código de la cuenta
+     * @brief Extrae código padre de código cuenta siguiendo jerarquía numérica
+     *
+     * Ejemplos: 1105 → 110, 110501 → 11050, 11050101 → 1105010, 11 → 1, 1 → null
+     * @param code código de la cuenta hija
      * @return código del padre o null si es cuenta raíz
      */
     public static String extractParentCode(String code) {
@@ -58,15 +56,12 @@ public final class AccountCodeUtils {
     }
 
     /**
-     * Obtiene el nivel jerárquico basado en la longitud del código.
-     * Nivel 1: 1 dígito (ej: 1, 2, 3)
-     * Nivel 2: 2 dígitos (ej: 11, 12, 21)
-     * Nivel 3: 4 dígitos (ej: 1105, 1205)
-     * Nivel 4: 6 dígitos (ej: 110501, 120501)
-     * Nivel 5: 8 dígitos (ej: 11050101, 12050101) - Cuentas auxiliares
-     * 
-     * @param code código de la cuenta
-     * @return nivel jerárquico (1-5) o 0 si el código es inválido
+     * @brief Determina nivel jerárquico basado en longitud del código
+     *
+     * 1 dígito = nivel 1, 2 dígitos = nivel 2, 4 dígitos = nivel 3,
+     * 6 dígitos = nivel 4, 8 dígitos = nivel 5
+     * @param code código de cuenta a evaluar
+     * @return nivel jerárquico (1-5) o 0 si inválido
      */
     public static int getHierarchyLevel(String code) {
         if (code == null || code.trim().isEmpty()) {
@@ -85,11 +80,11 @@ public final class AccountCodeUtils {
     }
 
     /**
-     * Valida si un código tiene una longitud permitida.
-     * Solo se permiten: 1, 2, 4, 6 u 8 dígitos.
-     * 
+     * @brief Valida si longitud del código cumple con jerarquía contable
+     *
+     * Longitudes válidas: 1, 2, 4, 6 u 8 dígitos
      * @param code código a validar
-     * @return true si la longitud es válida
+     * @return true si longitud es válida para jerarquía contable
      */
     public static boolean isValidCodeLength(String code) {
         if (code == null || code.trim().isEmpty()) {
@@ -101,12 +96,12 @@ public final class AccountCodeUtils {
     }
 
     /**
-     * Ordena una lista de cuentas por jerarquía (orden natural del código).
-     * Esto garantiza que los padres siempre se procesen antes que los hijos.
+     * @brief Ordena cuentas por jerarquía numérica para procesamiento secuencial
+     *
+     * Garantiza que padres se procesen antes que hijos siguiendo orden natural.
      * Ejemplo: 1, 11, 110, 1105, 110501, 11050101, 12, 1205, ...
-     * 
      * @param accounts lista de cuentas a ordenar
-     * @return lista ordenada por jerarquía
+     * @return lista ordenada por jerarquía (padres primero)
      */
     public static List<AccountCatalogueExcelData> sortByHierarchy(List<AccountCatalogueExcelData> accounts) {
         if (accounts == null || accounts.isEmpty()) {
@@ -127,20 +122,18 @@ public final class AccountCodeUtils {
     }
 
     /**
-     * Verifica si una cuenta es cuenta raíz (sin padre).
-     * 
-     * @param code código de la cuenta
-     * @return true si es cuenta raíz (1 dígito)
+     * @brief Determina si cuenta es raíz de jerarquía (1 dígito)
+     * @param code código de cuenta a evaluar
+     * @return true si código tiene exactamente 1 dígito (cuenta raíz)
      */
     public static boolean isRootAccount(String code) {
         return code != null && code.trim().length() == 1;
     }
 
     /**
-     * Verifica si una cuenta es auxiliar (hoja del árbol, 8 dígitos).
-     * 
-     * @param code código de la cuenta
-     * @return true si es cuenta auxiliar
+     * @brief Determina si cuenta es auxiliar (hoja de jerarquía - 8 dígitos)
+     * @param code código de cuenta a evaluar
+     * @return true si código tiene exactamente 8 dígitos (cuenta auxiliar)
      */
     public static boolean isAuxiliaryAccount(String code) {
         return code != null && code.trim().length() == 8;

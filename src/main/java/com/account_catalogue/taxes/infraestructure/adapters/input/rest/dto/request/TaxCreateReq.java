@@ -1,16 +1,22 @@
-package com.account_catalogue.taxes.infraestructure.adapters.input.rest.data.request;
+package com.account_catalogue.taxes.infraestructure.adapters.input.rest.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
+/**
+ * @brief DTO de solicitud para crear impuestos
+ *
+ * Contiene los campos requeridos para crear un nuevo impuesto
+ * con validaciones de formato y obligatoriedad.
+ */
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class TaxUpdateReq {
+public class TaxCreateReq {
     @JsonIgnore
     private  Long id;
     @NotBlank(message = "El id de la empresa es requerido")

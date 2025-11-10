@@ -8,6 +8,12 @@ import jakarta.transaction.Transactional;
 import lombok.Data;
 import org.springframework.stereotype.Component;
 
+/**
+ * @brief Adaptador JPA para operaciones de eliminación de impuestos
+ *
+ * Implementa la eliminación de impuestos con manejo de soft delete
+ * y validación de existencia previa.
+ */
 @Component
 @Data
 public class TaxDeleteJpaAdapter implements ITaxDeleteOutputPort {
@@ -15,11 +21,10 @@ public class TaxDeleteJpaAdapter implements ITaxDeleteOutputPort {
     private final ITaxRepository taxRepository;
 
     /**
-     * Realiza eliminación de un impuesto por su ID y empresa.
-     *
-     * @param id El ID del impuesto a eliminar.
-     * @param idEnterprise El ID de la empresa.
-     * @return true si se eliminó con éxito, false de lo contrario.
+     * @brief Realiza eliminación de un impuesto por su ID y empresa.
+     * @param id ID del impuesto a eliminar
+     * @param idEnterprise ID de la empresa
+     * @return true si se eliminó con éxito, false de lo contrario
      */
     @Override
     @Transactional

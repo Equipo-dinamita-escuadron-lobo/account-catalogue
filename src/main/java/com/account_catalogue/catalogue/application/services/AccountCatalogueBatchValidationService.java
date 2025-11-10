@@ -18,6 +18,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * @brief Servicio para validación por lotes de cuentas contables
+ *
+ * Realiza validaciones masivas en lotes de datos de cuentas durante
+ * el proceso de importación desde archivos Excel.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -26,7 +32,15 @@ public class AccountCatalogueBatchValidationService {
     private final AccountCatalogueValidationService validationService;
 
     /**
-     * Valida un lote de datos de cuentas contables desde Excel.
+     * @brief Coordina validación masiva de lote con manejo de errores por registro
+     *
+     * Procesa cada registro del lote aplicando validaciones secuenciales,
+     * acumula errores por registro sin detener el proceso, y separa registros
+     * válidos de inválidos. Maneja excepciones del sistema por registro.
+     * @param accountsData lote de registros Excel a validar
+     * @param entId ID de empresa para contexto de validación
+     * @param columnMap mapeo dinámico de columnas para ubicación de errores
+     * @return estadísticas completas de validación con registros válidos y errores
      */
     public BatchValidationResult validateBatch(List<AccountCatalogueExcelData> accountsData, String entId,
                                                Map<String, Integer> columnMap) {
@@ -62,7 +76,14 @@ public class AccountCatalogueBatchValidationService {
     }
 
     /**
-     * Valida un registro individual.
+     * @brief Valida registro Excel aplicando todas las reglas de negocio
+     *
+     * Ejecuta validaciones secuenciales en orden específico: campos requeridos primero,
+     * luego formato de código, formato de descripción, restricciones de cruce
+     * y finalmente centro de costo. Todas las validaciones acumulan errores sin detenerse.
+     * @param excelData registro individual a validar
+     * @param columnMap mapeo de columnas para ubicación precisa de errores
+     * @return lista completa de errores encontrados (vacía si válido)
      */
     private List<ImportErrorDetail> validateSingleRecord(AccountCatalogueExcelData excelData,
                                                          Map<String, Integer> columnMap) {
@@ -82,8 +103,14 @@ public class AccountCatalogueBatchValidationService {
     }
 
     /**
-     * Valida que los campos requeridos estén presentes.
-     * Todos son requeridos excepto crossing y costCenter.
+     * @brief Valida presencia de campos obligatorios en registro Excel
+     *
+     * Verifica que todos los campos requeridos estén presentes y no vacíos:
+     * código, descripción, naturaleza, estado financiero y clasificación.
+     * Campos opcionales (crossing, costCenter) no se validan aquí.
+     * @param excelData registro Excel a validar
+     * @param errors lista acumulativa donde agregar errores encontrados
+     * @param columnMap mapeo de columnas para ubicación de errores
      */
     private void validateRequiredFields(AccountCatalogueExcelData excelData, List<ImportErrorDetail> errors,
                                        Map<String, Integer> columnMap) {
@@ -111,7 +138,14 @@ public class AccountCatalogueBatchValidationService {
     }
 
     /**
-     * Valida el formato del código.
+     * @brief Valida formato y restricciones del código de cuenta
+     *
+     * Realiza validaciones en cascada: formato numérico con regex, longitud específica
+     * (1,2,4,6,8 dígitos), valor positivo, y conversión segura a Long.
+     * Cada validación genera errores específicos con códigos y mensajes detallados.
+     * @param excelData registro Excel que contiene el código a validar
+     * @param errors lista acumulativa donde agregar errores de validación encontrados
+     * @param columnMap mapeo de columnas para calcular ubicación precisa de errores
      */
     private void validateCodeFormat(AccountCatalogueExcelData excelData, List<ImportErrorDetail> errors,
                                    Map<String, Integer> columnMap) {
@@ -156,7 +190,13 @@ public class AccountCatalogueBatchValidationService {
     }
 
     /**
-     * Valida el formato de la descripción.
+     * @brief Valida formato y contenido de descripción de cuenta
+     *
+     * Delega validación a AccountCatalogueValidationService.validateAccountDescription()
+     * que verifica longitud, caracteres especiales y reglas de negocio específicas.
+     * @param excelData registro Excel con descripción a validar
+     * @param errors lista acumulativa donde agregar errores encontrados
+     * @param columnMap mapeo de columnas para ubicación de errores
      */
     private void validateDescriptionFormat(AccountCatalogueExcelData excelData, List<ImportErrorDetail> errors,
                                           Map<String, Integer> columnMap) {
@@ -177,8 +217,14 @@ public class AccountCatalogueBatchValidationService {
 
     
     /**
-     * Valida el campo crossing.
-     * Solo permitido en cuentas auxiliares (8 dígitos).
+     * @brief Valida restricciones de campo crossing (solo cuentas auxiliares)
+     *
+     * Si crossing=true, verifica que el código tenga exactamente 8 dígitos
+     * (cuenta auxiliar). Null/false son valores siempre válidos.
+     * Genera error detallado con longitud actual del código.
+     * @param excelData registro Excel con campo crossing a validar
+     * @param errors lista acumulativa donde agregar errores de validación
+     * @param columnMap mapeo de columnas para ubicación precisa de errores
      */
     private void validateCrossingField(AccountCatalogueExcelData excelData, List<ImportErrorDetail> errors,
                                       Map<String, Integer> columnMap) {
@@ -199,8 +245,15 @@ public class AccountCatalogueBatchValidationService {
     }
 
     /**
-     * Valida el campo costCenter.
-     * Solo permitido en cuentas auxiliares con Estado de Resultados.
+     * @brief Valida restricciones dobles de centro de costo (auxiliar + Estado de Resultados)
+     *
+     * Si costCenter=true, requiere dos condiciones simultáneas:
+     * 1) Código debe tener exactamente 8 dígitos (cuenta auxiliar)
+     * 2) Estado financiero debe ser "Estado de Resultados"
+     * Null/false son valores siempre válidos. Valida ambas restricciones con mensajes específicos.
+     * @param excelData registro Excel con campo costCenter a validar
+     * @param errors lista acumulativa donde agregar errores de validación encontrados
+     * @param columnMap mapeo de columnas para ubicación precisa de errores
      */
     private void validateCostCenterField(AccountCatalogueExcelData excelData, List<ImportErrorDetail> errors,
                                         Map<String, Integer> columnMap) {
@@ -233,7 +286,12 @@ public class AccountCatalogueBatchValidationService {
     }
 
     /**
-     * Crea un error de campo requerido.
+     * @brief Crea error estandarizado para campos requeridos faltantes
+     *
+     * @param rowNumber número de fila donde ocurrió el error
+     * @param columnName nombre de columna que contiene el campo requerido faltante
+     * @param columnMap mapeo de columnas para calcular número de columna
+     * @return objeto ImportErrorDetail con error de campo requerido
      */
     private ImportErrorDetail createRequiredFieldError(int rowNumber, String columnName,
                                                       Map<String, Integer> columnMap) {
@@ -245,7 +303,16 @@ public class AccountCatalogueBatchValidationService {
     }
 
     /**
-     * Crea un error genérico.
+     * @brief Crea objeto de error con información completa de ubicación y contexto
+     *
+     * @param rowNumber número de fila donde se encontró el error (1-based)
+     * @param columnName nombre lógico de la columna afectada
+     * @param fieldValue valor problemático que causó el error (puede ser null)
+     * @param errorCode código específico del tipo de error
+     * @param errorMessage mensaje descriptivo del error para el usuario
+     * @param errorType categorización del tipo de error (VALIDATION_ERROR, BUSINESS_RULE_ERROR, etc.)
+     * @param columnMap mapeo dinámico de nombres a índices de columna
+     * @return objeto ImportErrorDetail completamente construido con ubicación precisa
      */
     private ImportErrorDetail createError(int rowNumber, String columnName, String fieldValue,
                                          String errorCode, String errorMessage,
@@ -270,7 +337,11 @@ public class AccountCatalogueBatchValidationService {
     }
 
     /**
-     * Clase que representa el resultado de validación de un lote completo.
+     * @brief Resultado completo de validación por lotes
+     *
+     * Contiene registros válidos listos para procesamiento posterior,
+     * lista completa de errores encontrados, y estadísticas de procesamiento
+     * (total procesado, válidos, errores) para reporting y control de flujo.
      */
     @Data
     @Builder

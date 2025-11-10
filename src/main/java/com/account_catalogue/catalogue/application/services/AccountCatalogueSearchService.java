@@ -14,6 +14,12 @@ import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueNotFou
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+/**
+ * @brief Servicio para operaciones de búsqueda y consulta de cuentas contables
+ *
+ * Proporciona métodos para buscar cuentas por diferentes criterios,
+ * incluyendo búsqueda paginada y consultas jerárquicas.
+ */
 @Service
 @AllArgsConstructor
 public class AccountCatalogueSearchService implements IAccountCatalogueSearchInputPort {
@@ -22,12 +28,10 @@ public class AccountCatalogueSearchService implements IAccountCatalogueSearchInp
     private final AccountCatalogueValidationService validationService;
 
     /**
-     * Obtiene el catálogo de cuenta por código y ID de empresa con validación de existencia.
-     *
-     * @param code         el código del catálogo de cuenta
-     * @param idEnterprise el ID de la empresa
-     * @return el catálogo de cuenta
-     * @throws AccountCatalogueNotFoundException si la cuenta no existe
+     * @brief Obtiene cuenta por código con validación de existencia
+     * @param code código de la cuenta
+     * @param idEnterprise ID de la empresa
+     * @return cuenta encontrada
      */
     @Override
     public AccountCatalogue getAccountCatalogueByCode(String code, String idEnterprise) {
@@ -35,12 +39,10 @@ public class AccountCatalogueSearchService implements IAccountCatalogueSearchInp
     }
 
     /**
-     * Obtiene el árbol del catálogo de cuenta por código y ID de empresa con validación de existencia.
-     *
-     * @param code         el código del catálogo de cuenta
-     * @param idEnterprise el ID de la empresa
-     * @return el árbol del catálogo de cuenta
-     * @throws AccountCatalogueNotFoundException si la cuenta no existe
+     * @brief Obtiene árbol jerárquico por código con validación
+     * @param code código de la cuenta raíz
+     * @param idEnterprise ID de la empresa
+     * @return árbol completo de cuentas
      */
     @Override
     public AccountCatalogue getAccountCatalogueTree(String code, String idEnterprise) {
@@ -51,11 +53,9 @@ public class AccountCatalogueSearchService implements IAccountCatalogueSearchInp
     }
 
     /**
-     * Obtiene los árboles de catálogo de cuentas para los códigos raíz (1-9) de una empresa específica.
-     * Solo incluye cuentas que existen, omitiendo las que no se encuentren.
-     *
-     * @param idEnterprise el ID de la empresa
-     * @return lista de árboles de catálogos de cuentas para códigos 1-9 existentes
+     * @brief Obtiene árboles jerárquicos completos para todas las cuentas raíz (1-9)
+     * @param idEnterprise ID de la empresa
+     * @return lista de árboles jerárquicos para cuentas raíz existentes
      */
     @Override
     public List<AccountCatalogue> getAccountCatalogueTrees(String idEnterprise) {
@@ -77,12 +77,10 @@ public class AccountCatalogueSearchService implements IAccountCatalogueSearchInp
     }
 
     /**
-     * Obtiene un catálogo de cuenta por ID y empresa.
-     *
-     * @param id el ID del catálogo de cuenta
-     * @param idEnterprise el ID de la empresa
-     * @return el catálogo de cuenta
-     * @throws AccountCatalogueNotFoundException si la cuenta no existe
+     * @brief Obtiene cuenta por ID con validación de existencia y empresa
+     * @param id ID único de la cuenta contable
+     * @param idEnterprise ID de la empresa para aislamiento de datos
+     * @return cuenta encontrada con validación previa
      */
     @Override
     public AccountCatalogue getAccountCatalogueById(Long id, String idEnterprise) {
@@ -90,11 +88,9 @@ public class AccountCatalogueSearchService implements IAccountCatalogueSearchInp
     }
 
     /**
-     * Obtiene todas las cuentas auxiliares (8 dígitos) activas para una empresa específica.
-     *
-     * @param idEnterprise el ID de la empresa
-     * @return lista de cuentas auxiliares
-     * @throws IllegalArgumentException si el idEnterprise es null o vacío
+     * @brief Obtiene cuentas auxiliares activas (nivel más bajo de jerarquía)
+     * @param idEnterprise ID de la empresa
+     * @return lista de cuentas con códigos de 8 dígitos y estado activo
      */
     @Override
     public List<AccountCatalogue> getAuxiliaryAccounts(String idEnterprise) {
@@ -106,11 +102,9 @@ public class AccountCatalogueSearchService implements IAccountCatalogueSearchInp
     }
 
     /**
-     * Obtiene todas las cuentas auxiliares (8 dígitos) activas que tienen el campo crossing activo para una empresa específica.
-     *
-     * @param idEnterprise el ID de la empresa
-     * @return lista de cuentas auxiliares con crossing activo
-     * @throws IllegalArgumentException si el idEnterprise es null o vacío
+     * @brief Obtiene cuentas auxiliares con funcionalidad de cruce habilitada
+     * @param idEnterprise ID de la empresa
+     * @return lista de cuentas auxiliares con campo crossing=true
      */
     @Override
     public List<AccountCatalogue> getAuxiliaryAccountsWithCrossing(String idEnterprise) {
@@ -122,12 +116,10 @@ public class AccountCatalogueSearchService implements IAccountCatalogueSearchInp
     }
 
     /**
-     * Obtiene todos los catálogos de cuentas para una empresa específica con paginación.
-     * Los resultados se ordenan por código para mantener la jerarquía.
-     *
-     * @param idEnterprise el ID de la empresa
-     * @param pageable objeto de paginación con ordenamiento
-     * @return página de catálogos de cuentas
+     * @brief Obtiene página paginada de todas las cuentas por empresa
+     * @param idEnterprise ID de la empresa
+     * @param pageable configuración de paginación y ordenamiento
+     * @return página de cuentas con ordenamiento por código
      */
     @Override
     public Page<AccountCatalogue> getAllAccountCatalogues(String idEnterprise, Pageable pageable) {
@@ -138,6 +130,13 @@ public class AccountCatalogueSearchService implements IAccountCatalogueSearchInp
         return accountCatalogueSearchOutputPort.getAllAccountCataloguesByIdEnterprise(idEnterprise.trim(), pageable);
     }
 
+    /**
+     * @brief Obtiene página paginada filtrada por estado de cuentas
+     * @param idEnterprise ID de la empresa
+     * @param status filtro por estado (true=activo, false=inactivo)
+     * @param pageable configuración de paginación y ordenamiento
+     * @return página de cuentas filtradas por estado
+     */
     @Override
     public Page<AccountCatalogue> getAllAccountCataloguesByStatus(String idEnterprise, Boolean status, Pageable pageable) {
         if (idEnterprise == null || idEnterprise.trim().isEmpty()) {
@@ -148,10 +147,9 @@ public class AccountCatalogueSearchService implements IAccountCatalogueSearchInp
     }
 
     /**
-     * Obtiene todas las cuentas para una empresa específica ordenadas por código.
-     *
-     * @param idEnterprise el ID de la empresa
-     * @return lista de todas las cuentas ordenadas por código
+     * @brief Obtiene lista completa de cuentas sin paginación
+     * @param idEnterprise ID de la empresa
+     * @return lista completa de todas las cuentas ordenadas por código
      */
     @Override
     public List<AccountCatalogue> getAllAccountsByEnterprise(String idEnterprise) {
@@ -163,12 +161,10 @@ public class AccountCatalogueSearchService implements IAccountCatalogueSearchInp
     }
 
     /**
-     * Obtiene las cuentas que coinciden con el criterio de búsqueda (código o descripción) para una empresa específica.
-     * Búsqueda inteligente por código o descripción, ordenada por código ascendente.
-     *
-     * @param idEnterprise el ID de la empresa
-     * @param search el término de búsqueda (código o descripción)
-     * @return lista de cuentas que coinciden con el criterio de búsqueda
+     * @brief Realiza búsqueda inteligente por código o descripción
+     * @param idEnterprise ID de la empresa
+     * @param search término de búsqueda parcial (case-insensitive)
+     * @return lista de cuentas que coinciden con código o descripción
      */
     @Override
     public List<AccountCatalogue> getAccountsByCodeOrDescription(String idEnterprise, String search) {

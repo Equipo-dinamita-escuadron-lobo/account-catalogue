@@ -3,25 +3,37 @@ package com.account_catalogue.catalogue.application.services;
 import com.account_catalogue.catalogue.domain.enums.ImportErrorType;
 import com.account_catalogue.catalogue.domain.enums.ImportStatus;
 import com.account_catalogue.catalogue.domain.models.ImportErrorDetail;
-import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.response.AccountCatalogueImportResponse;
+import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.response.AccountCatalogueImportResponse;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+/**
+ * @brief Servicio para construcción de respuestas de importación
+ *
+ * Construye respuestas estructuradas para operaciones de importación,
+ * incluyendo estadísticas de éxito, errores y métricas de procesamiento.
+ */
 @Slf4j
 @Service
 public class AccountCatalogueImportResponseBuilder {
 
     /**
-     * Construye una respuesta exitosa de importación.
-     * 
-     * IMPORTANTE: 
-     * - totalRecords = registros únicos leídos del Excel (sin duplicados internos)
-     * - successfulImports = registros insertados exitosamente
-     * - failedImports = registros con errores (contar filas únicas, no cantidad de errores)
-     * - duplicatesSkipped = duplicados omitidos (en Excel y en BD)
-     * - Validación: totalRecords = successfulImports + failedImports + duplicatesSkipped
+     * @brief Construye respuesta de importación con métricas calculadas y estado determinado
+     *
+     * Calcula métricas de importación: cuentas filas únicas con errores, determina estado
+     * basado en combinación de éxitos/fallos/duplicados, y construye respuesta estructurada
+     * con logging detallado de resultados.
+     * @param entId ID de empresa
+     * @param fileName nombre del archivo procesado
+     * @param totalRecords total de registros leídos del archivo
+     * @param successCount cantidad de registros insertados exitosamente
+     * @param failureCount cantidad de registros que fallaron
+     * @param duplicatesSkipped cantidad de duplicados omitidos
+     * @param errors lista completa de errores encontrados
+     * @return respuesta estructurada con métricas y estado de importación
      */
     public AccountCatalogueImportResponse buildSuccessResponse(String entId, String fileName,
             int totalRecords, int successCount,
@@ -56,6 +68,14 @@ public class AccountCatalogueImportResponseBuilder {
         return response;
     }
 
+    /**
+     * @brief Construye respuesta de importación fallida con conteo de errores únicos
+     * @param entId ID de empresa
+     * @param fileName nombre del archivo procesado
+     * @param totalRecords total de registros analizados
+     * @param errors lista completa de errores encontrados
+     * @return respuesta con estado FAILED y métricas calculadas
+     */
     public AccountCatalogueImportResponse buildFailedResponse(String entId, String fileName,
             int totalRecords, List<ImportErrorDetail> errors) {
         // Calcular registros fallidos: contar filas únicas con errores
@@ -83,14 +103,11 @@ public class AccountCatalogueImportResponseBuilder {
     }
 
     /**
-     * Determina el estado de la importación basado en los resultados.
-     * 
-     * Casos:
-     * 1. Solo éxitos → COMPLETED
-     * 2. Éxitos + fallos → COMPLETED_WITH_ERRORS
-     * 3. Solo fallos → FAILED
-     * 4. Solo duplicados (sin éxitos ni fallos) → COMPLETED
-     * 5. Sin datos → FAILED
+     * @brief Determina estado de importación basado en lógica de negocio específica
+     * @param successCount cantidad de registros exitosos
+     * @param failureCount cantidad de registros fallidos
+     * @param duplicatesSkipped cantidad de duplicados omitidos
+     * @return estado de importación
      */
     private ImportStatus determineImportStatus(int successCount, int failureCount, int duplicatesSkipped) {
         if (failureCount == 0 && successCount > 0) {
@@ -112,7 +129,10 @@ public class AccountCatalogueImportResponseBuilder {
     }
 
     /**
-     * Construye una respuesta para archivo vacío.
+     * @brief Crea respuesta estandarizada para archivos Excel sin contenido de datos
+     * @param entId ID de empresa
+     * @param fileName nombre del archivo vacío
+     * @return respuesta con estado FAILED y error de archivo vacío
      */
     public AccountCatalogueImportResponse buildEmptyFileResponse(String entId, String fileName) {
         return AccountCatalogueImportResponse.builder()

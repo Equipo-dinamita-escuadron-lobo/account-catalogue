@@ -9,6 +9,12 @@ import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
 import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.entity.AccountCatalogueEntity;
 import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.mapper.IAccountCatalogueCreateMapper;
 
+/**
+ * @brief Implementación del mapper JPA para operaciones de creación de cuentas
+ *
+ * Convierte entre modelos de dominio y entidades JPA para operaciones de creación,
+ * manejando jerarquía recursiva padre-hijo en proceso de mapeo.
+ */
 @Component
 public class AccountCatalogueCreateMapper implements IAccountCatalogueCreateMapper{
 

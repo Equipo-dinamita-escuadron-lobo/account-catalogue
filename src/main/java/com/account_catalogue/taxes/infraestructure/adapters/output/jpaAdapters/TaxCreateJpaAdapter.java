@@ -13,6 +13,12 @@ import com.account_catalogue.taxes.infraestructure.adapters.output.jpaAdapters.r
 import lombok.Data;
 import org.springframework.stereotype.Component;
 
+/**
+ * @brief Adaptador JPA para operaciones de creación de impuestos
+ *
+ * Implementa la persistencia de nuevos impuestos con manejo de relaciones
+ * bidireccionales con cuentas contables y validaciones de negocio.
+ */
 @Component
 @Data
 public class TaxCreateJpaAdapter implements ITaxCreateOutputPort {
@@ -23,20 +29,9 @@ public class TaxCreateJpaAdapter implements ITaxCreateOutputPort {
     private final TaxValidationService taxValidationService;
 
     /**
-     * Crea una nueva entrada de impuesto en el sistema.
-     *
-     * Este método verifica si ya existe un impuesto con el código dado para la
-     * empresa especificada. Si es así, se lanza una TaxAlreadyExistsException. También
-     * verifica la existencia y formato de las cuentas de depósito y reembolso asociadas con el
-     * impuesto a través del servicio de validación.
-     *
-     * Después de la validación, se crea un nuevo TaxEntity y se guarda en el
-     * repositorio.
-     *
-     * @param tax el objeto TaxDTO que contiene los detalles del impuesto a crear
-     * @return el objeto Tax creado
-     * @throws TaxAlreadyExistsException si el código de impuesto ya existe para la
-     *                                  empresa
+     * @brief Crea nuevo impuesto con validaciones y manejo de relaciones
+     * @param tax datos del impuesto a crear
+     * @return impuesto creado con relaciones establecidas
      */
     @Override
     public Tax createTax(TaxDTO tax) {

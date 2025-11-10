@@ -5,6 +5,13 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.TenantId;
 
+/**
+ * @brief Entidad que representa un método de pago en el sistema
+ *
+ * Almacena la información de métodos de pago con índices optimizados para
+ * consultas por empresa, nombre y estado. Incluye soporte para
+ * multi-tenancy y relación con cuentas contables.
+ */
 @Entity
 @Table(
     name = "payment_methods",

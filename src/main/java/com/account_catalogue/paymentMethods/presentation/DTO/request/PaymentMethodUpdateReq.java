@@ -3,6 +3,12 @@ package com.account_catalogue.paymentMethods.presentation.DTO.request;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
+/**
+ * @brief DTO de solicitud para actualizar métodos de pago
+ *
+ * Contiene los campos necesarios para actualizar un método de pago existente
+ * con validaciones de formato y obligatoriedad.
+ */
 @Getter
 @Setter
 @NoArgsConstructor

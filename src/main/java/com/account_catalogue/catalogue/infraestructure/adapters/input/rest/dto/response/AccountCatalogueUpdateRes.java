@@ -1,7 +1,13 @@
-package com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.response;
+package com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.response;
 
 import lombok.*;
 
+/**
+ * @brief DTO para respuesta de actualización de cuenta contable
+ *
+ * Contiene los datos actualizados de la cuenta después de una operación
+ * de modificación, confirmando los cambios realizados.
+ */
 @Getter
 @Setter
 @AllArgsConstructor

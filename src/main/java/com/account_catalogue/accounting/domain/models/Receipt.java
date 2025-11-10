@@ -26,7 +26,7 @@ public class Receipt {
     private LocalDate issueDate;
     private BigDecimal totalAmount;
     private String observations;
-    private Long ledgerAccountId;
+    private Long ledgerAccountId; //se recibe codigo
     private List<ReceiptDetail> details;
     private ProcessingStatus processingStatus;
 }

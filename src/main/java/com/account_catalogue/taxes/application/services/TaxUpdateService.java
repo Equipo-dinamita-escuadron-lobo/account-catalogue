@@ -9,6 +9,12 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.stereotype.Service;
 
+/**
+ * @brief Servicio de aplicación para actualización de impuestos
+ *
+ * Implementa la lógica de negocio para actualizar impuestos existentes
+ * con validaciones de unicidad y cuentas contables.
+ */
 @Service
 @AllArgsConstructor
 @Data
@@ -17,12 +23,10 @@ public class TaxUpdateService implements ITaxUpdateInputPort {
     private final TaxValidationService taxValidationService;
 
     /**
-     * Actualiza los detalles de un impuesto.
-     *
-     * @param taxDTO el objeto TaxDTO que contiene los detalles del impuesto a
-     *               actualizar.
-     * @param id     el identificador del impuesto a actualizar.
-     * @return el objeto Tax actualizado.
+     * @brief Actualiza impuesto existente con validaciones
+     * @param taxDTO datos actualizados del impuesto
+     * @param id identificador del impuesto a actualizar
+     * @return impuesto actualizado
      */
     @Override
     public Tax update(TaxDTO taxDTO, long id) {

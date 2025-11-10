@@ -6,6 +6,12 @@ import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
 import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.entity.AccountCatalogueEntity;
 import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.mapper.IAccountCatalogueUpdateMapper;
 
+/**
+ * @brief Implementación del mapper JPA para operaciones de actualización de cuentas
+ *
+ * Convierte entidades JPA a modelos de dominio para respuestas de actualización,
+ * incluyendo referencias a impuestos y jerarquía padre.
+ */
 @Component
 public class AccountCatalogueUpdateMapper implements IAccountCatalogueUpdateMapper{
 

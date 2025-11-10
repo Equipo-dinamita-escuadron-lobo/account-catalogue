@@ -1,4 +1,4 @@
-package com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.response;
+package com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -6,7 +6,12 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-
+/**
+ * @brief DTO para respuesta de creación de cuenta contable
+ *
+ * Contiene los datos de la cuenta recién creada incluyendo el ID generado
+ * y toda la información confirmada del proceso de creación.
+ */
 @Getter
 @Setter
 @AllArgsConstructor

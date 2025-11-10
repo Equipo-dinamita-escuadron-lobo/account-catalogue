@@ -4,6 +4,12 @@ import com.account_catalogue.bankAccounts.domain.enums.AccountType;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
+/**
+ * @brief DTO de solicitud para crear cuentas bancarias
+ *
+ * Contiene los campos requeridos para crear una nueva cuenta bancaria
+ * con validaciones de formato y obligatoriedad.
+ */
 @Getter
 @Setter
 @NoArgsConstructor

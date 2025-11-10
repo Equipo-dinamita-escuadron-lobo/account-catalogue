@@ -7,6 +7,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import java.util.Optional;
 
+/**
+ * @brief Repositorio de datos para operaciones de cuentas bancarias
+ *
+ * Proporciona métodos para consultas especializadas de cuentas bancarias
+ * con filtros por empresa, estado, banco y tipo de cuenta.
+ */
 public interface BankAccountRepository extends JpaRepository<BankAccountEntity, Long> {
     
     boolean existsByAccountNumberAndIdEnterprise(Long accountNumber, String idEnterprise);
@@ -27,19 +33,26 @@ public interface BankAccountRepository extends JpaRepository<BankAccountEntity, 
 
     Page<BankAccountEntity> findAllByIdEnterpriseAndAccountType(String idEnterprise, String accountType, Pageable pageable);
 
+    /**
+     * @brief Busca cuentas bancarias por número de cuenta con búsqueda parcial
+     * @param idEnterprise Identificador de la empresa
+     * @param search Término de búsqueda para filtrar por número de cuenta
+     * @param pageable Configuración de paginación
+     * @return Página de cuentas bancarias que coinciden con la búsqueda
+     */
     @Query("SELECT ba FROM BankAccountEntity ba WHERE ba.idEnterprise = ?1 AND CAST(ba.accountNumber AS string) LIKE LOWER(CONCAT('%', ?2, '%'))")
     Page<BankAccountEntity> findByIdEnterpriseAndAccountNumberSearch(String idEnterprise, String search, Pageable pageable);
 
+    /**
+     * @brief Cuenta cuentas bancarias por número de cuenta con búsqueda parcial
+     * @param idEnterprise Identificador de la empresa
+     * @param search Término de búsqueda para filtrar por número de cuenta
+     * @return Cantidad total de cuentas que coinciden con la búsqueda
+     */
     @Query("SELECT COUNT(ba) FROM BankAccountEntity ba WHERE ba.idEnterprise = ?1 AND CAST(ba.accountNumber AS string) LIKE LOWER(CONCAT('%', ?2, '%'))")
     long countByIdEnterpriseAndAccountNumberSearch(String idEnterprise, String search);
 
-    /**
-     * Verifica si existen cuentas bancarias asociadas a una cuenta contable específica.
-     */
     boolean existsByAccountingAccountIdAndIdEnterprise(Long accountingAccountId, String idEnterprise);
 
-    /**
-     * Cuenta el número de cuentas bancarias asociadas a una cuenta contable específica.
-     */
     long countByAccountingAccountIdAndIdEnterprise(Long accountingAccountId, String idEnterprise);
 }

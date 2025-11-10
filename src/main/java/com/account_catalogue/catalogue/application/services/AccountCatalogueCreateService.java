@@ -7,6 +7,12 @@ import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+/**
+ * @brief Servicio para operaciones de creación de cuentas contables
+ *
+ * Maneja la creación de nuevas cuentas del catálogo con validaciones
+ * completas de negocio y reglas de integridad.
+ */
 @Service
 @AllArgsConstructor
 public class AccountCatalogueCreateService implements IAccountCatalogueCreateInputPort {
@@ -15,10 +21,9 @@ public class AccountCatalogueCreateService implements IAccountCatalogueCreateInp
     private final AccountCatalogueValidationService validationService;
 
     /**
-     * Crea un catálogo de cuenta con validaciones completas.
-     *
-     * @param accountCatalogue El catálogo de cuenta a crear.
-     * @return El catálogo de cuenta creado.
+     * @brief Crea cuenta contable con validaciones completas
+     * @param accountCatalogue datos de la cuenta a crear
+     * @return cuenta creada con ID generado
      */
     @Override
     public AccountCatalogue createAccountCatalogue(AccountCatalogue accountCatalogue) {

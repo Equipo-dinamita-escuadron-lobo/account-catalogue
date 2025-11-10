@@ -11,7 +11,12 @@ import org.springframework.stereotype.Service;
 
 import java.util.Map;
 
-
+/**
+ * @brief Servicio para conversión de datos de Excel a entidades de dominio
+ *
+ * Convierte datos extraídos de archivos Excel a entidades del dominio
+ * de cuentas contables, manejando relaciones jerárquicas y normalización.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -52,9 +57,12 @@ public class AccountCatalogueDataConverter {
     }
 
     /**
-     * Resuelve el padre de una cuenta.
-     * Busca primero en las cuentas ya procesadas en este lote,
-     * luego en el mapa de padres de la base de datos.
+     * @brief Resuelve padre jerárquico de cuenta Excel con búsqueda en múltiples fuentes
+     * 
+     * @param excelData datos de Excel a resolver
+     * @param parentsMap mapa de códigos padre a entidades padre (para establecer relación)
+     * @param processedAccountsMap mapa de cuentas ya procesadas en este lote
+     * @return entidad de dominio padre resuelta o null si no se encuentra
      */
     private AccountCatalogue resolveParent(AccountCatalogueExcelData excelData, 
                                           Map<String, AccountCatalogueEntity> parentsMap,
@@ -87,7 +95,10 @@ public class AccountCatalogueDataConverter {
     }
 
     /**
-     * Convierte una entidad JPA a modelo de dominio (solo campos básicos para referencia).
+     * @brief Convierte entidad JPA completa a modelo de dominio con relaciones
+     * 
+     * @param entity entidad JPA a convertir
+     * @return modelo de dominio con relaciones resueltas
      */
     private AccountCatalogue convertEntityToDomain(AccountCatalogueEntity entity) {
         if (entity == null) {

@@ -5,14 +5,18 @@ import com.account_catalogue.taxes.infraestructure.adapters.output.jpaAdapters.e
 
 import org.mapstruct.Mapper;
 
+/**
+ * @brief Mapeador de datos para operaciones de creación de impuestos
+ *
+ * Gestiona la conversión entre entidades JPA y modelos de dominio
+ * para operaciones de persistencia de nuevos impuestos.
+ */
 @Mapper
 public interface ITaxCreateMapper {
     /**
-     * Este metodo toma un objeto Tax y devuelve un objeto TaxEntity.
-     * Es una simple mapeo del Tax al TaxEntity.
-     *
-     * @param tax el objeto Tax a mapear
-     * @return el TaxEntity mapeado, o null si el objeto Tax es null
+     * @brief Convierte modelo de dominio a entidad JPA
+     * @param tax modelo de dominio con entidades relacionadas cargadas
+     * @return entidad preparada para persistencia con status por defecto
      */
     default TaxEntity toEntity(Tax tax) {
         if (tax == null) {
@@ -33,11 +37,9 @@ public interface ITaxCreateMapper {
     }
 
     /**
-     * Este método toma un objeto TaxEntity y devuelve un objeto Tax.
-     * Es una simple mapeo del TaxEntity al modelo de dominio Tax.
-     *
-     * @param taxEntity el TaxEntity a mapear
-     * @return el modelo de dominio Tax mapeado, o null si el TaxEntity es null
+     * @brief Convierte entidad JPA a modelo de dominio
+     * @param taxEntity entidad con relaciones JPA cargadas
+     * @return modelo de dominio con entidades relacionadas mapeadas
      */
     default Tax toModel(TaxEntity taxEntity) {
         if (taxEntity == null) {

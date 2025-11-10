@@ -1,8 +1,10 @@
 package com.account_catalogue.bankAccounts.domain.enums;
 
 /**
- * Enum que define los tipos de cuenta bancaria soportados.
- * Estos tipos están predefinidos en el sistema.
+ * @brief Tipos de cuenta bancaria soportados en el sistema
+ *
+ * Enum que define las categorías de cuentas bancarias disponibles:
+ * cuentas de ahorros y cuentas corrientes.
  */
 public enum AccountType {
     AHORROS("Cuenta de Ahorros"),

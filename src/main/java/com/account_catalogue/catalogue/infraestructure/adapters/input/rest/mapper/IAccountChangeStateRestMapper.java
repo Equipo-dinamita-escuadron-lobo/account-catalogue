@@ -1,15 +1,23 @@
 package com.account_catalogue.catalogue.infraestructure.adapters.input.rest.mapper;
 
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
-import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.response.AccountCatalogueChangeStateRes;
+import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.response.AccountCatalogueChangeStateRes;
 
+/**
+ * @brief Mapper para operaciones de cambio de estado de cuentas contables
+ *
+ * Define contratos para conversión entre modelos de dominio y DTOs de respuesta
+ * en operaciones de activación/desactivación de cuentas.
+ */
 public interface IAccountChangeStateRestMapper {
     
     /**
-     * Convierte un objeto AccountCatalogue a AccountCatalogueChangeStateRes.
-     * 
-     * @param accountCatalogue el objeto de dominio
-     * @return el DTO de respuesta
+     * @brief Convierte modelo de dominio a respuesta de cambio de estado
+     *
+     * Genera mensaje automático basado en el estado (activado/desactivado)
+     * y construye respuesta completa con confirmación del cambio.
+     * @param accountCatalogue modelo de dominio con estado modificado
+     * @return DTO de respuesta con confirmación y mensaje informativo
      */
     default AccountCatalogueChangeStateRes toChangeStateResponse(AccountCatalogue accountCatalogue) {
         if (accountCatalogue == null) {

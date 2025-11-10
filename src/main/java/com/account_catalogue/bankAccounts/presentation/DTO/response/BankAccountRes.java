@@ -4,6 +4,12 @@ import com.account_catalogue.bankAccounts.domain.enums.AccountType;
 import com.account_catalogue.banks.presentation.DTO.response.BankRes;
 import lombok.*;
 
+/**
+ * @brief DTO de respuesta para cuentas bancarias
+ *
+ * Contiene la información completa de una cuenta bancaria
+ * para respuestas de la API REST.
+ */
 @Getter
 @Setter
 @NoArgsConstructor

@@ -28,6 +28,12 @@ import org.springframework.util.StringUtils;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * @brief Implementación de servicios para gestión de métodos de pago
+ *
+ * Proporciona operaciones CRUD completas con validaciones de negocio,
+ * filtros avanzados y manejo de relaciones con cuentas contables.
+ */
 @Service
 @RequiredArgsConstructor
 public class PaymentMethodServiceImpl implements IPaymentMethodService {
@@ -38,9 +44,10 @@ public class PaymentMethodServiceImpl implements IPaymentMethodService {
     private final AccountCatalogueValidationService accountCatalogueValidationService;
     private final PaginationHelper paginationHelper;
 
+    @Override
     @Transactional
     public PaymentMethod create(PaymentMethodCreateReq request) {
-        // Normalizar nombre solo para validación de unicidad (no para almacenamiento)
+        // Implementa validaciones de unicidad por nombre normalizado y cuenta auxiliar
         String normalizedNameForValidation = StringStandardizationUtils.standardizeName(request.getName());
 
         // Validar que la cuenta contable existe por ID y empresa
@@ -78,8 +85,10 @@ public class PaymentMethodServiceImpl implements IPaymentMethodService {
         return dataMapper.toDomain(saved);
     }
 
+    @Override
     @Transactional
     public PaymentMethod update(PaymentMethodUpdateReq request) {
+        // Implementa validaciones de unicidad excluyendo el registro actual
         PaymentMethodEntity current = repository.findByIdAndIdEnterprise(request.getId(), request.getIdEnterprise())
                 .orElseThrow(PaymentMethodsNotFoundException::new);
 
@@ -117,15 +126,19 @@ public class PaymentMethodServiceImpl implements IPaymentMethodService {
         return dataMapper.toDomain(saved);
     }
 
+    @Override
     @Transactional(readOnly = true)
     public PaymentMethod findById(Long id, String idEnterprise) {
+        // Implementa búsqueda con carga de relaciones usando EntityGraph
         return dataMapper.toDomain(repository.findByIdAndIdEnterprise(id, idEnterprise)
                 .orElseThrow(PaymentMethodsNotFoundException::new));
     }
 
+    @Override
     @Transactional(readOnly = true)
     public Page<PaymentMethod> findAllByEnterprise(String idEnterprise, Optional<Integer> page, Optional<Integer> size,
             String sortField, String sortOrder, String search) {
+        // Implementa búsqueda con JOIN en relaciones contables usando query nativo
         long totalRecords;
         if (StringUtils.hasText(search)) {
             totalRecords = repository.countByIdEnterpriseAndSearch(idEnterprise, search.trim());
@@ -151,9 +164,11 @@ public class PaymentMethodServiceImpl implements IPaymentMethodService {
         return result.map(dataMapper::toDomain);
     }
 
+    @Override
     @Transactional(readOnly = true)
     public Page<PaymentMethod> findAllActiveByEnterprise(String idEnterprise, Optional<Integer> page,
             Optional<Integer> size) {
+        // Implementa consulta solo de registros activos con ordenamiento fijo
 
         long totalRecords = repository.countByIdEnterpriseAndStatus(idEnterprise, true);
 
@@ -166,8 +181,10 @@ public class PaymentMethodServiceImpl implements IPaymentMethodService {
                 .map(dataMapper::toDomain);
     }
 
+    @Override
     @Transactional
     public PaymentMethod changeState(Long id, String idEnterprise, Boolean newState) {
+        // Implementa cambio de estado sin validaciones adicionales
         PaymentMethodEntity current = repository.findByIdAndIdEnterprise(id, idEnterprise)
                 .orElseThrow(PaymentMethodsNotFoundException::new);
 
@@ -176,8 +193,10 @@ public class PaymentMethodServiceImpl implements IPaymentMethodService {
         return dataMapper.toDomain(saved);
     }
 
+    @Override
     @Transactional
     public PaymentMethod delete(Long id, String idEnterprise) {
+        // Implementa eliminación sin validaciones de relaciones
         PaymentMethodEntity current = repository.findByIdAndIdEnterprise(id, idEnterprise)
                 .orElseThrow(PaymentMethodsNotFoundException::new);
 
@@ -188,13 +207,9 @@ public class PaymentMethodServiceImpl implements IPaymentMethodService {
 
 
     /**
-     * Valida que la cuenta contable existe y es una cuenta auxiliar (8 dígitos
-     * exactamente).
-     * 
+     * @brief Valida existencia y formato de cuenta contable auxiliar
      * @param accountingAccount el código de la cuenta contable
-     * @param idEnterprise      el ID de la empresa
-     * @throws InvalidAccountingAccountException si la cuenta no existe o no es
-     *                                           auxiliar
+     * @param idEnterprise el ID de la empresa
      */
     private void validateAccountingAccount(String accountingAccount, String idEnterprise) {
         if (accountingAccount == null || accountingAccount.trim().isEmpty()) {

@@ -9,8 +9,11 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Modelo que representa los datos de una cuenta contable parseados desde Excel.
- * Contiene los datos en formato raw antes de ser convertidos a entidades de dominio.
+ * @brief Modelo de dominio para datos de cuenta parseados desde Excel
+ *
+ * Representa una fila completa de datos Excel parseados y validados, con campos
+ * mapeados a enums del dominio. Incluye métodos utilitarios para validación
+ * y logging. Estado intermedio antes de conversión a entidades de BD.
  */
 @Data
 @Builder
@@ -18,54 +21,19 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class AccountCatalogueExcelData {
 
-    /**
-     * Número de fila en el Excel donde se encuentra este registro.
-     */
     private Integer rowNumber;
-
-    /**
-     * Identificador de la empresa.
-     */
     private String idEnterprise;
-
-    /**
-     * Código de la cuenta contable.
-     */
     private String code;
-
-    /**
-     * Descripción/nombre de la cuenta.
-     */
     private String description;
-
-    /**
-     * Naturaleza de la cuenta (Débito o Crédito).
-     */
     private NatureEnum nature;
-
-    /**
-     * Estado financiero al que pertenece.
-     */
     private FinancialStatusEnum financialStatus;
-
-    /**
-     * Clasificación de la cuenta.
-     */
     private ClassificationEnum classification;
-
-    /**
-     * Indica si la cuenta permite cruce (solo para cuentas auxiliares de 8 dígitos).
-     */
     private Boolean crossing;
-
-    /**
-     * Indica si la cuenta permite centro de costo (solo para cuentas auxiliares con Estado de Resultados).
-     */
     private Boolean costCenter;
 
     /**
-     * Verifica si los campos básicos requeridos están presentes.
-     * Todos los campos son requeridos excepto crossing y costCenter.
+     * @brief Valida presencia de campos obligatorios en registro Excel
+     * @return true si todos los campos requeridos están presentes y no vacíos
      */
     public boolean hasRequiredFields() {
         return code != null && !code.trim().isEmpty()
@@ -76,14 +44,16 @@ public class AccountCatalogueExcelData {
     }
 
     /**
-     * Verifica si es una cuenta auxiliar (8 dígitos).
+     * @brief Determina si la cuenta es auxiliar basado en longitud del código
+     * @return true si el código tiene exactamente 8 dígitos (cuenta auxiliar)
      */
     public boolean isAuxiliaryAccount() {
         return code != null && code.trim().length() == 8;
     }
 
     /**
-     * Obtiene una representación String del registro para logging y errores.
+     * @brief Genera representación string para logging y depuración
+     * @return string formateado con fila, código, descripción y naturaleza
      */
     public String toLogString() {
         return String.format("Fila %d: Código=%s, Descripción=%s, Naturaleza=%s",

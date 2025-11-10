@@ -1,15 +1,19 @@
 package com.account_catalogue.catalogue.application.services;
 
+import java.util.List;
 import java.util.regex.Pattern;
 
 import org.springframework.stereotype.Service;
 
 import com.account_catalogue.bankAccounts.dataAccess.repository.BankAccountRepository;
 import com.account_catalogue.paymentMethods.dataAccess.repository.PaymentMethodRepository;
+import com.account_catalogue.accounting.application.input.IAccountingSearchInputPort;
+import com.account_catalogue.accounting.domain.models.AccountingMovement;
 import com.account_catalogue.catalogue.application.output.IAccountCatalogueSearchOutputPort;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
 import com.account_catalogue.catalogue.domain.enums.FinancialStatusEnum;
 import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueAlreadyExistsException;
+import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueAssociatedWithAccountingMovementsException;
 import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueAssociatedWithBankAccountException;
 import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueAssociatedWithPaymentMethodException;
 import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueAssociatedWithTaxException;
@@ -30,6 +34,7 @@ import lombok.AllArgsConstructor;
 public class AccountCatalogueValidationService {
 
     private final IAccountCatalogueSearchOutputPort accountCatalogueSearchOutputPort;
+    private final IAccountingSearchInputPort accountingSearchInputPort;
     private final BankAccountRepository bankAccountRepository;
     private final PaymentMethodRepository paymentMethodRepository;
 
@@ -227,6 +232,40 @@ public class AccountCatalogueValidationService {
         if (account.getChildren() != null && !account.getChildren().isEmpty()) {
             for (AccountCatalogue child : account.getChildren()) {
                 validateAccountAndChildrenNotAssociatedWithPaymentMethods(child);
+            }
+        }
+    }
+
+    /**
+     * @brief Valida que cuenta no tenga asociaciones con movimientos contables
+     * @param account instancia de cuenta a validar
+     * @param operation operación que se está intentando realizar ("eliminar" o "editar")
+     * @throws AccountCatalogueAssociatedWithAccountingMovementsException si tiene asociaciones con movimientos contables
+     */
+    public void validateAccountNotAssociatedWithAccountingMovements(AccountCatalogue account, String operation) {
+        List<AccountingMovement> movements = accountingSearchInputPort.findMovementsByAccountId(account.getId());
+
+        if (movements != null && !movements.isEmpty()) {
+            throw new AccountCatalogueAssociatedWithAccountingMovementsException(
+                    "No se puede " + operation + " la cuenta " + account.getCode()
+                            + " porque tiene registros contables");
+        }
+    }
+
+    /**
+     * @brief Valida recursivamente jerarquía completa contra asociaciones con movimientos contables
+     * @param account cuenta padre cuya jerarquía completa debe validarse
+     * @param operation operación que se está intentando realizar ("eliminar" o "editar")
+     * @throws AccountCatalogueAssociatedWithAccountingMovementsException si cualquier cuenta en jerarquía tiene asociaciones
+     */
+    public void validateAccountAndChildrenNotAssociatedWithAccountingMovements(AccountCatalogue account, String operation) {
+        // Validar la cuenta principal
+        validateAccountNotAssociatedWithAccountingMovements(account, operation);
+
+        // Validar recursivamente todas las cuentas hijas
+        if (account.getChildren() != null && !account.getChildren().isEmpty()) {
+            for (AccountCatalogue child : account.getChildren()) {
+                validateAccountAndChildrenNotAssociatedWithAccountingMovements(child, operation);
             }
         }
     }

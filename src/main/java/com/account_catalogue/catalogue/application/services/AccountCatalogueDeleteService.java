@@ -48,7 +48,10 @@ public class AccountCatalogueDeleteService implements IAccountCatalogueDeleteInp
                 "No se puede eliminar la cuenta '" + accountTreeToDelete.getCode() + "' porque tiene cuentas hijas asociadas."
             );
         }
-        
+
+        // Validar recursivamente que ni la cuenta padre ni ninguna de sus hijas estén asociadas a movimientos contables
+        validationService.validateAccountAndChildrenNotAssociatedWithAccountingMovements(accountTreeToDelete, "eliminar");
+
         // Validar recursivamente que ni la cuenta padre ni ninguna de sus hijas estén asociadas a impuestos
         validationService.validateAccountAndChildrenNotAssociatedWithTaxes(accountTreeToDelete);
         

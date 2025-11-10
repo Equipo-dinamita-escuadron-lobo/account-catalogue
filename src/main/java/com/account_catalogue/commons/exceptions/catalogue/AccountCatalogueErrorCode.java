@@ -19,6 +19,7 @@ public enum AccountCatalogueErrorCode implements ErrorCodeDefinition {
     ACCOUNT_ASSOCIATED_WITH_TAX("ACCOUNT_ASSOCIATED_WITH_TAX", "La cuenta está asociada a uno o más impuestos"),
     ACCOUNT_ASSOCIATED_WITH_BANK_ACCOUNT("ACCOUNT_ASSOCIATED_WITH_BANK_ACCOUNT", "La cuenta está asociada a una o más cuentas bancarias"),
     ACCOUNT_ASSOCIATED_WITH_PAYMENT_METHOD("ACCOUNT_ASSOCIATED_WITH_PAYMENT_METHOD", "La cuenta está asociada a uno o más métodos de pago"),
+    ACCOUNT_ASSOCIATED_WITH_ACCOUNTING_MOVEMENTS("ACCOUNT_ASSOCIATED_WITH_ACCOUNTING_MOVEMENTS", "La cuenta está asociada a uno o más movimientos contables"),
     INVALID_ACCOUNT_CODE_LENGTH("INVALID_ACCOUNT_CODE_LENGTH", "El código de cuenta debe tener exactamente 1, 2, 4, 6 u 8 dígitos"),
     EXCEL_VALIDATION_ERROR("EXCEL_VALIDATION_ERROR", "Error en la validación de datos del archivo Excel"),
     EXCEL_CODE_VALIDATION_ERROR("EXCEL_CODE_VALIDATION_ERROR", "Error aplicando validación de código en columna"),

@@ -248,7 +248,7 @@ public class AccountCatalogueValidationService {
         if (movements != null && !movements.isEmpty()) {
             throw new AccountCatalogueAssociatedWithAccountingMovementsException(
                     "No se puede " + operation + " la cuenta " + account.getCode()
-                            + " porque tiene registros contables");
+                            + " porque tiene movimientos contables");
         }
     }
 

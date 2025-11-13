@@ -47,13 +47,13 @@ public class PortfolioSearchService implements IPortfolioSearchInputPort {
 
                     // Calculamos el valor total de la deuda
                     BigDecimal totalDebt = clientInvoices.stream()
-                            .map(inv -> BigDecimal.valueOf(inv.getPendingValue()))
+                            .map(InvoiceReplica::getPendingValue)
                             .reduce(BigDecimal.ZERO, BigDecimal::add);
 
                     // Calculamos la deuda vencida
                     BigDecimal overdueAmount = clientInvoices.stream()
-                            .filter(inv -> inv.getExpirationDate().isBefore(today))
-                            .map(inv -> BigDecimal.valueOf(inv.getPendingValue()))
+                            .filter(inv -> inv.getExpirationDate() != null && inv.getExpirationDate().isBefore(today))
+                            .map(InvoiceReplica::getPendingValue)
                             .reduce(BigDecimal.ZERO, BigDecimal::add);
 
                     // Calculamos la deuda por vencer
@@ -102,7 +102,7 @@ public class PortfolioSearchService implements IPortfolioSearchInputPort {
 
     // 3. Mapeamos la lista de modelos de dominio (InvoiceReplica) a la lista de DTOs (InvoiceDetailResponse)
     return invoices.stream()
-            .map(invoice -> {
+            .map((InvoiceReplica invoice) -> {
                 int daysInArrears = 0;
                 
                 // 4. Calculamos los días en mora (la misma lógica que estaba en el controlador)

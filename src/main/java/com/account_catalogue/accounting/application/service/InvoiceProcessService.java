@@ -10,7 +10,6 @@ import com.account_catalogue.accounting.application.input.IInvoiceProcessInputPo
 import com.account_catalogue.accounting.application.output.IInvoiceProviderPort;
 import com.account_catalogue.accounting.domain.enums.InvoiceStatus;
 import com.account_catalogue.accounting.domain.models.InvoiceReplica;
-import com.account_catalogue.accounting.infraestructure.output.messageBroker.DTO.InvoiceSyncDto;
 import com.account_catalogue.catalogue.application.output.IAccountCatalogueSearchOutputPort;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
 import com.account_catalogue.accounting.domain.exception.InvoiceNotFoundException;
@@ -29,33 +28,38 @@ public class InvoiceProcessService implements IInvoiceProcessInputPort {
     private final AccountBalanceUpdateService accountBalanceUpdateService;
     private final IAccountCatalogueSearchOutputPort accountCatalogueSearchOutputPort;
     private final IInvoiceProviderPort invoiceProviderPort;
+    
    
 
     @Override
     @Transactional
-    public void processInvoiceCreation(InvoiceSyncDto invoiceDto) {
-        log.info("Iniciando actualización de saldos para la nueva factura {}", invoiceDto.getFactCode());
+    public void processInvoiceCreation(InvoiceReplica invoice) {
+        log.info("Iniciando procesamiento de la nueva factura {}", invoice.getFactCode());
 
-        if (invoiceDto.getAccountingAccount() == null || invoiceDto.getPendingValue() == null) {
-            log.error("La factura {} no tiene una cuenta contable o un valor pendiente para procesar.", invoiceDto.getFactCode());
-            // Considera lanzar una excepción si esto no debería ocurrir.
-            return;
+        // 1. Persistir la réplica de la factura. Esta lógica se movió desde el listener.
+        invoiceProviderPort.saveOrUpdate(invoice); // o save, dependiendo de la implementación
+        log.info("Réplica de la factura {} guardada/actualizada.", invoice.getFactCode());
+        
+        // --- Lógica de actualización de saldos (ahora dentro de la misma transacción) ---
+        if (invoice.getAccountingAccount() == null || invoice.getPendingValue() == null) {
+            log.error("La factura {} no tiene cuenta o valor pendiente.", invoice.getFactCode());
+            throw new IllegalArgumentException("Datos insuficientes en la factura para actualizar saldos.");
         }
 
         // Buscar cuenta contable por codigo
-        AccountCatalogue accountCatalogue = accountCatalogueSearchOutputPort.getAccountCatalogueByCode(invoiceDto.getAccountingAccount().toString(), invoiceDto.getEntId());
+        AccountCatalogue accountCatalogue = accountCatalogueSearchOutputPort.getAccountCatalogueByCode(invoice.getAccountingAccount().toString(), invoice.getEntId());
         if (accountCatalogue == null) {
-            log.error("No se encontró la cuenta contable con ID: {} para la factura {}. Se omite la actualización de saldo.", invoiceDto.getAccountingAccount(), invoiceDto.getFactCode());
+            log.error("No se encontró la cuenta contable con ID: {} para la factura {}. Se omite la actualización de saldo.", invoice.getAccountingAccount(), invoice.getFactCode());
             // Considera lanzar una excepción si esto es un estado irrecuperable
             return;
         }
 
 
         Long accountId = accountCatalogue.getId();
-        String enterpriseId = invoiceDto.getEntId();
+        String enterpriseId = invoice.getEntId();
         
         // Convertimos el valor pendiente (Long) a BigDecimal.
-        BigDecimal amount = new BigDecimal(invoiceDto.getPendingValue());
+        BigDecimal amount = invoice.getPendingValue();
 
         // Lógica Contable: Una nueva factura de venta (cuenta por cobrar) es un activo.
         // El aumento de un activo se registra como un DÉBITO.
@@ -65,11 +69,11 @@ public class InvoiceProcessService implements IInvoiceProcessInputPort {
 
         try {
             accountBalanceUpdateService.updateSingleAccountHierarchy(accountId, debitAmount, creditAmount, enterpriseId);
-            log.info("Saldos actualizados correctamente para la jerarquía de la cuenta {} debido a la factura {}", accountId, invoiceDto.getFactCode());
+            log.info("Saldos actualizados correctamente para la jerarquía de la cuenta {} debido a la factura {}", accountId, invoice.getFactCode());
         } catch (Exception e) {
-            log.error("Error crítico al actualizar el saldo para la cuenta {} de la factura {}. Error: {}", accountId, invoiceDto.getFactCode(), e.getMessage(), e);
+            log.error("Error crítico al actualizar el saldo para la cuenta {} de la factura {}. Error: {}", accountId, invoice.getFactCode(), e.getMessage(), e);
             // Lanzamos una excepción para que la transacción se revierta y el mensaje pueda ir a una DLQ.
-            throw new IllegalStateException("Fallo al actualizar el saldo de la cuenta para la factura " + invoiceDto.getFactCode(), e);
+            throw new IllegalStateException("Fallo al actualizar el saldo de la cuenta para la factura " + invoice.getFactCode(), e);
         }
     }
 

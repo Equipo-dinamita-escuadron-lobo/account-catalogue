@@ -4,17 +4,11 @@ import java.time.LocalDate;
 import java.util.List;
 
 import com.account_catalogue.accounting.domain.models.InvoiceReplica;
-import com.account_catalogue.accounting.infraestructure.output.messageBroker.DTO.InvoiceSyncDto;
 
 /**
  * Puerto de entrada para orquestar la lógica de negocio relacionada con las facturas.
  */
 public interface IInvoiceProcessInputPort {
-      /**
-     * Procesa la creación de una factura, principalmente para actualizar los saldos de las cuentas contables.
-     * @param invoiceDto El DTO de la factura recibido del evento.
-     */
-    void processInvoiceCreation(InvoiceSyncDto invoiceDto);   
 
     /**
      * Actualiza la fecha de vencimiento de una factura específica.
@@ -44,5 +38,10 @@ public interface IInvoiceProcessInputPort {
      */
     InvoiceReplica findInvoiceById(Long invoiceId);
 
+    /**
+     * Procesa la creación de una factura, guardando la réplica y actualizando saldos.
+     * @param invoice El objeto de dominio que representa la factura.
+     */
+    void processInvoiceCreation(InvoiceReplica invoice); 
 
 }

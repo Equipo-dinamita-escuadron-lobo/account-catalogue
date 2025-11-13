@@ -13,7 +13,6 @@ import com.account_catalogue.accounting.domain.models.InvoiceReplica;
 import com.account_catalogue.accounting.infraestructure.output.jpaAdapter.entity.InvoiceReplicaEntity;
 import com.account_catalogue.accounting.infraestructure.output.jpaAdapter.mapper.IInvoicePersistenceMapper;
 import com.account_catalogue.accounting.infraestructure.output.jpaAdapter.repository.IInvoiceRepository;
-import com.account_catalogue.accounting.infraestructure.output.messageBroker.DTO.InvoiceSyncDto;
 
 import lombok.RequiredArgsConstructor;
 
@@ -25,22 +24,26 @@ public class InvoicePersistenceAdapter implements IInvoiceProviderPort {
     private final IInvoiceRepository invoiceRepository;
 
     @Transactional
-    public void saveOrUpdate(InvoiceSyncDto dto) {
-        InvoiceReplicaEntity entity = invoiceRepository.findById(dto.getFactCode())
+    @Override
+    public void saveOrUpdate(InvoiceReplica invoice) {
+        InvoiceReplicaEntity entity = new InvoiceReplicaEntity();
+        if(invoice.getId() != null){
+            entity = invoiceRepository.findById(invoice.getId())
             .orElse(new InvoiceReplicaEntity());
+        }
         
-        entity.setFactCode(dto.getFactCode());
-        entity.setEntId(dto.getEntId());
-        entity.setThirdId(dto.getThirdId());
-        entity.setTotalValue(dto.getTotalValue());
-        entity.setTotalPay(dto.getTotalPay());
-        entity.setPendingValue(dto.getPendingValue());
-        entity.setExpirationDate(dto.getExpirationDate());
+        entity.setFactCode(Long.valueOf(invoice.getFactCode()));
+        entity.setEntId(invoice.getEntId());
+        entity.setThirdId(invoice.getThirdId());
+        entity.setTotalValue(invoice.getTotalValue());
+        entity.setTotalPay(invoice.getTotalPay());
+        entity.setPendingValue(invoice.getPendingValue());
+        entity.setExpirationDate(invoice.getExpirationDate());
         entity.setLastUpdateAt(LocalDate.now());
         entity.setActive(true); 
         entity.setStatus(InvoiceStatus.PENDING);
-        entity.setAccountingAccount(dto.getAccountingAccount());
-        entity.setCreationDate(dto.getExpirationDate());
+        entity.setAccountingAccount(invoice.getAccountingAccount());
+        entity.setCreationDate(invoice.getCreationDate());
         invoiceRepository.save(entity);
     }
 
@@ -52,7 +55,9 @@ public class InvoicePersistenceAdapter implements IInvoiceProviderPort {
     public Optional<Long> getInvoiceBalance(Long invoiceId) {
         Optional<InvoiceReplicaEntity> invoiceEntityOptional = invoiceRepository.findById(invoiceId);
 
-        return invoiceEntityOptional.map(InvoiceReplicaEntity::getPendingValue);
+        return invoiceEntityOptional
+            .map(InvoiceReplicaEntity::getPendingValue)
+            .map(bd -> bd.longValue());
     }
 
     /**

@@ -7,6 +7,12 @@ import com.account_catalogue.taxes.application.input.ITaxDeleteInputPort;
 import com.account_catalogue.taxes.application.output.ITaxDeleteOutputPort;
 import jakarta.transaction.Transactional;
 
+/**
+ * @brief Servicio de aplicación para eliminación de impuestos
+ *
+ * Implementa la lógica de negocio para eliminar impuestos mediante soft delete
+ * con validaciones de existencia previas.
+ */
 @Service
 @AllArgsConstructor
 public class TaxDeleteService implements ITaxDeleteInputPort {
@@ -14,9 +20,7 @@ public class TaxDeleteService implements ITaxDeleteInputPort {
     private final TaxValidationService taxValidationService;
 
     /**
-     * Elimina (soft delete) un impuesto por su ID y empresa.
-     * Valida que el impuesto exista para la empresa específica antes de eliminarlo.
-     *
+     * @brief Elimina impuesto mediante soft delete con validación previa
      * @param id ID del impuesto a eliminar
      * @param idEnterprise ID de la empresa
      * @return true si se eliminó con éxito, false de lo contrario

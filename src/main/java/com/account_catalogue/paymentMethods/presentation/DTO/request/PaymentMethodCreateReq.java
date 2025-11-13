@@ -3,6 +3,12 @@ package com.account_catalogue.paymentMethods.presentation.DTO.request;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
+/**
+ * @brief DTO de solicitud para crear métodos de pago
+ *
+ * Contiene los campos requeridos para crear un nuevo método de pago
+ * con validaciones de formato y obligatoriedad.
+ */
 @Getter
 @Setter
 @NoArgsConstructor

@@ -7,6 +7,12 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.TenantId;
 
+/**
+ * @brief Entidad que representa una cuenta bancaria en el sistema
+ *
+ * Almacena la información de cuentas bancarias con índices para
+ * consultas por empresa, número de cuenta y banco.
+ */
 @Entity
 @Table(
     name = "bank_accounts",

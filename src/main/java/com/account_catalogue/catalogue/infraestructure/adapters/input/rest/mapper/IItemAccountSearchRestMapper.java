@@ -1,21 +1,25 @@
 package com.account_catalogue.catalogue.infraestructure.adapters.input.rest.mapper;
 
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
-import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.response.ItemAccountCatalogueSearchRes;
+import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.response.ItemAccountCatalogueSearchRes;
 
 import org.mapstruct.Mapper;
 
-
+/**
+ * @brief Mapper para transformación de items individuales de búsqueda
+ *
+ * Define contratos para conversión entre modelos de dominio y DTOs de respuesta
+ * en operaciones de búsqueda individual de cuentas contables.
+ */
 @Mapper
 public interface IItemAccountSearchRestMapper {
     /**
-     * Este metodo transforma un objeto AccountCatalogue en un objeto
-     * ItemAccountCatalogueSearchRes que es el objeto que se utiliza para
-     * devolver el detalle de la cuenta en la API REST.
+     * @brief Convierte cuenta de dominio a item de respuesta de búsqueda
      *
-     * @param accountCatalogue el objeto AccountCatalogue a transformar.
-     * @return el objeto ItemAccountCatalogueSearchRes que representa el objeto
-     *         AccountCatalogue transformado.
+     * Transforma modelo de dominio a DTO de respuesta para APIs de búsqueda individual,
+     * convirtiendo enums a strings y manejando referencias padre.
+     * @param accountCatalogue modelo de dominio de cuenta contable
+     * @return DTO de respuesta con datos completos de la cuenta
      */
    default ItemAccountCatalogueSearchRes toItemAccountCatalogueSearch(AccountCatalogue accountCatalogue){
        if(accountCatalogue==null){

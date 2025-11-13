@@ -6,21 +6,25 @@ import com.account_catalogue.taxes.infraestructure.adapters.output.jpaAdapters.e
 
 import org.mapstruct.Mapper;
 
+/**
+ * @brief Mapeador de datos para operaciones de actualización de impuestos
+ *
+ * Gestiona la conversión automática entre entidades JPA y modelos de dominio
+ * para operaciones de modificación de impuestos existentes.
+ */
 @Mapper(componentModel = "spring")
 public interface ITaxUpdateMapper {
     /**
-     * Mapea un objeto Tax a un objeto TaxEntity.
-     *
-     * @param tax el objeto Tax a mapear
-     * @return el objeto TaxEntity mapeado, o null si el objeto Tax es null
+     * @brief Convierte modelo de dominio a entidad JPA automáticamente
+     * @param tax modelo de dominio a convertir
+     * @return entidad JPA con mapeo automático de campos
      */
     TaxEntity toEntity(Tax tax);
 
     /**
-     * Mapea un objeto TaxEntity a un objeto Tax.
-     *
-     * @param taxEntity el TaxEntity a mapear
-     * @return el modelo de dominio Tax mapeado, o null si el TaxEntity es null
+     * @brief Convierte entidad JPA a modelo de dominio automáticamente
+     * @param taxEntity entidad JPA a convertir
+     * @return modelo de dominio con mapeo automático de campos
      */
     Tax toModel(TaxEntity taxEntity);
 }

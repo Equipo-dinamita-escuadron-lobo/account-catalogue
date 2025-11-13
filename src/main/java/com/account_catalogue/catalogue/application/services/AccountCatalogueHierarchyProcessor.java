@@ -14,6 +14,12 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * @brief Servicio para procesamiento de jerarquías de cuentas contables
+ *
+ * Maneja el ordenamiento y procesamiento de cuentas según su jerarquía,
+ * asegurando que las cuentas padre se procesen antes que las hijas.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -21,6 +27,11 @@ public class AccountCatalogueHierarchyProcessor {
 
     private final IAccountCatalogueRepository accountCatalogueRepository;
 
+    /**
+     * @brief Ordena cuentas por jerarquía para procesamiento secuencial
+     * @param accountsData lista de cuentas a ordenar
+     * @return lista ordenada por jerarquía (padres antes que hijos)
+     */
     public List<AccountCatalogueExcelData> sortByHierarchy(List<AccountCatalogueExcelData> accountsData) {
         if (accountsData == null || accountsData.isEmpty()) {
             return new ArrayList<>();
@@ -30,6 +41,12 @@ public class AccountCatalogueHierarchyProcessor {
         return AccountCodeUtils.sortByHierarchy(accountsData);
     }
 
+    /**
+     * @brief Valida jerarquía de cuentas con detalles de errores
+     * @param accountsData lista de cuentas a validar
+     * @param entId ID de la empresa
+     * @return lista de errores encontrados en la jerarquía
+     */
     public List<ImportErrorDetail> validateHierarchyWithDetails(
             List<AccountCatalogueExcelData> accountsData, String entId) {
         List<ImportErrorDetail> errors = new ArrayList<>();
@@ -74,6 +91,9 @@ public class AccountCatalogueHierarchyProcessor {
         return errors;
     }
 
+    /**
+     * @brief Construye mapa de jerarquía a partir de datos Excel
+     */
     private Map<String, AccountCatalogueExcelData> buildHierarchyMap(List<AccountCatalogueExcelData> accountsData) {
         return accountsData.stream()
                 .filter(account -> account.getCode() != null && !account.getCode().trim().isEmpty())
@@ -84,6 +104,9 @@ public class AccountCatalogueHierarchyProcessor {
                 ));
     }
 
+    /**
+     * @brief Verifica existencia de cuenta en base de datos
+     */
     private boolean existsInDatabase(String code, String entId) {
         try {
             AccountCatalogueEntity existing = accountCatalogueRepository.findByCode(code, entId);
@@ -93,6 +116,12 @@ public class AccountCatalogueHierarchyProcessor {
         }
     }
 
+    /**
+     * @brief Construye mapa de cuentas padre desde base de datos
+     * @param parentCodes conjunto de códigos de cuentas padre
+     * @param entId ID de la empresa
+     * @return mapa de códigos a entidades de cuentas padre
+     */
     public Map<String, AccountCatalogueEntity> buildParentMapFromDatabase(Set<String> parentCodes, String entId) {
         Map<String, AccountCatalogueEntity> parentMap = new HashMap<>();
 

@@ -25,6 +25,12 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Locale;
 import java.util.Optional;
 
+/**
+ * @brief Implementación de servicios para gestión de bancos
+ *
+ * Proporciona operaciones CRUD completas con validaciones de negocio,
+ * filtros avanzados, búsqueda y estandarización de datos.
+ */
 @Service
 @RequiredArgsConstructor
 public class BankServiceImpl implements IBankService {
@@ -35,6 +41,7 @@ public class BankServiceImpl implements IBankService {
     private final BankAccountRepository bankAccountRepository;
     private final PaginationHelper paginationHelper;
 
+    @Override
     @Transactional
     public Bank create(BankCreateReq request) {
         // Validar formato del código
@@ -61,6 +68,7 @@ public class BankServiceImpl implements IBankService {
         return dataMapper.toDomain(saved);
     }
 
+    @Override
     @Transactional
     public Bank update(BankUpdateReq request) {
         BankEntity current = repository.findByIdAndIdEnterprise(request.getId(), request.getIdEnterprise())
@@ -93,12 +101,14 @@ public class BankServiceImpl implements IBankService {
         return dataMapper.toDomain(saved);
     }
 
+    @Override
     @Transactional(readOnly = true)
     public Bank findById(Long id, String idEnterprise) {
         return dataMapper.toDomain(repository.findByIdAndIdEnterprise(id, idEnterprise)
                 .orElseThrow(BankNotFoundException::new));
     }
 
+    @Override
     @Transactional(readOnly = true)
     public Page<Bank> findAllByEnterpriseWithFilters(String idEnterprise, Integer page, Integer size,
                                                    String sortField, String sortOrder, String search) {
@@ -108,11 +118,9 @@ public class BankServiceImpl implements IBankService {
                 throw new IllegalArgumentException("El campo de ordenamiento debe ser 'code' o 'name'");
             }
         } else {
-            // Por defecto ordenar por nombre
             sortField = "name";
         }
 
-        // Validar sortOrder - solo permitir "asc" y "desc"
         Sort.Direction direction = Sort.Direction.ASC;
         if (sortOrder != null && !sortOrder.isEmpty()) {
             if ("desc".equalsIgnoreCase(sortOrder)) {
@@ -125,14 +133,12 @@ public class BankServiceImpl implements IBankService {
         // Determinar el número total de registros (considerando búsqueda si existe)
         long totalRecords;
         if (StringUtils.hasText(search)) {
-            // Si hay búsqueda, contar registros que coincidan con la búsqueda
             totalRecords = repository.countByIdEnterpriseAndSearch(idEnterprise, search.trim());
         } else {
-            // Sin búsqueda, contar todos los registros
             totalRecords = repository.countByIdEnterprise(idEnterprise);
         }
 
-        // Crear paginación inteligente
+        // Crear paginación
         Pageable pageable = paginationHelper.createFlexiblePageable(
             Optional.ofNullable(page),
             Optional.ofNullable(size),
@@ -146,22 +152,20 @@ public class BankServiceImpl implements IBankService {
             Sort.by(direction, sortField)
         );
 
-        // Ejecutar consulta con filtros
         Page<BankEntity> result;
         if (StringUtils.hasText(search)) {
-            // Búsqueda por código o nombre
             result = repository.findByIdEnterpriseAndSearch(idEnterprise, search.trim(), pageableWithSort);
         } else {
-            // Sin búsqueda
             result = repository.findAllByIdEnterprise(idEnterprise, pageableWithSort);
         }
 
         return result.map(dataMapper::toDomain);
     }
 
+    @Override
     @Transactional(readOnly = true)
     public Page<Bank> findAllActiveByEnterprise(String idEnterprise, Integer page, Integer size) {
-        // Contar el total de bancos activos para paginación inteligente
+        
         long totalRecords = repository.countByIdEnterpriseAndStatus(idEnterprise, true);
 
         Pageable pageable = paginationHelper.createFlexiblePageable(
@@ -179,6 +183,7 @@ public class BankServiceImpl implements IBankService {
                 .map(dataMapper::toDomain);
     }
 
+    @Override
     @Transactional
     public Bank changeState(Long id, String idEnterprise, Boolean newState) {
         BankEntity current = repository.findByIdAndIdEnterprise(id, idEnterprise)
@@ -189,6 +194,7 @@ public class BankServiceImpl implements IBankService {
         return dataMapper.toDomain(saved);
     }
 
+    @Override
     @Transactional
     public Bank delete(Long id, String idEnterprise) {
         BankEntity current = repository.findByIdAndIdEnterprise(id, idEnterprise)
@@ -207,7 +213,10 @@ public class BankServiceImpl implements IBankService {
     }
 
     /**
-     * Estandariza el nombre del banco convirtiéndolo a mayúsculas.
+     * @brief Estandariza el nombre del banco a mayúsculas.
+     *
+     * @param input el nombre original del banco
+     * @return el nombre estandarizado en mayúsculas, o null si input es null
      */
     private String standardizeName(String input) {
         if (input == null)
@@ -216,8 +225,9 @@ public class BankServiceImpl implements IBankService {
     }
 
     /**
-     * Valida que el código del banco tenga el formato correcto (exactamente 2
-     * dígitos: 01-99).
+     * @brief Valida el formato del código bancario.
+     *
+     * @param codigo el código del banco a validar
      */
     private void validateBankCode(String codigo) {
         if (codigo == null || codigo.trim().isEmpty()) {

@@ -9,6 +9,12 @@ import com.account_catalogue.taxes.domain.models.Tax;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 
+/**
+ * @brief Servicio de aplicación para cambio de estado de impuestos
+ *
+ * Implementa la lógica de negocio para activar o desactivar impuestos
+ * con validaciones de existencia previas.
+ */
 @Service
 @AllArgsConstructor
 public class TaxChangeStateService implements ITaxChangeStateInputPort {
@@ -17,13 +23,11 @@ public class TaxChangeStateService implements ITaxChangeStateInputPort {
     private final TaxValidationService validationService;
 
     /**
-     * Cambia el estado (activo/inactivo) de un impuesto.
-     * Valida que el impuesto exista antes de cambiar su estado.
-     * 
-     * @param id el ID del impuesto
-     * @param idEnterprise el ID de la empresa
-     * @param status el nuevo estado (true = activo, false = inactivo)
-     * @return el impuesto actualizado
+     * @brief Cambia estado de impuesto con validación previa
+     * @param id ID del impuesto
+     * @param idEnterprise ID de la empresa
+     * @param status nuevo estado (true=activo, false=inactivo)
+     * @return impuesto actualizado
      */
     @Transactional
     @Override

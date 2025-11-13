@@ -10,6 +10,12 @@ import com.account_catalogue.taxes.infraestructure.adapters.output.jpaAdapters.r
 
 import lombok.AllArgsConstructor;
 
+/**
+ * @brief Adaptador JPA para operaciones de cambio de estado de impuestos
+ *
+ * Implementa la persistencia de cambios de estado de impuestos
+ * mediante operaciones JPA con validación de existencia.
+ */
 @Component
 @AllArgsConstructor
 public class TaxChangeStateJpaAdapter implements ITaxChangeStateOutputPort {
@@ -18,12 +24,11 @@ public class TaxChangeStateJpaAdapter implements ITaxChangeStateOutputPort {
     private final ITaxUpdateMapper taxUpdateMapper;
 
     /**
-     * Cambia el estado de un impuesto en la base de datos.
-     * 
-     * @param id el ID del impuesto
-     * @param idEnterprise el ID de la empresa
-     * @param status el nuevo estado
-     * @return el impuesto actualizado
+     * @brief Cambia estado de impuesto con validación de existencia
+     * @param id ID del impuesto
+     * @param idEnterprise ID de la empresa
+     * @param status nuevo estado a aplicar
+     * @return impuesto con estado actualizado
      */
     @Override
     public Tax changeState(Long id, String idEnterprise, Boolean status) {

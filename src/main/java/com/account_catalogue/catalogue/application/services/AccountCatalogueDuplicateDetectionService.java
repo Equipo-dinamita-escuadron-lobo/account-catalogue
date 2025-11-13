@@ -17,6 +17,12 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
+/**
+ * @brief Servicio para detección de duplicados en importación de cuentas
+ *
+ * Identifica y maneja registros duplicados durante el proceso de importación
+ * masiva de cuentas contables desde archivos Excel.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -25,7 +31,15 @@ public class AccountCatalogueDuplicateDetectionService {
     private final IAccountCatalogueRepository accountCatalogueRepository;
 
     /**
-     * Procesa un registro individual para determinar si es duplicado.
+     * @brief Evalúa registro individual contra duplicados internos y de base de datos
+     * 
+     * @param accountData registro Excel a evaluar
+     * @param entId ID de empresa para contexto de consulta
+     * @param seenCodes códigos ya vistos en este lote
+     * @param seenDescriptions descripciones ya vistas en este lote
+     * @param dbDuplicatesByCode mapa de códigos a entidades encontradas en base de datos
+     * @param dbDuplicatesByDescription mapa de descripciones normalizadas a entidades encontradas en base de datos
+     * @return true si el registro es duplicado, false en caso contrario
      */
     private boolean isDuplicateRecord(AccountCatalogueExcelData accountData, String entId,
             Set<String> seenCodes, Set<String> seenDescriptions,
@@ -56,10 +70,13 @@ public class AccountCatalogueDuplicateDetectionService {
     }
 
     /**
-     * Detecta duplicados internos en el Excel y contra la base de datos.
-     * Los duplicados se detectan por código Y descripción (case-insensitive sin
-     * acentos).
-     * Los duplicados se omiten silenciosamente sin generar errores.
+     * @brief Detecta duplicados por código y descripción en Excel y base de datos
+     *
+     * Implementa algoritmo de detección híbrida: compara registros internos del Excel
+     * y consulta base de datos para códigos/descripciones existentes.     * 
+     * @param accountsData registros Excel a analizar
+     * @param entId ID de empresa para contexto de consulta
+     * @return resultado de detección con registros únicos y métricas de duplicados
      */
     public DuplicateDetectionResult detectDuplicates(List<AccountCatalogueExcelData> accountsData, String entId) {
         Set<String> seenCodes = new HashSet<>();
@@ -109,7 +126,11 @@ public class AccountCatalogueDuplicateDetectionService {
     }
 
     /**
-     * Detecta duplicados en base de datos por código.
+     * @brief Consulta base de datos para detectar códigos existentes
+     * 
+     * @param codes códigos a consultar
+     * @param entId ID de empresa para contexto de consulta
+     * @return mapa de códigos a entidades encontradas
      */
     private Map<String, AccountCatalogueEntity> detectDatabaseDuplicatesByCode(
             List<String> codes, String entId) {
@@ -139,8 +160,11 @@ public class AccountCatalogueDuplicateDetectionService {
     }
 
     /**
-     * Detecta duplicados en base de datos por descripción.
-     * Usa normalización case-insensitive.
+     * @brief Consulta base de datos para detectar descripciones existentes con normalización
+     * 
+     * @param descriptions descripciones a consultar
+     * @param entId ID de empresa para contexto de consulta
+     * @return mapa de descripciones normalizadas a entidades encontradas
      */
     private Map<String, AccountCatalogueEntity> detectDatabaseDuplicatesByDescription(
             List<String> descriptions, String entId) {
@@ -175,7 +199,10 @@ public class AccountCatalogueDuplicateDetectionService {
     }
 
     /**
-     * Clase que representa el resultado de detección de duplicados.
+     * @brief Clase que representa el resultado de detección de duplicados
+     *
+     * Contiene registros únicos encontrados y errores generados durante
+     * el análisis de duplicados. Métricas de conteo para tracking.
      */
     @Data
     @Builder

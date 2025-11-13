@@ -30,6 +30,12 @@ import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * @brief Implementación de servicios para gestión de cuentas bancarias
+ *
+ * Proporciona operaciones CRUD completas con validaciones de negocio,
+ * filtros avanzados y manejo de relaciones con bancos y cuentas contables.
+ */
 @Service
 @RequiredArgsConstructor
 public class BankAccountServiceImpl implements IBankAccountService {
@@ -41,6 +47,12 @@ public class BankAccountServiceImpl implements IBankAccountService {
     private final AccountCatalogueValidationService accountCatalogueValidationService;
     private final PaginationHelper paginationHelper;
 
+    /**
+     * @brief Crea una nueva cuenta bancaria con validaciones completas
+     * @param request Datos de creación de la cuenta bancaria
+     * @return Cuenta bancaria creada con ID generado
+     */
+    @Override
     @Transactional
     public BankAccount create(BankAccountCreateReq request) {
         validateAccountNumber(request.getAccountNumber());
@@ -69,15 +81,19 @@ public class BankAccountServiceImpl implements IBankAccountService {
         return dataMapper.toDomain(saved);
     }
 
+    /**
+     * @brief Actualiza una cuenta bancaria existente con validaciones
+     * @param request Datos de actualización de la cuenta bancaria
+     * @return Cuenta bancaria actualizada
+     */
+    @Override
     @Transactional
     public BankAccount update(BankAccountUpdateReq request) {
         BankAccountEntity current = repository.findByIdAndIdEnterprise(request.getId(), request.getIdEnterprise())
                 .orElseThrow(BankAccountNotFoundException::new);
 
-        // Validar el número de cuenta (si cambió)
         validateAccountNumber(request.getAccountNumber());
 
-        // Verificar que no exista otra cuenta con el mismo número para la misma empresa
         if (!current.getAccountNumber().equals(request.getAccountNumber())) {
             if (repository.existsByAccountNumberAndIdEnterprise(request.getAccountNumber(), request.getIdEnterprise())) {
                 throw new BankAccountAlreadyExistsException("número de cuenta", request.getAccountNumber().toString(),
@@ -85,26 +101,19 @@ public class BankAccountServiceImpl implements IBankAccountService {
             }
         }
 
-        // Validar que el banco existe (solo para validación, no necesitamos la entidad del dominio aquí)
         validateBankExists(request.getBankId(), request.getIdEnterprise());
-
-        // Validar que la cuenta contable existe (solo para validación, no necesitamos la entidad del dominio aquí)
         validateAccountingAccountExists(request.getAccountingAccountId(), request.getIdEnterprise());
 
         current.setAccountNumber(request.getAccountNumber());
 
         // Solo actualizar el banco si cambió
         if (!current.getBank().getId().equals(request.getBankId())) {
-            // Si cambió, crear una entidad mínima para evitar problemas de lazy loading
-            // Solo necesitamos el ID para la relación, no la entidad completa
             BankEntity bankEntity = new BankEntity();
             bankEntity.setId(request.getBankId());
             current.setBank(bankEntity);
         }
-        // Si no cambió, mantenemos la entidad existente que ya está cargada
         current.setAccountType(request.getAccountType());
 
-        // Actualizar siempre la cuenta contable (ya que validamos que existe)
         AccountCatalogueEntity accountingAccountEntity = new AccountCatalogueEntity();
         accountingAccountEntity.setId(request.getAccountingAccountId());
         current.setAccountingAccount(accountingAccountEntity);
@@ -114,26 +123,35 @@ public class BankAccountServiceImpl implements IBankAccountService {
         return dataMapper.toDomain(saved);
     }
 
+    @Override
     @Transactional(readOnly = true)
     public BankAccount findById(Long id, String idEnterprise) {
         return dataMapper.toDomain(repository.findByIdAndIdEnterprise(id, idEnterprise)
                 .orElseThrow(BankAccountNotFoundException::new));
     }
 
+    /**
+     * @brief Consulta paginada con filtros avanzados y búsqueda por número de cuenta
+     * @param idEnterprise ID de la empresa
+     * @param page Número de página (0-based)
+     * @param size Tamaño de página
+     * @param sortField Campo para ordenamiento (solo 'accountNumber')
+     * @param sortOrder Dirección del ordenamiento (asc/desc)
+     * @param search Término de búsqueda parcial por número de cuenta
+     * @return Página de cuentas bancarias filtradas
+     */
+    @Override
     @Transactional(readOnly = true)
     public Page<BankAccount> findAllByEnterpriseWithFilters(String idEnterprise, Integer page, Integer size,
                                                           String sortField, String sortOrder, String search) {
-        // Validar sortField - solo permitir "accountNumber"
         if (sortField != null && !sortField.isEmpty()) {
             if (!"accountNumber".equals(sortField)) {
                 throw new IllegalArgumentException("El campo de ordenamiento debe ser 'accountNumber'");
             }
         } else {
-            // Por defecto ordenar por accountNumber
             sortField = "accountNumber";
         }
 
-        // Validar sortOrder - solo permitir "asc" y "desc"
         Sort.Direction direction = Sort.Direction.ASC;
         if (sortOrder != null && !sortOrder.isEmpty()) {
             if ("desc".equalsIgnoreCase(sortOrder)) {
@@ -143,13 +161,10 @@ public class BankAccountServiceImpl implements IBankAccountService {
             }
         }
 
-        // Determinar el número total de registros (considerando búsqueda si existe)
         long totalRecords;
         if (StringUtils.hasText(search)) {
-            // Si hay búsqueda, contar registros que coincidan con la búsqueda
             totalRecords = repository.countByIdEnterpriseAndAccountNumberSearch(idEnterprise, search.trim());
         } else {
-            // Sin búsqueda, contar todos los registros
             totalRecords = repository.countByIdEnterprise(idEnterprise);
         }
 
@@ -160,26 +175,23 @@ public class BankAccountServiceImpl implements IBankAccountService {
             totalRecords
         );
 
-        // Aplicar ordenamiento
         Pageable pageableWithSort = PageRequest.of(
             pageable.getPageNumber(),
             pageable.getPageSize(),
             Sort.by(direction, sortField)
         );
 
-        // Ejecutar consulta con filtros
         Page<BankAccountEntity> result;
         if (StringUtils.hasText(search)) {
-            // Búsqueda por número de cuenta
             result = repository.findByIdEnterpriseAndAccountNumberSearch(idEnterprise, search.trim(), pageableWithSort);
         } else {
-            // Sin búsqueda
             result = repository.findAllByIdEnterprise(idEnterprise, pageableWithSort);
         }
 
         return result.map(dataMapper::toDomain);
     }
 
+    @Override
     @Transactional(readOnly = true)
     public Page<BankAccount> findAllActiveByEnterprise(String idEnterprise, Integer page, Integer size) {
         
@@ -201,13 +213,7 @@ public class BankAccountServiceImpl implements IBankAccountService {
                 .map(dataMapper::toDomain);
     }
 
-    @Transactional(readOnly = true)
-    public Page<BankAccount> findAllByEnterpriseAndBank(String idEnterprise, Long bankId, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        return repository.findAllByIdEnterpriseAndBankId(idEnterprise, bankId, pageable)
-                .map(dataMapper::toDomain);
-    }
-
+    @Override
     @Transactional
     public BankAccount changeState(Long id, String idEnterprise, Boolean newState) {
         BankAccountEntity current = repository.findByIdAndIdEnterprise(id, idEnterprise)
@@ -218,6 +224,7 @@ public class BankAccountServiceImpl implements IBankAccountService {
         return dataMapper.toDomain(saved);
     }
 
+    @Override
     @Transactional
     public BankAccount delete(Long id, String idEnterprise) {
         BankAccountEntity current = repository.findByIdAndIdEnterprise(id, idEnterprise)
@@ -229,7 +236,8 @@ public class BankAccountServiceImpl implements IBankAccountService {
     }
 
     /**
-     * Valida que el número de cuenta esté en el rango válido (8-16 dígitos).
+     * @brief Valida formato del número de cuenta bancaria
+     * @param accountNumber Número de cuenta a validar
      */
     private void validateAccountNumber(Long accountNumber) {
         if (accountNumber == null) {
@@ -247,7 +255,10 @@ public class BankAccountServiceImpl implements IBankAccountService {
     }
 
     /**
-     * Valida que el banco existe y está activo.
+     * @brief Valida existencia y estado activo del banco
+     * @param bankId ID del banco a validar
+     * @param idEnterprise ID de la empresa
+     * @return Entidad de banco si existe y está activo
      */
     private Bank validateBankExists(Long bankId, String idEnterprise) {
         try {
@@ -267,8 +278,10 @@ public class BankAccountServiceImpl implements IBankAccountService {
     }
 
     /**
-     * Valida que la cuenta contable existe por ID y es una cuenta auxiliar (8
-     * dígitos).
+     * @brief Valida existencia y formato de cuenta contable auxiliar
+     * @param accountingAccountId ID de la cuenta contable a validar
+     * @param idEnterprise ID de la empresa
+     * @return Entidad de cuenta contable si existe y es auxiliar
      */
     private AccountCatalogue validateAccountingAccountExists(Long accountingAccountId, String idEnterprise) {
         if (accountingAccountId == null) {

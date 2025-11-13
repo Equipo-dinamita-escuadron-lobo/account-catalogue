@@ -1,15 +1,20 @@
 package com.account_catalogue.taxes.infraestructure.adapters.input.rest.mapper;
 
 import com.account_catalogue.taxes.domain.models.Tax;
-import com.account_catalogue.taxes.infraestructure.adapters.input.rest.data.response.TaxChangeStateRes;
+import com.account_catalogue.taxes.infraestructure.adapters.input.rest.dto.response.TaxChangeStateRes;
 
+/**
+ * @brief Mapeador REST para operaciones de cambio de estado de impuestos
+ *
+ * Gestiona la conversión de modelos de dominio a DTOs de respuesta
+ * para operaciones de activación/desactivación con mensajes informativos.
+ */
 public interface ITaxChangeStateRestMapper {
     
     /**
-     * Convierte un objeto Tax a TaxChangeStateRes.
-     * 
-     * @param tax el objeto de dominio
-     * @return el DTO de respuesta
+     * @brief Convierte modelo de dominio a response de cambio de estado
+     * @param tax modelo de dominio con estado actualizado
+     * @return response con mensaje informativo según el estado
      */
     default TaxChangeStateRes toChangeStateResponse(Tax tax) {
         if (tax == null) {

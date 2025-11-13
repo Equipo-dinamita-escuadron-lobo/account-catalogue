@@ -1,7 +1,13 @@
-package com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.request;
+package com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.request;
 
 import lombok.*;
 
+/**
+ * @brief DTO para solicitud de actualización de cuenta contable
+ *
+ * Contiene los campos modificables para actualizar una cuenta existente
+ * en el catálogo, permitiendo cambios selectivos de propiedades.
+ */
 @Getter
 @Setter
 @AllArgsConstructor

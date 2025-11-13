@@ -5,6 +5,12 @@ import lombok.*;
 
 import java.util.Set;
 
+/**
+ * @brief Modelo de dominio que representa un banco
+ *
+ * Contiene la información esencial de un banco incluyendo
+ * código, nombre, monedas admitidas y estado operativo.
+ */
 @Getter
 @Setter
 @NoArgsConstructor

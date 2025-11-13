@@ -6,6 +6,12 @@ import lombok.*;
 
 import java.util.Set;
 
+/**
+ * @brief DTO de solicitud para crear bancos
+ *
+ * Contiene los campos requeridos para crear un nuevo banco
+ * con validaciones de formato y obligatoriedad.
+ */
 @Getter
 @Setter
 @NoArgsConstructor

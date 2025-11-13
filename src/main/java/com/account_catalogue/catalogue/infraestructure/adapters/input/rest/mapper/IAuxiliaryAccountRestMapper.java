@@ -3,37 +3,41 @@ package com.account_catalogue.catalogue.infraestructure.adapters.input.rest.mapp
 import java.util.List;
 
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
-import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.response.AuxiliaryAccountListRes;
-import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.response.ItemAccountCatalogueSearchRes;
+import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.response.AuxiliaryAccountListRes;
+import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.response.ItemAccountCatalogueSearchRes;
 
 import org.mapstruct.Mapper;
 
+/**
+ * @brief Mapper para operaciones con cuentas auxiliares contables
+ *
+ * Define contratos para conversión entre modelos de dominio y DTOs de respuesta
+ * en operaciones específicas de cuentas auxiliares (8 dígitos).
+ */
 @Mapper
 public interface IAuxiliaryAccountRestMapper {
     
     /**
-     * Transforma una lista de AccountCatalogue en AuxiliaryAccountListRes.
-     * 
+     * @brief Convierte lista de cuentas auxiliares a respuesta paginada
      * @param auxiliaryAccounts lista de cuentas auxiliares del dominio
-     * @param idEnterprise el ID de la empresa
-     * @return el objeto AuxiliaryAccountListRes con la lista transformada
+     * @param idEnterprise ID de la empresa para contexto
+     * @return DTO de respuesta con lista paginada de cuentas auxiliares
      */
     AuxiliaryAccountListRes toAuxiliaryAccountListRes(List<AccountCatalogue> auxiliaryAccounts, String idEnterprise);
-    
+
     /**
-     * Transforma un AccountCatalogue en ItemAccountCatalogueSearchRes.
-     * 
-     * @param accountCatalogue el objeto AccountCatalogue a transformar
-     * @return el objeto ItemAccountCatalogueSearchRes transformado
+     * @brief Convierte cuenta individual a item de búsqueda
+     * @param accountCatalogue cuenta del dominio a convertir
+     * @return DTO de item para respuestas de búsqueda individual
      */
     ItemAccountCatalogueSearchRes toItemAccountCatalogueSearchRes(AccountCatalogue accountCatalogue);
 
     /**
-     * Mapea un objeto AccountCatalogue (parent) a String (código del padre).
-     * Método auxiliar requerido por MapStruct para la conversión automática.
-     * 
-     * @param parent el objeto AccountCatalogue padre
-     * @return el código del padre como String, o null si no existe
+     * @brief Mapea referencia de cuenta padre a código string
+     *
+     * Método auxiliar para MapStruct que extrae código de cuenta padre.
+     * @param parent referencia a cuenta padre
+     * @return código de la cuenta padre o null si no existe
      */
     default String map(AccountCatalogue parent) {
         return parent != null && parent.getCode() != null ? parent.getCode() : null;

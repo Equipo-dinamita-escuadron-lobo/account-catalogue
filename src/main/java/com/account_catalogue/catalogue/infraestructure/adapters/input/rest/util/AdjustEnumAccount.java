@@ -6,24 +6,24 @@ import com.account_catalogue.catalogue.domain.enums.NatureEnum;
 
 import lombok.NoArgsConstructor;
 
+/**
+ * @brief Utilidad para conversión de strings a enums de catálogo de cuentas
+ *
+ * Proporciona métodos para convertir cadenas de texto (de requests HTTP)
+ * a los correspondientes enums del dominio, validando valores permitidos.
+ */
 @NoArgsConstructor
 public class AdjustEnumAccount {
 
     /**
-     * Ajusta la clasificación de cadena a la correspondiente ClassificationEnum.
-     * Los valores posibles son:
-     * - Activo Corriente -> CURRENTASSETS
-     * - Activo No Corriente -> NONCURRENTASSETS
-     * - Pasivo Corriente -> CURRENTLIABILITIES
-     * - Pasivo No Corriente -> NONCURRENTLIABILITIES
-     * - Patrimonio -> EQUITY
-     * - Ingresos No Operacionales -> NONOPERATINGINCOME
-     * - Gastos Operacionales -> OPERATINGEXPENSES
-     * - Ingresos Operacionales -> OPERATINGREVENUES
-     * 
-     * @param state la clasificación de cadena.
-     * @return la ClassificationEnum equivalente.
-     * @throws IllegalArgumentException si el estado no es válido.
+     * @brief Convierte string de clasificación a enum correspondiente
+     *
+     * Mapea las clasificaciones contables en español a sus equivalentes en enum.
+     * Valores soportados: Activo Corriente, Activo No Corriente, Pasivo Corriente,
+     * Pasivo No Corriente, Patrimonio, Ingresos Operacionales, Ingresos No Operacionales, Gastos Operacionales.
+     * @param state string de clasificación en español
+     * @return ClassificationEnum correspondiente al string proporcionado
+     * @throws IllegalArgumentException si el string no corresponde a una clasificación válida
      */
     public ClassificationEnum adjustClassificationEnum(String state) {
         if (state == null || state.trim().isEmpty()) {
@@ -53,14 +53,13 @@ public class AdjustEnumAccount {
     }
 
     /**
-     * Ajusta el estado financiero de cadena a la correspondiente FinancialStatusEnum.
-     * Los valores posibles son:
-     * - Estado de Resultados -> INCOMESTATEMENT
-     * - Estado de Situacion Financiero -> STATEMENTFINANCIALPOSITION
-     * 
-     * @param state el estado financiero de cadena.
-     * @return la FinancialStatusEnum equivalente.
-     * @throws IllegalArgumentException si el estado no es válido.
+     * @brief Convierte string de estado financiero a enum correspondiente
+     *
+     * Mapea los estados financieros en español a sus equivalentes en enum.
+     * Valores soportados: "Estado de Resultados", "Estado de Situacion Financiero".
+     * @param state string de estado financiero en español
+     * @return FinancialStatusEnum correspondiente al string proporcionado
+     * @throws IllegalArgumentException si el string no corresponde a un estado financiero válido
      */
     public FinancialStatusEnum adjustFinancialStatusEnum(String state) {
         if (state == null || state.trim().isEmpty()) {
@@ -79,14 +78,13 @@ public class AdjustEnumAccount {
 
 
     /**
-     * Ajusta la naturaleza de cadena a la correspondiente NatureEnum.
-     * Los valores posibles son:
-     * - Crédito -> CREDIT
-     * - Débito -> DEBIT
-     * 
-     * @param state la naturaleza de cadena.
-     * @return la NatureEnum equivalente.
-     * @throws IllegalArgumentException si el estado no es válido.
+     * @brief Convierte string de naturaleza contable a enum correspondiente
+     *
+     * Mapea las naturalezas contables en español a sus equivalentes en enum.
+     * Valores soportados: "Credito" (CRÉDITO), "Debito" (DÉBITO).
+     * @param state string de naturaleza en español
+     * @return NatureEnum correspondiente al string proporcionado
+     * @throws IllegalArgumentException si el string no corresponde a una naturaleza válida
      */
     public NatureEnum adjustNatureEnum(String state) {
         if (state == null || state.trim().isEmpty()) {

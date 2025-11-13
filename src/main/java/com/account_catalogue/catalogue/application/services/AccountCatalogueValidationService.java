@@ -1,15 +1,19 @@
 package com.account_catalogue.catalogue.application.services;
 
+import java.util.List;
 import java.util.regex.Pattern;
 
 import org.springframework.stereotype.Service;
 
 import com.account_catalogue.bankAccounts.dataAccess.repository.BankAccountRepository;
 import com.account_catalogue.paymentMethods.dataAccess.repository.PaymentMethodRepository;
+import com.account_catalogue.accounting.application.input.IAccountingSearchInputPort;
+import com.account_catalogue.accounting.domain.models.AccountingMovement;
 import com.account_catalogue.catalogue.application.output.IAccountCatalogueSearchOutputPort;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
 import com.account_catalogue.catalogue.domain.enums.FinancialStatusEnum;
 import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueAlreadyExistsException;
+import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueAssociatedWithAccountingMovementsException;
 import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueAssociatedWithBankAccountException;
 import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueAssociatedWithPaymentMethodException;
 import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueAssociatedWithTaxException;
@@ -19,19 +23,24 @@ import com.account_catalogue.commons.exceptions.catalogue.InvalidAccountCodeExce
 
 import lombok.AllArgsConstructor;
 
+/**
+ * @brief Servicio de validaciones para cuentas contables
+ *
+ * Centraliza todas las reglas de validación de negocio para cuentas contables,
+ * incluyendo códigos, descripciones, jerarquías y asociaciones.
+ */
 @Service
 @AllArgsConstructor
 public class AccountCatalogueValidationService {
 
     private final IAccountCatalogueSearchOutputPort accountCatalogueSearchOutputPort;
+    private final IAccountingSearchInputPort accountingSearchInputPort;
     private final BankAccountRepository bankAccountRepository;
     private final PaymentMethodRepository paymentMethodRepository;
 
     /**
-     * Valida el código de cuenta según las reglas de negocio.
-     * El código debe tener exactamente 1, 2, 4, 6 u 8 dígitos.
-     * 
-     * @param code el código a validar
+     * @brief Valida código de cuenta según reglas de negocio (longitud específica)     *
+     * @param code código de cuenta a validar
      * @throws InvalidAccountCodeException si el código no cumple con las reglas
      */
     public void validateAccountCode(String code) {
@@ -52,11 +61,10 @@ public class AccountCatalogueValidationService {
     }
 
     /**
-     * Valida que la cuenta no exista ya en el sistema para la misma empresa.
-     * 
-     * @param code         el código de la cuenta
-     * @param idEnterprise el ID de la empresa
-     * @throws AccountCatalogueAlreadyExistsException si la cuenta ya existe
+     * @brief Valida unicidad de código de cuenta por empresa     *
+     * @param code código de cuenta a verificar
+     * @param idEnterprise ID de empresa para aislamiento de datos
+     * @throws AccountCatalogueAlreadyExistsException si ya existe cuenta con ese código
      */
     public void validateAccountDoesNotExist(String code, String idEnterprise) {
         AccountCatalogue existingAccount = accountCatalogueSearchOutputPort.getAccountCatalogueByCode(code,
@@ -68,14 +76,11 @@ public class AccountCatalogueValidationService {
     }
 
     /**
-     * Valida que la cuenta no exista ya en el sistema para la misma empresa,
-     * excluyendo una cuenta específica.
-     * Útil para validaciones de actualización.
-     * 
-     * @param code         el código de la cuenta
-     * @param idEnterprise el ID de la empresa
-     * @param excludeId    el ID de la cuenta a excluir de la validación
-     * @throws AccountCatalogueAlreadyExistsException si la cuenta ya existe
+     * @brief Valida unicidad de código excluyendo cuenta específica (para actualizaciones)
+     * @param code código de cuenta a verificar
+     * @param idEnterprise ID de empresa para aislamiento de datos
+     * @param excludeId ID de cuenta a excluir de la validación
+     * @throws AccountCatalogueAlreadyExistsException si ya existe otra cuenta con ese código
      */
     public void validateAccountDoesNotExistExcluding(String code, String idEnterprise, Long excludeId) {
         if (code == null || code.trim().isEmpty()) {
@@ -99,12 +104,11 @@ public class AccountCatalogueValidationService {
     }
 
     /**
-     * Valida que la cuenta existe en el sistema.
-     * 
-     * @param code         el código de la cuenta
-     * @param idEnterprise el ID de la empresa
-     * @return la cuenta encontrada
-     * @throws AccountCatalogueNotFoundException si la cuenta no existe
+     * @brief Valida existencia de cuenta por código y retorna instancia     *
+     * @param code código de cuenta a buscar
+     * @param idEnterprise ID de empresa para aislamiento de datos
+     * @return instancia de cuenta encontrada
+     * @throws AccountCatalogueNotFoundException si no existe cuenta con ese código
      */
     public AccountCatalogue validateAccountExists(String code, String idEnterprise) {
         AccountCatalogue account = accountCatalogueSearchOutputPort.getAccountCatalogueByCode(code, idEnterprise);
@@ -116,12 +120,11 @@ public class AccountCatalogueValidationService {
     }
 
     /**
-     * Valida que la cuenta existe en el sistema por ID y empresa.
-     * 
-     * @param id           el ID de la cuenta
-     * @param idEnterprise el ID de la empresa
-     * @return la cuenta encontrada
-     * @throws AccountCatalogueNotFoundException si la cuenta no existe
+     * @brief Valida existencia de cuenta por ID único y retorna instancia
+     * @param id ID único de la cuenta en base de datos
+     * @param idEnterprise ID de empresa para validación de pertenencia
+     * @return instancia de cuenta encontrada
+     * @throws AccountCatalogueNotFoundException si no existe cuenta con ese ID
      */
     public AccountCatalogue validateAccountExistsByIdAndEnterprise(Long id, String idEnterprise) {
         AccountCatalogue account = accountCatalogueSearchOutputPort.getAccountCatalogueByIdAndIdEnterprise(id,
@@ -134,11 +137,9 @@ public class AccountCatalogueValidationService {
     }
 
     /**
-     * Valida que la cuenta no esté asociada a impuestos.
-     * 
-     * @param account la cuenta a validar
-     * @throws AccountCatalogueAssociatedWithTaxException si la cuenta está asociada
-     *                                                    a impuestos
+     * @brief Valida que cuenta no tenga asociaciones con impuestos
+     * @param account instancia de cuenta a validar
+     * @throws AccountCatalogueAssociatedWithTaxException si tiene asociaciones con impuestos
      */
     public void validateAccountNotAssociatedWithTaxes(AccountCatalogue account) {
         boolean hasSalesTaxes = account.getSalesTaxes() != null && !account.getSalesTaxes().isEmpty();
@@ -153,15 +154,9 @@ public class AccountCatalogueValidationService {
     }
 
     /**
-     * Valida recursivamente que ni la cuenta ni ninguna de sus cuentas hijas estén
-     * asociadas a impuestos.
-     * Esta validación se usa antes de la eliminación para asegurar que toda la
-     * jerarquía puede ser eliminada.
-     * 
-     * @param account la cuenta padre a validar junto con todas sus cuentas hijas
-     * @throws AccountCatalogueAssociatedWithTaxException si la cuenta o alguna de
-     *                                                    sus hijas está asociada a
-     *                                                    impuestos
+     * @brief Valida recursivamente jerarquía completa contra asociaciones con impuestos
+     * @param account cuenta padre cuya jerarquía completa debe validarse
+     * @throws AccountCatalogueAssociatedWithTaxException si cualquier cuenta en jerarquía tiene asociaciones
      */
     public void validateAccountAndChildrenNotAssociatedWithTaxes(AccountCatalogue account) {
         // Validar la cuenta principal
@@ -176,13 +171,9 @@ public class AccountCatalogueValidationService {
     }
 
     /**
-     * Valida que la cuenta no esté asociada a cuentas bancarias.
-     * 
-     * @param account la cuenta a validar
-     * @throws AccountCatalogueAssociatedWithBankAccountException si la cuenta está
-     *                                                            asociada
-     *                                                            a cuentas
-     *                                                            bancarias
+     * @brief Valida que cuenta no tenga asociaciones con cuentas bancarias
+     * @param account instancia de cuenta a validar
+     * @throws AccountCatalogueAssociatedWithBankAccountException si tiene asociaciones con cuentas bancarias
      */
     public void validateAccountNotAssociatedWithBankAccounts(AccountCatalogue account) {
         boolean hasBankAccounts = bankAccountRepository.existsByAccountingAccountIdAndIdEnterprise(
@@ -196,17 +187,9 @@ public class AccountCatalogueValidationService {
     }
 
     /**
-     * Valida recursivamente que ni la cuenta ni ninguna de sus cuentas hijas estén
-     * asociadas a cuentas bancarias.
-     * Esta validación se usa antes de la eliminación para asegurar que toda la
-     * jerarquía puede ser eliminada.
-     * 
-     * @param account la cuenta padre a validar junto con todas sus cuentas hijas
-     * @throws AccountCatalogueAssociatedWithBankAccountException si la cuenta o
-     *                                                            alguna de
-     *                                                            sus hijas está
-     *                                                            asociada a
-     *                                                            cuentas bancarias
+     * @brief Valida recursivamente jerarquía completa contra asociaciones con cuentas bancarias
+     * @param account cuenta padre cuya jerarquía completa debe validarse
+     * @throws AccountCatalogueAssociatedWithBankAccountException si cualquier cuenta en jerarquía tiene asociaciones
      */
     public void validateAccountAndChildrenNotAssociatedWithBankAccounts(AccountCatalogue account) {
         // Validar la cuenta principal
@@ -221,13 +204,9 @@ public class AccountCatalogueValidationService {
     }
 
     /**
-     * Valida que la cuenta no esté asociada a métodos de pago.
-     * 
-     * @param account la cuenta a validar
-     * @throws AccountCatalogueAssociatedWithPaymentMethodException si la cuenta
-     *                                                              está asociada
-     *                                                              a métodos de
-     *                                                              pago
+     * @brief Valida que cuenta no tenga asociaciones con métodos de pago
+     * @param account instancia de cuenta a validar
+     * @throws AccountCatalogueAssociatedWithPaymentMethodException si tiene asociaciones con métodos de pago
      */
     public void validateAccountNotAssociatedWithPaymentMethods(AccountCatalogue account) {
         boolean hasPaymentMethods = paymentMethodRepository.existsByAccountingAccountIdAndIdEnterprise(
@@ -241,17 +220,9 @@ public class AccountCatalogueValidationService {
     }
 
     /**
-     * Valida recursivamente que ni la cuenta ni ninguna de sus cuentas hijas estén
-     * asociadas a métodos de pago.
-     * Esta validación se usa antes de la eliminación para asegurar que toda la
-     * jerarquía puede ser eliminada.
-     * 
-     * @param account la cuenta padre a validar junto con todas sus cuentas hijas
-     * @throws AccountCatalogueAssociatedWithPaymentMethodException si la cuenta o
-     *                                                              alguna de
-     *                                                              sus hijas está
-     *                                                              asociada a
-     *                                                              métodos de pago
+     * @brief Valida recursivamente jerarquía completa contra asociaciones con métodos de pago
+     * @param account cuenta padre cuya jerarquía completa debe validarse
+     * @throws AccountCatalogueAssociatedWithPaymentMethodException si cualquier cuenta en jerarquía tiene asociaciones
      */
     public void validateAccountAndChildrenNotAssociatedWithPaymentMethods(AccountCatalogue account) {
         // Validar la cuenta principal
@@ -266,12 +237,43 @@ public class AccountCatalogueValidationService {
     }
 
     /**
-     * Valida el nombre/descripción de la cuenta.
-     * Permite caracteres alfanuméricos y algunos especiales.
-     * Normaliza la descripción eliminando espacios extra y validando formato.
-     * 
-     * @param description la descripción a validar
-     * @throws InvalidAccountCodeException si la descripción no es válida
+     * @brief Valida que cuenta no tenga asociaciones con movimientos contables
+     * @param account instancia de cuenta a validar
+     * @param operation operación que se está intentando realizar ("eliminar" o "editar")
+     * @throws AccountCatalogueAssociatedWithAccountingMovementsException si tiene asociaciones con movimientos contables
+     */
+    public void validateAccountNotAssociatedWithAccountingMovements(AccountCatalogue account, String operation) {
+        List<AccountingMovement> movements = accountingSearchInputPort.findMovementsByAccountId(account.getId());
+
+        if (movements != null && !movements.isEmpty()) {
+            throw new AccountCatalogueAssociatedWithAccountingMovementsException(
+                    "No se puede " + operation + " la cuenta " + account.getCode()
+                            + " porque tiene movimientos contables");
+        }
+    }
+
+    /**
+     * @brief Valida recursivamente jerarquía completa contra asociaciones con movimientos contables
+     * @param account cuenta padre cuya jerarquía completa debe validarse
+     * @param operation operación que se está intentando realizar ("eliminar" o "editar")
+     * @throws AccountCatalogueAssociatedWithAccountingMovementsException si cualquier cuenta en jerarquía tiene asociaciones
+     */
+    public void validateAccountAndChildrenNotAssociatedWithAccountingMovements(AccountCatalogue account, String operation) {
+        // Validar la cuenta principal
+        validateAccountNotAssociatedWithAccountingMovements(account, operation);
+
+        // Validar recursivamente todas las cuentas hijas
+        if (account.getChildren() != null && !account.getChildren().isEmpty()) {
+            for (AccountCatalogue child : account.getChildren()) {
+                validateAccountAndChildrenNotAssociatedWithAccountingMovements(child, operation);
+            }
+        }
+    }
+
+    /**
+     * @brief Valida formato y contenido de descripción de cuenta contable
+     * @param description descripción de cuenta a validar
+     * @throws InvalidAccountCodeException si la descripción no cumple criterios de formato
      */
     public void validateAccountDescription(String description) {
         if (description == null || description.trim().isEmpty()) {
@@ -304,14 +306,10 @@ public class AccountCatalogueValidationService {
     }
 
     /**
-     * Valida que no exista ya una cuenta con la misma descripción para la misma
-     * empresa (case-insensitive).
-     * 
-     * @param description  la descripción de la cuenta
-     * @param idEnterprise el ID de la empresa
-     * @throws AccountCatalogueDescriptionAlreadyExistsException si ya existe una
-     *                                                           cuenta con esta
-     *                                                           descripción
+     * @brief Valida unicidad de descripción de cuenta por empresa (case-insensitive)
+     * @param description descripción de cuenta a verificar
+     * @param idEnterprise ID de empresa para aislamiento de datos
+     * @throws AccountCatalogueDescriptionAlreadyExistsException si ya existe cuenta con esa descripción
      */
     public void validateAccountDescriptionDoesNotExist(String description, String idEnterprise) {
         if (description == null || description.trim().isEmpty()) {
@@ -327,16 +325,11 @@ public class AccountCatalogueValidationService {
     }
 
     /**
-     * Valida que no exista ya otra cuenta con la misma descripción para la misma
-     * empresa, excluyendo una cuenta específica (case-insensitive).
-     * Útil para validaciones de actualización.
-     * 
-     * @param description  la descripción de la cuenta
-     * @param idEnterprise el ID de la empresa
-     * @param excludeId    el ID de la cuenta a excluir de la validación
-     * @throws AccountCatalogueDescriptionAlreadyExistsException si ya existe otra
-     *                                                           cuenta con esta
-     *                                                           descripción
+     * @brief Valida unicidad de descripción excluyendo cuenta específica (para actualizaciones)
+     * @param description descripción de cuenta a verificar
+     * @param idEnterprise ID de empresa para aislamiento de datos
+     * @param excludeId ID de cuenta a excluir de la validación
+     * @throws AccountCatalogueDescriptionAlreadyExistsException si ya existe otra cuenta con esa descripción
      */
     public void validateAccountDescriptionDoesNotExistExcluding(String description, String idEnterprise,
             Long excludeId) {
@@ -363,14 +356,9 @@ public class AccountCatalogueValidationService {
     }
 
     /**
-     * Valida que los campos crossing y costCenter solo puedan ser establecidos en
-     * cuentas auxiliares (8 dígitos).
-     * Estos campos pueden ser nulos en cualquier tipo de cuenta.
-     * 
-     * @param accountCatalogue la cuenta a validar
-     * @throws InvalidAccountCodeException si se intenta establecer crossing o
-     *                                     costCenter en una cuenta que no es
-     *                                     auxiliar
+     * @brief Valida restricciones de campos opcionales (crossing/costCenter) a cuentas auxiliares
+     * @param accountCatalogue cuenta con campos opcionales a validar
+     * @throws InvalidAccountCodeException si campos opcionales se usan en cuentas no auxiliares
      */
     public void validateCrossingAndCostCenterOnlyForAuxiliaryAccounts(AccountCatalogue accountCatalogue) {
         boolean hasCrossing = accountCatalogue.getCrossing() != null && accountCatalogue.getCrossing();
@@ -398,13 +386,9 @@ public class AccountCatalogueValidationService {
     }
 
     /**
-     * Valida que el campo costCenter solo pueda ser true cuando el financialStatus
-     * sea Estado de Resultados.
-     * Esta validación se aplica únicamente a cuentas auxiliares (8 dígitos).
-     * 
-     * @param accountCatalogue la cuenta a validar
-     * @throws InvalidAccountCodeException si se intenta establecer costCenter como
-     *                                     true sin el estado financiero correcto
+     * @brief Valida dependencia de costCenter con estado financiero Estado de Resultados
+     * @param accountCatalogue cuenta con costCenter y estado financiero a validar
+     * @throws InvalidAccountCodeException si costCenter=true pero estado financiero incorrecto
      */
     public void validateCostCenterRequiresIncomeStatement(AccountCatalogue accountCatalogue) {
         boolean hasCostCenter = accountCatalogue.getCostCenter() != null && accountCatalogue.getCostCenter();
@@ -426,14 +410,10 @@ public class AccountCatalogueValidationService {
     }
 
     /**
-     * Valida que el código de la cuenta comience con el prefijo del código padre.
-     * Esto asegura que se mantenga la jerarquía correcta cuando se actualiza una
-     * cuenta hija.
-     *
-     * @param accountCode el código de la cuenta a validar
-     * @param parentCode  el código del padre
-     * @throws InvalidAccountCodeException si el código no mantiene el prefijo del
-     *                                     padre
+     * @brief Valida integridad jerárquica de códigos padre-hijo
+     * @param accountCode código de cuenta hija a validar
+     * @param parentCode código de cuenta padre como referencia
+     * @throws InvalidAccountCodeException si el código no respeta jerarquía padre-hijo
      */
     public void validateParentCodePrefix(String accountCode, String parentCode) {
         if (accountCode == null) {

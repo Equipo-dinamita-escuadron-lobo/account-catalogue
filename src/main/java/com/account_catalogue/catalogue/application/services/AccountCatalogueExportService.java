@@ -27,6 +27,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * @brief Servicio para exportación del catálogo de cuentas a formato Excel
+ *
  * Servicio para la exportación del catálogo de cuentas a formato Excel.
  */
 @Slf4j
@@ -40,6 +42,11 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
     private static final int EXPORT_PAGE_SIZE = 1000;
     private static final String TEMPLATE_PLACEHOLDER_TEXT = "Seleccionar...";
 
+    /**
+     * @brief Genera plantilla Excel vacía con validaciones pre-aplicadas
+     * @param entId ID de empresa para contexto de plantilla
+     * @return archivo Excel con estructura y validaciones listas para uso
+     */
     @Override
     public Resource exportAccountCatalogueTemplate(String entId) {
         try {
@@ -52,6 +59,15 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
         }
     }
 
+    /**
+     * @brief Exporta catálogo completo de cuentas con datos reales y validaciones
+     *
+     * Recupera todas las cuentas mediante paginación, las convierte al formato de plantilla,
+     * genera archivo Excel con datos poblados y validaciones aplicadas.
+     * @param entId ID de empresa para filtrar cuentas
+     * @param status filtro opcional por estado activo/inactivo (null = todas)
+     * @return archivo Excel con datos reales y validaciones aplicadas
+     */
     @Override
     public Resource exportAccountCatalogueWithValidations(String entId, Boolean status) {
         try {
@@ -75,6 +91,13 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
         }
     }
 
+    /**
+     * @brief Crea archivo Excel de plantilla con ejemplos y validaciones aplicadas
+     * @param entId ID de empresa para contexto de plantilla
+     * @return archivo Excel con estructura y validaciones listas para uso
+     * @throws IOException si ocurre un error al crear el archivo Excel
+     * @throws ExcelValidationException si ocurre un error al aplicar las validaciones
+     */
     private byte[] generateTemplateWithValidations(String entId) throws IOException, ExcelValidationException {
         try (Workbook workbook = new XSSFWorkbook();
              ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
@@ -103,6 +126,13 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
         }
     }
 
+    /**
+     * @brief Genera archivo Excel con datos reales y validaciones aplicadas
+     * @param data datos de cuentas a exportar
+     * @return archivo Excel con datos reales y validaciones aplicadas
+     * @throws IOException si ocurre un error al crear el archivo Excel
+     * @throws ExcelValidationException si ocurre un error al aplicar las validaciones
+     */
     private byte[] generateExcelFileWithValidations(List<AccountCatalogueTemplateData> data) throws IOException, ExcelValidationException {
         try (Workbook workbook = new XSSFWorkbook();
              ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
@@ -130,6 +160,11 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
         }
     }
 
+    /**
+     * @brief Crea estilo para celdas de encabezado en Excel
+     * @param workbook libro de Excel donde crear el estilo
+     * @return estilo configurado para celdas de encabezado
+     */
     private CellStyle createHeaderStyle(Workbook workbook) {
         CellStyle style = workbook.createCellStyle();
         Font font = workbook.createFont();
@@ -148,6 +183,11 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
         return style;
     }
 
+    /**
+     * @brief Crea estilo para celdas de plantilla en Excel
+     * @param workbook libro de Excel donde crear el estilo
+     * @return estilo configurado para celdas de plantilla
+     */
     private CellStyle createTemplateStyle(Workbook workbook) {
         CellStyle style = workbook.createCellStyle();
         Font font = workbook.createFont();
@@ -160,6 +200,11 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
         return style;
     }
 
+    /**
+     * @brief Crea estilo para celdas de datos en Excel
+     * @param workbook libro de Excel donde crear el estilo
+     * @return estilo configurado para celdas de datos
+     */
     private CellStyle createDataStyle(Workbook workbook) {
         CellStyle style = workbook.createCellStyle();
         style.setBorderBottom(BorderStyle.THIN);
@@ -170,6 +215,11 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
         return style;
     }
 
+    /**
+     * @brief Crea estilo para celdas de encabezados opcionales en Excel
+     * @param workbook libro de Excel donde crear el estilo
+     * @return estilo configurado para celdas de encabezados opcionales
+     */
     private CellStyle createOptionalHeaderStyle(Workbook workbook) {
         CellStyle style = workbook.createCellStyle();
         Font font = workbook.createFont();
@@ -188,6 +238,12 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
         return style;
     }
 
+    /**
+     * @brief Crea encabezados en la hoja de Excel
+     * @param sheet hoja de Excel donde crear los encabezados
+     * @param requiredHeaderStyle estilo para encabezados requeridos
+     * @param optionalHeaderStyle estilo para encabezados opcionales
+     */
     private void createHeaders(Sheet sheet, CellStyle requiredHeaderStyle, CellStyle optionalHeaderStyle) {
         Row headerRow = sheet.createRow(0);
         String[] headers = {
@@ -213,6 +269,12 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
         headerRow.setHeightInPoints(40);
     }
 
+    /**
+     * @brief Crea filas de ejemplo en la hoja de Excel
+     * @param sheet hoja de Excel donde crear las filas de ejemplo
+     * @param templateStyle estilo para celdas de plantilla
+     * @param exampleData datos de ejemplo a exportar
+     */
     private void createTemplateRows(Sheet sheet, CellStyle templateStyle, List<AccountCatalogueTemplateData> exampleData) {
         int rowIndex = 1;
         for (AccountCatalogueTemplateData data : exampleData) {
@@ -221,6 +283,12 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
         }
     }
 
+    /**
+     * @brief Llena una fila de ejemplo en la hoja de Excel
+     * @param row fila de Excel donde llenar la fila de ejemplo
+     * @param data datos de ejemplo a exportar
+     * @param style estilo para celdas de plantilla
+     */
     private void fillTemplateRow(Row row, AccountCatalogueTemplateData data, CellStyle style) {
         int colIndex = 0;
         createTemplateCell(row, colIndex++, data.getCode(), style);
@@ -232,12 +300,25 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
         createTemplateCell(row, colIndex++, "", style);
     }
 
+    /**
+     * @brief Crea una celda en la hoja de Excel
+     * @param row fila de Excel donde crear la celda
+     * @param colIndex índice de la columna
+     * @param value valor a colocar en la celda
+     * @param style estilo a aplicar a la celda
+     */
     private void createTemplateCell(Row row, int colIndex, String value, CellStyle style) {
         Cell cell = row.createCell(colIndex);
         cell.setCellValue(value);
         cell.setCellStyle(style);
     }
 
+    /**
+     * @brief Llena las filas de datos en la hoja de Excel
+     * @param sheet hoja de Excel donde llenar las filas de datos
+     * @param data datos de cuentas a exportar
+     * @param dataStyle estilo para celdas de datos
+     */
     private void fillData(Sheet sheet, List<AccountCatalogueTemplateData> data, CellStyle dataStyle) {
         int rowIndex = 1;
         for (AccountCatalogueTemplateData item : data) {
@@ -246,6 +327,12 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
         }
     }
 
+    /**
+     * @brief Llena una fila de datos en la hoja de Excel
+     * @param row fila de Excel donde llenar la fila de datos
+     * @param data datos de cuentas a exportar
+     * @param style estilo para celdas de datos
+     */
     private void fillDataRow(Row row, AccountCatalogueTemplateData data, CellStyle style) {
         int colIndex = 0;
         row.createCell(colIndex++).setCellValue(data.getCode());
@@ -262,6 +349,11 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
         }
     }
 
+    /**
+     * @brief Formatea un valor booleano como "SI" o "NO"
+     * @param value valor booleano a formatear
+     * @return "SI" si el valor es true, "NO" si es false, "" si es null
+     */
     private String formatBooleanValue(Boolean value) {
         if (value == null) {
             return "";
@@ -269,6 +361,11 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
         return value ? "SI" : "NO";
     }
 
+    /**
+     * @brief Aplica validaciones a la hoja de Excel de plantilla
+     * @param sheet hoja de Excel donde aplicar las validaciones
+     * @throws ExcelValidationException si ocurre un error al aplicar las validaciones
+     */
     private void applyValidationsToTemplate(Sheet sheet) throws ExcelValidationException {
         int startRow = 1; // Después del encabezado
         int endRow = 1000; // Permitir muchas filas para la plantilla
@@ -276,6 +373,12 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
         excelValidationService.applyAccountCatalogueValidations(sheet, startRow, endRow);
     }
 
+    /**
+     * @brief Aplica validaciones a la hoja de Excel de datos
+     * @param sheet hoja de Excel donde aplicar las validaciones
+     * @param dataRowCount número de filas de datos en la hoja
+     * @throws ExcelValidationException si ocurre un error al aplicar las validaciones
+     */
     private void applyValidationsToDataSheet(Sheet sheet, int dataRowCount) throws ExcelValidationException {
         int startRow = 1; // Después del encabezado
         int endRow = Math.max(dataRowCount + 100, 1000); // Datos existentes + filas adicionales
@@ -283,6 +386,10 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
         excelValidationService.applyAccountCatalogueValidations(sheet, startRow, endRow);
     }
 
+    /**
+     * @brief Ajusta el ancho de las columnas en la hoja de Excel
+     * @param sheet hoja de Excel donde ajustar el ancho de las columnas
+     */
     private void autoSizeColumns(Sheet sheet) {
         for (int i = 0; i < 7; i++) {
             sheet.autoSizeColumn(i);
@@ -298,6 +405,9 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
     }
 
 
+    /**
+     * @brief Obtiene datos para la plantilla de Excel
+     */
     private List<AccountCatalogueTemplateData> getHardcodedTemplateData() {
         return List.of(
             AccountCatalogueTemplateData.builder()
@@ -499,6 +609,12 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
         );
     }
 
+    /**
+     * @brief Recupera catálogo completo mediante paginación para evitar memory leaks
+     * @param entId ID de empresa para filtrar cuentas
+     * @param status filtro opcional por estado activo/inactivo (null = todas)
+     * @return lista de cuentas contables
+     */
     private List<AccountCatalogue> getAllAccountCataloguesWithPagination(String entId, Boolean status) {
         List<AccountCatalogue> allAccounts = new ArrayList<>();
         int currentPage = 0;
@@ -523,12 +639,22 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
         return allAccounts;
     }
 
+    /**
+     * @brief Convierte una lista de cuentas contables a datos de plantilla
+     * @param accounts lista de cuentas contables a convertir
+     * @return lista de datos de plantilla
+     */
     private List<AccountCatalogueTemplateData> convertToTemplateData(List<AccountCatalogue> accounts) {
         return accounts.stream()
             .map(this::convertAccountToTemplateData)
             .toList();
     }
 
+    /**
+     * @brief Convierte una cuenta contable a datos de plantilla
+     * @param account cuenta contable a convertir
+     * @return datos de plantilla
+     */
     private AccountCatalogueTemplateData convertAccountToTemplateData(AccountCatalogue account) {
         return AccountCatalogueTemplateData.builder()
             .code(account.getCode())

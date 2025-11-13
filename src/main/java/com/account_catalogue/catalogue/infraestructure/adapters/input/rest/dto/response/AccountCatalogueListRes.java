@@ -1,4 +1,4 @@
-package com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.response;
+package com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.response;
 
 import java.util.List;
 
@@ -8,7 +8,12 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-
+/**
+ * @brief DTO para respuesta de lista jerárquica de cuentas contables
+ *
+ * Representa una cuenta en estructura de árbol con sus cuentas hijas,
+ * utilizado para mostrar catálogos organizados jerárquicamente.
+ */
 @Getter
 @Setter
 @AllArgsConstructor

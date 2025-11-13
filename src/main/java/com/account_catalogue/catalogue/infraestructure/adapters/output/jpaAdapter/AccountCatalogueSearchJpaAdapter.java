@@ -20,6 +20,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
+/**
+ * @brief Adaptador JPA para operaciones de búsqueda y consulta de cuentas
+ *
+ * Implementa búsqueda completa de catálogo de cuentas con múltiples estrategias:
+ * - Búsqueda por código/ID individual
+ * - Construcción de árboles jerárquicos desde BD
+ * - Búsqueda inteligente con filtros y paginación
+ * - Listados de cuentas auxiliares con características específicas
+ */
 @Component
 @Data
 public class AccountCatalogueSearchJpaAdapter implements IAccountCatalogueSearchOutputPort {
@@ -40,12 +49,13 @@ public class AccountCatalogueSearchJpaAdapter implements IAccountCatalogueSearch
     }
 
     /**
-     * Obtiene el árbol completo del catálogo de cuentas por código y id de empresa.
-     * Incluye todas las cuentas hijas en la jerarquía.
-     * 
-     * @param code         el código del catálogo de cuentas
-     * @param idEnterprise el id de la empresa
-     * @return el árbol del catálogo de cuentas si existe, null en caso contrario
+     * @brief Construye árbol jerárquico completo desde BD usando query recursiva
+     *
+     * Utiliza query nativa recursiva para obtener jerarquía completa y
+     * reconstruye estructura de árbol en memoria con referencias padre-hijo.
+     * @param code código de cuenta raíz para iniciar construcción de árbol
+     * @param idEnterprise filtro de empresa para aislamiento de datos
+     * @return estructura de árbol completa con todas las relaciones jerárquicas
      */
     @Override
     public AccountCatalogue getAccountCatalogueTreeByCode(String code, String idEnterprise) {
@@ -203,10 +213,13 @@ public class AccountCatalogueSearchJpaAdapter implements IAccountCatalogueSearch
     }
 
     /**
-     * Construye el árbol de AccountCatalogue a partir de los datos de jerarquía obtenidos de la consulta nativa.
-     * 
-     * @param hierarchyData lista de Object[] con los datos de la jerarquía.
-     * @return el AccountCatalogue raíz con su jerarquía completa.
+     * @brief Reconstruye estructura de árbol jerárquico desde datos planos de BD
+     *
+     * Algoritmo complejo que procesa datos relacionales planos y construye
+     * estructura de árbol en memoria con referencias bidireccionales padre-hijo.
+     * Maneja conversión de enums desde ordinals y asignación de referencias.
+     * @param hierarchyData lista de arrays con datos jerárquicos de BD
+     * @return cuenta raíz con jerarquía completa reconstruida en memoria
      */
     private AccountCatalogue buildTreeFromHierarchyData(List<Object[]> hierarchyData) {
         Map<Long, AccountCatalogue> nodeMap = new HashMap<>();

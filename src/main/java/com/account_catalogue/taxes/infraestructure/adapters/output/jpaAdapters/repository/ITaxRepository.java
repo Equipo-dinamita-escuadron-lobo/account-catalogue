@@ -9,83 +9,80 @@ import com.account_catalogue.taxes.infraestructure.adapters.output.jpaAdapters.e
 
 import java.util.List;
 
+/**
+ * @brief Repositorio de datos para operaciones de impuestos
+ *
+ * Proporciona métodos para consultas especializadas de impuestos
+ * con filtros por empresa, estado, código y descripción.
+ */
 public interface ITaxRepository extends JpaRepository<TaxEntity, Long> {
 
     /**
-     * Encuentra un TaxEntity por código y id de empresa 
-     * 
-     * @param code         el código del impuesto.
-     * @param idEnterprise el id de la empresa.
-     * @return el TaxEntity con el código y id de empresa dados. Si no se
-     *         encuentra, se devuelve null.
+     * @brief Busca impuesto por código y empresa
+     * @param code código del impuesto
+     * @param idEnterprise ID de la empresa
+     * @return impuesto encontrado o null
      */
     @Query("SELECT a FROM TaxEntity a WHERE a.code=?1 AND a.idEnterprise=?2")
     TaxEntity findByCode(String code, String idEnterprise);
 
     /**
-     * Encuentra un TaxEntity por ID y empresa
-     * 
-     * @param id el ID del impuesto.
-     * @param idEnterprise el ID de la empresa.
-     * @return el TaxEntity con el ID y empresa dados. Si no se encuentra, se devuelve null.
+     * @brief Busca impuesto por ID y empresa
+     * @param id ID del impuesto
+     * @param idEnterprise ID de la empresa
+     * @return impuesto encontrado o null
      */
     @Query("SELECT a FROM TaxEntity a WHERE a.id=?1 AND a.idEnterprise=?2")
     TaxEntity findByIdAndIdEnterprise(Long id, String idEnterprise);
 
     /**
-     * Encuentra todos los impuestos activos de una empresa.
-     *
-     * @param idEnterprise el ID de la empresa.
-     * @return lista de impuestos activos de la empresa.
+     * @brief Busca impuestos activos por empresa
+     * @param idEnterprise ID de la empresa
+     * @return lista de impuestos activos
      */
     @Query("SELECT a FROM TaxEntity a WHERE a.idEnterprise=?1 AND a.status = true")
     List<TaxEntity> findActiveByIdEnterprise(String idEnterprise);
 
     /**
-     * Encuentra todos los impuestos de una empresa.
-     *
-     * @param idEnterprise el ID de la empresa.
-     * @return lista de todos los impuestos de la empresa.
+     * @brief Busca todos los impuestos por empresa
+     * @param idEnterprise ID de la empresa
+     * @return lista completa de impuestos
      */
     @Query("SELECT a FROM TaxEntity a WHERE a.idEnterprise=?1")
     List<TaxEntity> findAllByIdEnterprise(String idEnterprise);
 
     /**
-     * Encuentra todos los impuestos de una empresa con paginación.
-     * 
-     * @param idEnterprise el ID de la empresa.
-     * @param pageable configuración de paginación.
-     * @return página de impuestos de la empresa.
+     * @brief Busca impuestos paginados por empresa
+     * @param idEnterprise ID de la empresa
+     * @param pageable configuración de paginación
+     * @return página de impuestos
      */
     @Query("SELECT a FROM TaxEntity a WHERE a.idEnterprise=?1")
     Page<TaxEntity> findAllByIdEnterprise(String idEnterprise, Pageable pageable);
 
     /**
-     * Cuenta el total de impuestos por empresa.
-     * 
-     * @param idEnterprise el ID de la empresa.
-     * @return número total de impuestos.
+     * @brief Cuenta total de impuestos por empresa
+     * @param idEnterprise ID de la empresa
+     * @return cantidad total de impuestos
      */
     @Query("SELECT COUNT(a) FROM TaxEntity a WHERE a.idEnterprise=?1")
     long countByIdEnterprise(String idEnterprise);
 
     /**
-     * Busca impuestos por empresa y código o descripción (búsqueda parcial case-insensitive).
-     * 
-     * @param idEnterprise el ID de la empresa.
-     * @param search término de búsqueda.
-     * @param pageable configuración de paginación.
-     * @return página de impuestos que coinciden con la búsqueda.
+     * @brief Busca impuestos por código o descripción con paginación
+     * @param idEnterprise ID de la empresa
+     * @param search término de búsqueda parcial (case-insensitive)
+     * @param pageable configuración de paginación
+     * @return página de impuestos filtrados
      */
     @Query("SELECT a FROM TaxEntity a WHERE a.idEnterprise=?1 AND (LOWER(a.code) LIKE LOWER(CONCAT('%', ?2, '%')) OR LOWER(a.description) LIKE LOWER(CONCAT('%', ?2, '%')))")
     Page<TaxEntity> findByIdEnterpriseAndDescriptionContainingIgnoreCase(String idEnterprise, String search, Pageable pageable);
 
     /**
-     * Cuenta impuestos por empresa y código o descripción (búsqueda parcial case-insensitive).
-     * 
-     * @param idEnterprise el ID de la empresa.
-     * @param search término de búsqueda.
-     * @return número total de impuestos que coinciden con la búsqueda.
+     * @brief Cuenta impuestos filtrados por código o descripción
+     * @param idEnterprise ID de la empresa
+     * @param search término de búsqueda parcial (case-insensitive)
+     * @return cantidad de impuestos filtrados
      */
     @Query("SELECT COUNT(a) FROM TaxEntity a WHERE a.idEnterprise=?1 AND (LOWER(a.code) LIKE LOWER(CONCAT('%', ?2, '%')) OR LOWER(a.description) LIKE LOWER(CONCAT('%', ?2, '%')))")
     long countByIdEnterpriseAndDescriptionContainingIgnoreCase(String idEnterprise, String search);

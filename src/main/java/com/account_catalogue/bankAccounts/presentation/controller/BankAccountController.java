@@ -12,6 +12,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * @brief Controlador REST para gestión de cuentas bancarias
+ *
+ * Expone endpoints HTTP para operaciones CRUD de cuentas bancarias
+ * con soporte para filtros, paginación y búsqueda.
+ */
 @RestController
 @RequestMapping("/api/accountCatalogue/bank-accounts")
 @RequiredArgsConstructor
@@ -58,15 +64,6 @@ public class BankAccountController {
                 .map(mapper::toRes));
     }
 
-    @GetMapping("/findAllByBank/{enterpriseId}")
-    public ResponseEntity<Page<BankAccountRes>> listByBank(
-            @PathVariable String enterpriseId,
-            @RequestParam Long bankId,
-            @RequestParam(defaultValue = "0") Integer page,
-            @RequestParam(defaultValue = "10") Integer size) {
-        return ResponseEntity.ok(service.findAllByEnterpriseAndBank(enterpriseId, bankId, page, size)
-                .map(mapper::toRes));
-    }
 
     @PatchMapping("/changeState/{id}/{enterpriseId}")
     public ResponseEntity<BankAccountRes> changeState(

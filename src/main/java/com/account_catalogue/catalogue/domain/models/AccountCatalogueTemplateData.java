@@ -7,7 +7,10 @@ import lombok.Builder;
 import lombok.Data;
 
 /**
- * Modelo que representa una fila de datos en la plantilla de catálogo de cuentas
+ * @brief Modelo de datos para filas de plantilla Excel de catálogo de cuentas
+ *
+ * Representa una fila completa de datos en plantillas Excel con todos los campos
+ * necesarios para importar cuentas contables, incluyendo campos opcionales.
  */
 @Data
 @Builder

@@ -14,6 +14,12 @@ import com.account_catalogue.taxes.infraestructure.adapters.output.jpaAdapters.r
 import lombok.Data;
 import org.springframework.stereotype.Component;
 
+/**
+ * @brief Adaptador JPA para operaciones de actualización de impuestos
+ *
+ * Implementa la actualización de impuestos con manejo condicional de relaciones
+ * bidireccionales y validaciones selectivas de cambios.
+ */
 @Component
 @Data
 public class TaxUpdateJpaAdapter implements ITaxUpdateOutputPort {
@@ -27,14 +33,10 @@ public class TaxUpdateJpaAdapter implements ITaxUpdateOutputPort {
     private final TaxValidationService taxValidationService;
 
     /**
-     * Actualiza los detalles de un impuesto.
-     *
-     * @param taxDTO el objeto TaxDTO que contiene los detalles del impuesto a
-     *               actualizar.
-     * @param id     el identificador del impuesto a actualizar.
-     * @return el objeto Tax actualizado.
-     * @throws TaxAlreadyExistsException si el impuesto con el código especificado
-     *                                  ya existe.
+     * @brief Actualiza impuesto con manejo condicional de relaciones
+     * @param taxDTO datos actualizados del impuesto
+     * @param id identificador del impuesto a actualizar
+     * @return impuesto actualizado con relaciones modificadas
      */
     @Override
     public Tax update(TaxDTO taxDTO, long id) {

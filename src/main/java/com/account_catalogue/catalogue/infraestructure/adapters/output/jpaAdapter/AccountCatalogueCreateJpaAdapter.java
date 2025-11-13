@@ -13,8 +13,12 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 /**
- * Adaptador para la creacion de cuentas usando JPA.
- * Implementa la interfaz IAccountCatalogueCreateOutputPort.
+ * @brief Adaptador JPA para operaciones de creación de cuentas contables
+ *
+ * Gestiona creación de cuentas con lógica compleja de jerarquía:
+ * - Creación de cuentas padre-hijo recursiva
+ * - Activación automática de jerarquía padre
+ * - Validación de unicidad de códigos
  */
 @Component
 @Data
@@ -25,10 +29,14 @@ public class AccountCatalogueCreateJpaAdapter implements IAccountCatalogueCreate
     private final IAccountCatalogueCreateMapper accountCatalogueCreateMapper;
 
     /**
-     * Crea una cuenta
+     * @brief Crea cuenta contable con validación y activación jerárquica automática
      *
-     * @param accountCatalogue de la clase de dominio AccountCatalogue
-     * @return el modelo de dominio del catalogo de cuenta
+     * Proceso complejo de creación que incluye:
+     * - Validación de unicidad de código
+     * - Creación recursiva de jerarquía padre-hijo
+     * - Activación automática de jerarquía padre según reglas PUC
+     * @param accountCatalogue modelo de dominio con datos de la cuenta a crear
+     * @return cuenta creada con ID asignado o cuenta existente si código ya existe
      */
     
     @Override
@@ -56,9 +64,11 @@ public class AccountCatalogueCreateJpaAdapter implements IAccountCatalogueCreate
     }
 
     /**
-     * Activa recursivamente toda la jerarquía de padres de una cuenta.
+     * @brief Activa jerarquía padre completa siguiendo reglas PUC
      *
-     * @param child la cuenta hija desde donde se inicia la activación ascendente
+     * Calcula todos los códigos padre basados en jerarquía PUC y los activa
+     * de forma masiva para mantener consistencia cuando se crea una cuenta hija.
+     * @param child cuenta recién creada desde donde calcular jerarquía padre
      */
     private void activateParentHierarchy(AccountCatalogueEntity child) {
         List<String> parentCodes = getAllParentCodes(child.getCode());
@@ -68,10 +78,12 @@ public class AccountCatalogueCreateJpaAdapter implements IAccountCatalogueCreate
     }
 
     /**
-     * Obtiene todos los códigos de padres para una cuenta dada basado en las reglas PUC.
+     * @brief Calcula jerarquía completa de códigos padre según reglas PUC
      *
-     * @param code El código de la cuenta.
-     * @return Lista de códigos de padres.
+     * Recorre jerarquía desde cuenta hija hacia arriba aplicando reglas de
+     * truncamiento PUC (Plan Único de Cuentas) para determinar códigos padre.
+     * @param code código de cuenta hija para calcular jerarquía padre
+     * @return lista completa de códigos padre desde más cercano hasta raíz
      */
     private List<String> getAllParentCodes(String code) {
         List<String> parentCodes = new ArrayList<>();
@@ -89,10 +101,12 @@ public class AccountCatalogueCreateJpaAdapter implements IAccountCatalogueCreate
     }
 
     /**
-     * Obtiene el código del padre para una cuenta dada basado en las reglas PUC.
+     * @brief Calcula código padre inmediato según longitud PUC
      *
-     * @param code El código de la cuenta.
-     * @return El código del padre o null si no tiene padre.
+     * Aplica reglas de truncamiento basadas en longitud del código:
+     * 1 dígito = raíz, 2 dígitos = clase, 4 dígitos = grupo, etc.
+     * @param code código de cuenta para calcular padre inmediato
+     * @return código del padre directo o null si es cuenta raíz
      */
     private String getParentCode(String code) {
         switch (code.length()) {

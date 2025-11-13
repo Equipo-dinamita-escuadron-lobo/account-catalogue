@@ -6,6 +6,12 @@ import lombok.*;
 
 import java.util.Set;
 
+/**
+ * @brief DTO de solicitud para actualizar bancos
+ *
+ * Contiene los campos necesarios para actualizar un banco existente
+ * con validaciones de formato y obligatoriedad.
+ */
 @Getter
 @Setter
 @NoArgsConstructor

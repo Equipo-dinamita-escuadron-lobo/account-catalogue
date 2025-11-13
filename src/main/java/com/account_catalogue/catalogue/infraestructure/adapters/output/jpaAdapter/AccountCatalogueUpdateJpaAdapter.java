@@ -14,6 +14,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+/**
+ * @brief Adaptador JPA para operaciones de actualización con cambios jerárquicos
+ *
+ * Gestiona actualizaciones de cuentas con lógica compleja:
+ * - Actualización de campos individuales de cuenta padre
+ * - Cambio automático de códigos en jerarquía completa al cambiar código padre
+ * - Propagación recursiva de cambios de código hacia descendientes
+ */
 @Component
 @Data
 @RequiredArgsConstructor
@@ -25,15 +33,16 @@ public class AccountCatalogueUpdateJpaAdapter implements IAccountCatalogueUpdate
     private final IAccountCatalogueUpdateMapper accountCatalogueUpdateMapper;
     
     /**
-     * Actualiza los detalles de un catálogo de cuentas existente en la base de datos.
-     * Si el código cambia, actualiza recursivamente los códigos de todas las cuentas hijas.
+     * @brief Actualiza cuenta con propagación automática de cambios de código jerárquico
      *
-     * @param id el ID del catálogo de cuentas a actualizar.
-     * @param accountCatalogue el objeto AccountCatalogue que contiene los detalles
-     *                         actualizados del catálogo de cuentas.
-     * @return el objeto AccountCatalogue actualizado con los detalles
-     *         actualizados del catálogo de cuentas, o null si el catálogo de
-     *         cuentas no existe.
+     * Proceso complejo que incluye:
+     * - Validación de existencia de cuenta
+     * - Actualización de campos principales
+     * - Detección de cambios de código
+     * - Propagación recursiva de cambios de código a toda jerarquía descendiente
+     * @param id identificador único de cuenta a actualizar
+     * @param accountCatalogue datos actualizados para aplicar a la cuenta
+     * @return cuenta actualizada con todos los cambios aplicados o null si no existe
      */
     @Override
     @Transactional
@@ -68,13 +77,16 @@ public class AccountCatalogueUpdateJpaAdapter implements IAccountCatalogueUpdate
     }
 
     /**
-     * Actualiza recursivamente los códigos de todas las cuentas hijas cuando cambia el código del padre.
-     * Reemplaza el prefijo del código padre antiguo por el nuevo en todos los descendientes.
+     * @brief Propaga cambios de código padre a toda jerarquía descendiente
      *
-     * @param parentId ID de la cuenta padre cuyo código cambió
-     * @param oldParentCode Código antiguo del padre
-     * @param newParentCode Código nuevo del padre
-     * @param idEnterprise ID de la empresa
+     * Algoritmo recursivo que actualiza códigos de forma jerárquica:
+     * - Reemplaza prefijo del código padre en todos los descendientes
+     * - Mantiene estructura PUC (Plan Único de Cuentas) al cambiar códigos
+     * - Actualiza recursivamente hacia abajo en la jerarquía
+     * @param parentId ID del padre cuyos cambios de código se propagan
+     * @param oldParentCode código anterior del padre para reemplazar
+     * @param newParentCode código nuevo del padre para aplicar
+     * @param idEnterprise filtro de empresa para aislamiento de datos
      */
     private void updateChildrenCodes(Long parentId, String oldParentCode, String newParentCode, String idEnterprise) {
         // Obtener todos los hijos directos del padre

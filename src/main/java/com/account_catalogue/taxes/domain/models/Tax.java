@@ -4,6 +4,12 @@ import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapte
 
 import lombok.*;
 
+/**
+ * @brief Modelo de dominio que representa un impuesto
+ *
+ * Contiene la información esencial de un impuesto incluyendo
+ * cuentas contables de venta y compra asociadas.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

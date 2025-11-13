@@ -3,16 +3,30 @@ package com.account_catalogue.catalogue.infraestructure.adapters.input.rest.mapp
 import org.springframework.stereotype.Component;
 
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
-import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.request.AccountCatalogueUpdateReq;
-import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.data.response.AccountCatalogueUpdateRes;
+import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.request.AccountCatalogueUpdateReq;
+import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.response.AccountCatalogueUpdateRes;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.mapper.IAccountUpdateRestMapper;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.util.AdjustEnumAccount;
 
+/**
+ * @brief Implementación del mapper para operaciones de actualización de cuentas
+ *
+ * Convierte entre DTOs de request/response y modelos de dominio para operaciones
+ * de actualización, manejando cambios selectivos y referencias padre.
+ */
 @Component
 public class AccountUpdateRestMapper implements IAccountUpdateRestMapper {
 
     private AdjustEnumAccount adjustEnum = new AdjustEnumAccount();
 
+    /**
+     * @brief Convierte solicitud de actualización a modelo de dominio
+     *
+     * Transforma DTO de request a entidad de dominio, ajustando enums y creando
+     * referencia padre si se proporciona ID de cuenta padre.
+     * @param accountCatalogueUpdateReq DTO con datos de actualización
+     * @return entidad de dominio con cambios aplicados
+     */
     @Override
     public AccountCatalogue toDomain(AccountCatalogueUpdateReq accountCatalogueUpdateReq) {
         if(accountCatalogueUpdateReq == null) {
@@ -40,6 +54,14 @@ public class AccountUpdateRestMapper implements IAccountUpdateRestMapper {
         return builder.build();
     }
 
+    /**
+     * @brief Convierte modelo de dominio a respuesta de actualización
+     *
+     * Transforma entidad de dominio a DTO de respuesta, convirtiendo enums a strings
+     * y manejando referencias padre para comunicación REST.
+     * @param accountCatalogue modelo de dominio actualizado
+     * @return DTO de respuesta con datos de cuenta modificada
+     */
     @Override
     public AccountCatalogueUpdateRes toUpdateResponse(AccountCatalogue accountCatalogue) {
         if(accountCatalogue == null) {

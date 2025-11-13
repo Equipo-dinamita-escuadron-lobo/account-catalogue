@@ -9,6 +9,12 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.stereotype.Service;
 
+/**
+ * @brief Servicio de aplicación para creación de impuestos
+ *
+ * Implementa la lógica de negocio para crear nuevos impuestos
+ * con validaciones de unicidad y cuentas contables.
+ */
 @Service
 @AllArgsConstructor
 @Data
@@ -17,10 +23,9 @@ public class TaxCreateService implements ITaxCreateInputPort {
     private final TaxValidationService taxValidationService;
 
     /**
-     * Crea una nueva entrada de impuesto en el sistema.
-     *
-     * @param tax el objeto TaxDTO que contiene los detalles del impuesto a crear.
-     * @return el objeto Tax creado.
+     * @brief Crea nueva entrada de impuesto con validaciones
+     * @param tax datos del impuesto a crear
+     * @return impuesto creado
      */
     @Override
     public Tax createTax(TaxDTO tax) {

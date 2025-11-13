@@ -18,6 +18,12 @@ import com.account_catalogue.taxes.domain.models.Tax;
 
 import lombok.AllArgsConstructor;
 
+/**
+ * @brief Servicio de validaciones para operaciones con impuestos
+ *
+ * Proporciona métodos de validación de negocio para impuestos,
+ * incluyendo cuentas contables, códigos únicos y existencia de registros.
+ */
 @Service
 @AllArgsConstructor
 public class TaxValidationService {
@@ -26,16 +32,10 @@ public class TaxValidationService {
     private final IAccountCatalogueSearchOutputPort accountCatalogueSearchOutputPort;
 
     /**
-     * Valida que existan las cuentas de impuesto de venta e impuesto de compra por sus IDs, que
-     * tengan exactamente 8 dígitos y que estén activas.
-     *
+     * @brief Valida cuentas de impuestos de venta y compra
      * @param salesTaxId ID de cuenta de impuesto de venta
-     * @param purchaseTaxId  ID de cuenta de impuesto de compra
-     * @param idEnterprise     ID de la empresa
-     * @throws AccountCatalogueNotFoundException si la cuenta de impuesto de venta o
-     *                                           impuesto de compra no existe
-     * @throws AccountCatalogueInactiveException si la cuenta está inactiva
-     * @throws InvalidAccountDigitsException     si alguna cuenta no tiene 8 dígitos
+     * @param purchaseTaxId ID de cuenta de impuesto de compra
+     * @param idEnterprise ID de la empresa
      */
     public void validateAccountDigits(Long salesTaxId, Long purchaseTaxId, String idEnterprise) {
         if (salesTaxId != null) {
@@ -70,12 +70,9 @@ public class TaxValidationService {
     }
 
     /**
-     * Valida que una cuenta esté activa.
-     * 
-     * @param accountId    ID de la cuenta
+     * @brief Valida que una cuenta contable esté activa
+     * @param accountId ID de la cuenta
      * @param idEnterprise ID de la empresa
-     * @throws AccountCatalogueNotFoundException si la cuenta no existe
-     * @throws AccountCatalogueInactiveException si la cuenta está inactiva
      */
     public void validateAccountActive(Long accountId, String idEnterprise) {
         if (accountId != null) {
@@ -91,12 +88,9 @@ public class TaxValidationService {
     }
 
     /**
-     * Valida que no exista un impuesto con el mismo código para la empresa.
-     * La comparación se realiza usando normalización (ignorando mayúsculas/minúsculas y espacios).
-     *
-     * @param code         código del impuesto
+     * @brief Valida unicidad de código de impuesto por empresa
+     * @param code código del impuesto
      * @param idEnterprise ID de la empresa
-     * @throws TaxAlreadyExistsException si el impuesto ya existe
      */
     public void validateTaxCodeNotExists(String code, String idEnterprise) {
         if (code == null || code.trim().isEmpty()) {
@@ -120,13 +114,10 @@ public class TaxValidationService {
     }
 
     /**
-     * Valida que no exista un impuesto con el mismo código para la empresa, excluyendo un ID específico.
-     * Usado para validación en edición. La comparación se realiza usando normalización.
-     *
-     * @param code         código del impuesto
+     * @brief Valida unicidad de código excluyendo un ID específico
+     * @param code código del impuesto
      * @param idEnterprise ID de la empresa
-     * @param excludeId    ID del impuesto a excluir de la validación
-     * @throws TaxAlreadyExistsException si el impuesto ya existe
+     * @param excludeId ID del impuesto a excluir de la validación
      */
     public void validateTaxCodeNotExistsExcludingId(String code, String idEnterprise, Long excludeId) {
         if (code == null || code.trim().isEmpty()) {
@@ -151,11 +142,9 @@ public class TaxValidationService {
     }
 
     /**
-     * Valida que exista un impuesto con el código e idEnterprise especificados.
-     * 
-     * @param code         código del impuesto
+     * @brief Valida existencia de impuesto por código
+     * @param code código del impuesto
      * @param idEnterprise ID de la empresa
-     * @throws TaxNotFoundException si el impuesto no existe
      */
     public void validateTaxExists(String code, String idEnterprise) {
         Tax tax = taxSearchOutputPort.getTax(code, idEnterprise);
@@ -166,12 +155,9 @@ public class TaxValidationService {
     }
 
     /**
-     * Valida que exista un impuesto con el ID e idEnterprise especificados.
-     * Método optimizado para operaciones que requieren validar empresa.
-     * 
-     * @param id           ID del impuesto
+     * @brief Valida existencia de impuesto por ID
+     * @param id ID del impuesto
      * @param idEnterprise ID de la empresa
-     * @throws TaxNotFoundException si el impuesto no existe
      */
     public void validateTaxExists(Long id, String idEnterprise) {
         Tax tax = taxSearchOutputPort.getTaxByIdAndEnterprise(id, idEnterprise);
@@ -182,11 +168,10 @@ public class TaxValidationService {
     }
 
     /**
-     * Valida que las cuentas de impuesto de venta e impuesto de compra sean diferentes.
+     * @brief Valida que las cuentas de impuesto de venta e impuesto de compra sean diferentes.
      *
      * @param salesTaxId ID de la cuenta de impuesto de venta
      * @param purchaseTaxId ID de la cuenta de impuesto de compra
-     * @throws DuplicateTaxAccountsException si ambas cuentas son iguales
      */
     public void validateDifferentTaxAccounts(Long salesTaxId, Long purchaseTaxId) {
         if (salesTaxId != null && purchaseTaxId != null && salesTaxId.equals(purchaseTaxId)) {

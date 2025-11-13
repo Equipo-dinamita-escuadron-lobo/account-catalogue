@@ -6,25 +6,40 @@ import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapte
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.AfterMapping;
-import org.mapstruct.MappingTarget;
 
+/**
+ * @brief Mapeador de datos para entidades de métodos de pago
+ *
+ * Gestiona la conversión entre entidades de base de datos y modelos de dominio,
+ * manejando campos específicos de relaciones contables con expresiones personalizadas.
+ */
 @Mapper(componentModel = "spring")
 public interface PaymentMethodDataMapper {
 
+    /**
+     * @brief Convierte entidad de base de datos a modelo de dominio
+     * @param entity Entidad de método de pago con relaciones cargadas
+     * @return Modelo de dominio con información contable formateada
+     */
     @Mapping(target = "accountingAccount", expression = "java(entity.getAccountingAccount() != null ? entity.getAccountingAccount().getCode() + \" - \" + entity.getAccountingAccount().getDescription() : \"\")")
     @Mapping(target = "accountingAccountEntity", expression = "java(mapToAccountCatalogue(entity.getAccountingAccount()))")
     PaymentMethod toDomain(PaymentMethodEntity entity);
 
+    /**
+     * @brief Convierte modelo de dominio a entidad de base de datos
+     * @param domain Modelo de dominio de método de pago
+     * @return Entidad preparada para persistencia (relaciones se establecen posteriormente)
+     */
     @Mapping(target = "tenantId", ignore = true)
     @Mapping(target = "accountingAccount", ignore = true)
     PaymentMethodEntity toEntity(PaymentMethod domain);
 
-    @AfterMapping
-    default void setAccountingAccountEntity(PaymentMethod domain, @MappingTarget PaymentMethodEntity entity) {
-        // La relación se maneja por separado, no en el mapeo automático
-    }
 
+    /**
+     * @brief Convierte entidad contable a modelo de dominio
+     * @param entity Entidad de cuenta contable JPA
+     * @return Modelo de dominio de cuenta contable o null si entity es null
+     */
     default AccountCatalogue mapToAccountCatalogue(AccountCatalogueEntity entity) {
         if (entity == null) {
             return null;

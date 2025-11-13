@@ -1,4 +1,4 @@
-package com.account_catalogue.taxes.infraestructure.adapters.input.rest;
+package com.account_catalogue.taxes.infraestructure.adapters.input.rest.controller;
 
 import com.account_catalogue.taxes.application.input.ITaxChangeStateInputPort;
 import com.account_catalogue.taxes.application.input.ITaxCreateInputPort;
@@ -7,12 +7,12 @@ import com.account_catalogue.taxes.application.input.ITaxSearchInputPort;
 import com.account_catalogue.taxes.application.input.ITaxUpdateInputPort;
 import com.account_catalogue.taxes.domain.DTO.TaxDTO;
 import com.account_catalogue.taxes.domain.models.Tax;
-import com.account_catalogue.taxes.infraestructure.adapters.input.rest.data.request.TaxCreateReq;
-import com.account_catalogue.taxes.infraestructure.adapters.input.rest.data.request.TaxUpdateReq;
-import com.account_catalogue.taxes.infraestructure.adapters.input.rest.data.response.TaxChangeStateRes;
-import com.account_catalogue.taxes.infraestructure.adapters.input.rest.data.response.TaxCreateRes;
-import com.account_catalogue.taxes.infraestructure.adapters.input.rest.data.response.TaxSearchRes;
-import com.account_catalogue.taxes.infraestructure.adapters.input.rest.data.response.TaxUpdateRes;
+import com.account_catalogue.taxes.infraestructure.adapters.input.rest.dto.request.TaxCreateReq;
+import com.account_catalogue.taxes.infraestructure.adapters.input.rest.dto.request.TaxUpdateReq;
+import com.account_catalogue.taxes.infraestructure.adapters.input.rest.dto.response.TaxChangeStateRes;
+import com.account_catalogue.taxes.infraestructure.adapters.input.rest.dto.response.TaxCreateRes;
+import com.account_catalogue.taxes.infraestructure.adapters.input.rest.dto.response.TaxSearchRes;
+import com.account_catalogue.taxes.infraestructure.adapters.input.rest.dto.response.TaxUpdateRes;
 import com.account_catalogue.taxes.infraestructure.adapters.input.rest.mapper.ITaxChangeStateRestMapper;
 import com.account_catalogue.taxes.infraestructure.adapters.input.rest.mapper.ITaxCreateRestMapper;
 import com.account_catalogue.taxes.infraestructure.adapters.input.rest.mapper.ITaxSearchRestMapper;
@@ -33,6 +33,13 @@ import com.account_catalogue.commons.utils.PaginationHelper;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * @brief Controlador REST para operaciones de impuestos
+ *
+ * Proporciona endpoints para crear, buscar, actualizar y eliminar impuestos,
+ * así como para cambiar su estado activo/inactivo. También maneja paginación y
+ * búsqueda flexible.
+ */
 @RequestMapping("/api/tax")
 @RestController
 @AllArgsConstructor

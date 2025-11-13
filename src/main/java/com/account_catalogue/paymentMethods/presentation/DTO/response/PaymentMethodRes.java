@@ -2,6 +2,12 @@ package com.account_catalogue.paymentMethods.presentation.DTO.response;
 
 import lombok.*;
 
+/**
+ * @brief DTO de respuesta para métodos de pago
+ *
+ * Contiene la información completa de un método de pago
+ * para respuestas de la API REST.
+ */
 @Getter
 @Setter
 @NoArgsConstructor

@@ -7,6 +7,12 @@ import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+/**
+ * @brief Servicio para operaciones de actualización de cuentas contables
+ *
+ * Maneja la actualización de cuentas existentes del catálogo con validaciones
+ * de integridad y reglas de negocio específicas para modificaciones.
+ */
 @Service
 @AllArgsConstructor
 public class AccountCatalogueUpdateService implements IAccountCatalogueUpdateInputPort {
@@ -15,18 +21,19 @@ public class AccountCatalogueUpdateService implements IAccountCatalogueUpdateInp
     private final AccountCatalogueValidationService validationService;
 
     /**
-     * Actualiza un catálogo de cuenta con validaciones.
-     * Permite actualizar cuentas que tienen hijos, pero valida que no esté asociada a impuestos.
-     *
-     * @param id El id del catálogo de cuenta a actualizar.
-     * @param accountCatalogue El catálogo de cuenta actualizado.
-     * @return El catálogo de cuenta actualizado.
+     * @brief Actualiza cuenta contable con validaciones de integridad completas    
+     * @param id ID de la cuenta a actualizar
+     * @param accountCatalogue datos actualizados con todas las validaciones aplicadas
+     * @return cuenta actualizada después de validaciones y persistencia
      */
     @Override
     public AccountCatalogue updateAccountCatalogue(long id, AccountCatalogue accountCatalogue) {
         // Validar que la cuenta a actualizar existe
         AccountCatalogue existingAccount = validationService.validateAccountExistsByIdAndEnterprise(id, accountCatalogue.getIdEnterprise());
-        
+
+        // Validar que la cuenta no esté asociada a movimientos contables (primera validación)
+        validationService.validateAccountNotAssociatedWithAccountingMovements(existingAccount, "editar");
+
         // Verificar que el idEnterprise esté establecido
         if (accountCatalogue.getIdEnterprise() == null || accountCatalogue.getIdEnterprise().trim().isEmpty()) {
             throw new IllegalArgumentException("El ID de empresa es requerido para la actualización");
@@ -77,10 +84,6 @@ public class AccountCatalogueUpdateService implements IAccountCatalogueUpdateInp
             validationService.validateParentCodePrefix(accountCatalogue.getCode(), existingAccount.getParent().getCode());
         }
 
-        // Solo validar que la cuenta no está asociada a impuestos
-        // (Se permite actualizar cuentas que tienen hijos)
-        validationService.validateAccountNotAssociatedWithTaxes(existingAccount);
-        
         // Si tiene padre, validar que el padre existe
         if (accountCatalogue.getParent() != null && accountCatalogue.getParent().getId() != null) {
             validationService.validateAccountExistsByIdAndEnterprise(accountCatalogue.getParent().getId(), accountCatalogue.getIdEnterprise());

@@ -49,9 +49,6 @@ public class AccountCatalogueDeleteService implements IAccountCatalogueDeleteInp
             );
         }
 
-        // Validar recursivamente que ni la cuenta padre ni ninguna de sus hijas estén asociadas a movimientos contables
-        validationService.validateAccountAndChildrenNotAssociatedWithAccountingMovements(accountTreeToDelete, "eliminar");
-
         // Validar recursivamente que ni la cuenta padre ni ninguna de sus hijas estén asociadas a impuestos
         validationService.validateAccountAndChildrenNotAssociatedWithTaxes(accountTreeToDelete);
         

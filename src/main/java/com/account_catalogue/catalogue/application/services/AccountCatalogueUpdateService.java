@@ -31,9 +31,6 @@ public class AccountCatalogueUpdateService implements IAccountCatalogueUpdateInp
         // Validar que la cuenta a actualizar existe
         AccountCatalogue existingAccount = validationService.validateAccountExistsByIdAndEnterprise(id, accountCatalogue.getIdEnterprise());
 
-        // Validar que la cuenta no esté asociada a movimientos contables (primera validación)
-        validationService.validateAccountNotAssociatedWithAccountingMovements(existingAccount, "editar");
-
         // Verificar que el idEnterprise esté establecido
         if (accountCatalogue.getIdEnterprise() == null || accountCatalogue.getIdEnterprise().trim().isEmpty()) {
             throw new IllegalArgumentException("El ID de empresa es requerido para la actualización");

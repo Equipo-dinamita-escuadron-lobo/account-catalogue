@@ -35,158 +35,77 @@ import java.util.function.Function;
 public class ReceiptProcessService implements IReceiptProcessInputPort {
         private final IAccountingSearchOutputPort accountingSearchOutputPort;
         private final IReceiptPersistenceOutputPort receiptPersistenceOutputPort;
-        private final IAccountingEntryPersistenceOutputPort accountingEntryPersistenceOutputPort;
-        private final IAccountCatalogueSearchOutputPort accountCatalogueSearchOutputPort;
+        private final IAccountingEntryPersistenceOutputPort accountingEntryPersistenceOutputPort;;
         private final IAccountBalanceUpdateInputPort accountBalanceUpdateInputPort;
         private final IInvoiceProviderPort invoiceProviderPort;
+        private final IAccountCatalogueSearchOutputPort accountCatalogueSearchOutputPort;
 
         @Override
         @Transactional
         public void processReceiptCreation(Receipt receipt) {
-                log.info("Iniciando procesamiento de creacion para recibo de origen ID: {}", receipt.getReceiptCode());
+                log.info("Iniciando procesamiento de creación para recibo de origen: {}", receipt.getReceiptCode());
 
-                // Verifica si ya existe un recibo con este código de negocio único.
                 if (receiptPersistenceOutputPort.existsByReceiptCode(receipt.getReceiptCode())) {
                         log.warn("El recibo con código {} ya ha sido procesado. Ignorando mensaje duplicado.",
                                         receipt.getReceiptCode());
-                        return; // Termina la ejecución. Spring AMQP enviará el ack.
+                        return;
                 }
 
                 receipt.setProcessingStatus(ProcessingStatus.PENDING);
                 Receipt savedReceipt = receiptPersistenceOutputPort.save(receipt);
-                log.info("Recibo de origen {} guardado localmente con ID: {}", savedReceipt.getOriginalReceiptId(),
+                log.info("Recibo {} guardado localmente con ID: {}", savedReceipt.getReceiptCode(),
                                 savedReceipt.getId());
 
                 try {
-                        // --- INICIO DE LÓGICA DE ACTUALIZACIÓN DE FACTURAS ---
-                        if (savedReceipt.getReceiptTypeId() == 1L) { // TIPO: ABONO A FACTURA
+                        // 1. ORDENAR a las facturas que apliquen su pago (Principio "Tell, Don't Ask")
+                        // (Asumiendo que 1L es 'Abono a Factura'. Idealmente, usar un Enum aquí)
+                        if (savedReceipt.getReceiptTypeId() == 1L) {
                                 log.info("Recibo {} es de tipo Abono. Actualizando saldos de facturas...",
                                                 savedReceipt.getReceiptCode());
                                 for (ReceiptDetail detail : savedReceipt.getDetails()) {
                                         InvoiceReplica invoice = invoiceProviderPort
                                                         .findInvoiceById(detail.getOriginalInvoiceId())
                                                         .orElseThrow(() -> new IllegalStateException(
-                                                                        "No se encontró la factura con ID "
-                                                                                        + detail.getOriginalInvoiceId()
-                                                                                        + " para aplicar el abono."));
+                                                                        "No se encontró la factura con ID " + detail
+                                                                                        .getOriginalInvoiceId()));
 
-                                        // Validar que el pago no exceda el saldo
-                                        if (detail.getAmountPaid().longValue() > invoice.getPendingValue()) {
-                                                throw new IllegalArgumentException("El monto pagado ("
-                                                                + detail.getAmountPaid() + ") para la factura "
-                                                                + invoice.getFactCode() + " excede el saldo pendiente ("
-                                                                + invoice.getPendingValue() + ").");
-                                        }
+                                        // La lógica de negocio está ahora en el modelo de dominio InvoiceReplica
+                                        invoice.applyPayment(detail.getAmountPaid());
 
-                                        // Actualizar saldos de la factura
-                                        invoice.setPendingValue(
-                                                        invoice.getPendingValue() - detail.getAmountPaid().longValue());
-                                        invoice.setTotalPay(invoice.getTotalPay() + detail.getAmountPaid().longValue());
-
-                                        // Guardar la factura actualizada
                                         invoiceProviderPort.updateInvoice(invoice);
                                         log.info("Factura {} actualizada. Nuevo saldo pendiente: {}",
                                                         invoice.getFactCode(), invoice.getPendingValue());
                                 }
                         }
-                        // --- FIN DE LÓGICA DE ACTUALIZACIÓN DE FACTURAS ---
-                        AccountingEntry accountingEntry = buildAccountingEntryFromReceipt(savedReceipt);
+
+                        // 2. PEDIR al modelo de dominio 'Receipt' que construya el asiento contable
+                        // El servicio solo provee las dependencias externas (la función para buscar
+                        // cuentas).
+                        Function<String, AccountCatalogue> accountFinder = code -> accountCatalogueSearchOutputPort
+                                        .getAccountCatalogueByCode(code, savedReceipt.getEnterpriseId());
+                        String entryCode = "AE-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+
+                        // La lógica compleja de creación está encapsulada en el modelo de dominio.
+                        AccountingEntry accountingEntry = savedReceipt.buildAccountingEntryFromReceipt(accountFinder,
+                                        entryCode);
+
                         accountingEntryPersistenceOutputPort.save(accountingEntry);
                         log.info("Asiento contable {} generado para el recibo {}", accountingEntry.getCode(),
                                         savedReceipt.getId());
 
-                        // Actualizar saldos de cuentas involucradas
+                        // 3. ORQUESTAR la actualización de saldos
                         accountBalanceUpdateInputPort.updateBalancesFromAccountingEntry(accountingEntry);
 
+                        // 4. ACTUALIZAR el estado final del recibo
                         savedReceipt.setProcessingStatus(ProcessingStatus.PROCESSED);
                         receiptPersistenceOutputPort.save(savedReceipt);
 
                 } catch (Exception e) {
-                        log.error("Error crítico al procesar el asiento contable para recibo {}. Se hará rollback.",
-                                        savedReceipt.getId(), e);
-                        // La anotación @Transactional se encargará de revertir los cambios en la BD.
-                        // Lanzamos una excepción para que Spring AMQP mueva el mensaje a la DLQ.
+                        log.error("Error crítico al procesar el recibo {}. Se hará rollback.", savedReceipt.getId(), e);
                         throw new IllegalStateException(
                                         "Fallo al procesar el asiento contable para el recibo " + savedReceipt.getId(),
                                         e);
                 }
-        }
-
-        private AccountingEntry buildAccountingEntryFromReceipt(Receipt receipt) {
-                List<AccountingMovement> movements = new ArrayList<>();
-
-                Function<String, AccountCatalogue> findAccountByCode = code -> accountCatalogueSearchOutputPort
-                                .getAccountCatalogueByCode(code, receipt.getEnterpriseId());
-
-                AccountCatalogue accountCheck = findAccountByCode.apply(receipt.getPaymentMethodAccount().toString());
-                log.info("Verificando cuenta contable para el método de pago: {}", receipt.getPaymentMethodAccount());
-
-                if (accountCheck == null) {
-                        throw new IllegalStateException(
-                                        "No se encontro la cuenta contable para el código: "
-                                                        + receipt.getPaymentMethodAccount());
-                }
-
-                // 1. OBTENER LA CUENTA DE DÉBITO (Caja/Banco)
-                AccountCatalogue debitAccount = findAccountByCode.apply(receipt.getPaymentMethodAccount().toString());
-
-                movements.add(AccountingMovement.builder()
-                                .account(debitAccount.getId())
-                                .thirdPartyId(receipt.getThirdPartyId())
-                                .description("Ingreso por Recibo de Caja " + receipt.getReceiptCode())
-                                .debit(receipt.getTotalAmount())
-                                .credit(BigDecimal.ZERO)
-                                .build());
-
-                // 2. DETERMINAR LAS CUENTAS DE CRÉDITO SEGÚN EL TIPO DE RECIBO
-                if (receipt.getReceiptTypeId() == 1L) { // TIPO: ABONO A FACTURA
-                        log.info("Procesando recibo {} como ABONO A FACTURA.", receipt.getReceiptCode());
-                        if (receipt.getDetails() == null || receipt.getDetails().isEmpty()) {
-                                throw new IllegalStateException("Recibo tipo 'Abono' (ID 1) no tiene detalles.");
-                        }
-                        for (ReceiptDetail detail : receipt.getDetails()) {
-                                AccountCatalogue creditAccount = findAccountByCode
-                                                .apply(detail.getAccountingAccount().toString());
-                                movements.add(AccountingMovement.builder()
-                                                .account(creditAccount.getId())
-                                                .thirdPartyId(receipt.getThirdPartyId())
-                                                .description("Abono a factura " + detail.getInvoiceCode())
-                                                .debit(BigDecimal.ZERO)
-                                                .credit(detail.getAmountPaid())
-                                                .build());
-                        }
-                } else if (receipt.getReceiptTypeId() == 2L) { // TIPO: INGRESO DIRECTO
-                        log.info("Procesando recibo {} como INGRESO DIRECTO.", receipt.getReceiptCode());
-                        if (receipt.getLedgerAccountId() == null) {
-                                throw new IllegalStateException(
-                                                "Recibo tipo 'Ingreso Directo' (ID 2) no tiene un ledgerAccountId.");
-                        }
-                        AccountCatalogue creditAccount = findAccountByCode
-                                        .apply(receipt.getLedgerAccountId().toString());
-                        movements.add(AccountingMovement.builder()
-                                        .account(creditAccount.getId())
-                                        .thirdPartyId(receipt.getThirdPartyId())
-                                        .description("Ingreso directo por Recibo de Caja " + receipt.getReceiptCode())
-                                        .debit(BigDecimal.ZERO)
-                                        .credit(receipt.getTotalAmount())
-                                        .build());
-                } else {
-                        throw new IllegalStateException("Tipo de recibo desconocido: " + receipt.getReceiptTypeId());
-                }
-
-                // 3. VALIDAR PARTIDA DOBLE Y CONSTRUIR EL ASIENTO
-                validateDoubleEntry(movements);
-
-                return AccountingEntry.builder()
-                                .code("AE-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase())
-                                .date(receipt.getIssueDate())
-                                .description("Contabilización de Recibo de Caja " + receipt.getReceiptCode())
-                                .status(AccountingEntryStatus.ACTIVE)
-                                .sourceDocumentId(receipt.getId()) // Importante: usamos el ID del recibo guardado
-                                .type(SourceDocumentType.RECEIPT.name())
-                                .idEnterprise(receipt.getEnterpriseId())
-                                .movements(movements)
-                                .build();
         }
 
         @Override
@@ -195,97 +114,62 @@ public class ReceiptProcessService implements IReceiptProcessInputPort {
                 log.info("Iniciando procesamiento de ANULACIÓN para recibo con código: {}",
                                 receiptEventData.getReceiptCode());
 
-                // 1. BUSCAR EL RECIBO LOCAL por su identificador de negocio.
-                Receipt localReceipt = receiptPersistenceOutputPort
-                                .findByReceiptCode(receiptEventData.getReceiptCode())
-                                .orElseThrow(() -> {
-                                        log.error("Se recibió un evento de anulación para el recibo {}, pero no se encontró un registro local. El mensaje será descartado.",
-                                                        receiptEventData.getReceiptCode());
-                                        // Es un estado irrecuperable. Lanzamos excepción para mover a DLQ.
-                                        return new IllegalStateException(
-                                                        "No se puede anular un recibo que no fue procesado previamente: "
-                                                                        + receiptEventData.getReceiptCode());
-                                });
+                Receipt localReceipt = receiptPersistenceOutputPort.findByReceiptCode(receiptEventData.getReceiptCode())
+                                .orElseThrow(() -> new IllegalStateException(
+                                                "No se puede anular un recibo que no fue procesado previamente: "
+                                                                + receiptEventData.getReceiptCode()));
 
-                // 2. VERIFICAR IDEMPOTENCIA: ¿Ya fue anulado?
                 if (localReceipt.getProcessingStatus() == ProcessingStatus.VOIDED) {
                         log.warn("El recibo {} ya ha sido anulado previamente. Omitiendo mensaje duplicado.",
                                         localReceipt.getReceiptCode());
                         return;
                 }
 
-                // 3. BUSCAR EL ASIENTO CONTABLE ORIGINAL
                 AccountingEntry originalEntry = accountingSearchOutputPort
                                 .findBySourceDocumentIdAndType(localReceipt.getOriginalReceiptId(),
-                                                SourceDocumentType.RECEIPT.name())
-                                .orElseThrow(() -> {
-                                        log.error("Inconsistencia de datos: se encontró el recibo local ID {}, pero no su asiento contable asociado.",
-                                                        localReceipt.getId());
-                                        return new IllegalStateException(
-                                                        "No se encontró el asiento contable original para el recibo "
-                                                                        + localReceipt.getReceiptCode());
-                                });
+                                                SourceDocumentType.RECEIPT.name()) // Asumiendo un método en
+                                                                                        // Receipt que devuelve el
+                                                                                        // SourceDocumentType
+                                .orElseThrow(() -> new IllegalStateException(
+                                                "No se encontró el asiento contable original para el recibo "
+                                                                + localReceipt.getReceiptCode()));
 
-                // 4. VERIFICAR IDEMPOTENCIA (capa extra): ¿El asiento ya está anulado?
-                if (originalEntry.getStatus() == AccountingEntryStatus.VOIDED) {
-                        log.warn("El asiento contable original {} ya estaba VOIDED. Sincronizando estado del recibo y finalizando.",
-                                        originalEntry.getCode());
-                        localReceipt.setProcessingStatus(ProcessingStatus.VOIDED);
-                        localReceipt.setStatus("VOIDED");
-                        receiptPersistenceOutputPort.save(localReceipt);
-                        return;
-                }
-
-
-                 // --- INICIO DE LÓGICA DE REVERSIÓN DE SALDOS DE FACTURAS ---
-                if (localReceipt.getReceiptTypeId() == 1L) { // TIPO: ABONO A FACTURA
-                        log.info("Anulando recibo de abono {}. Reversando saldos de facturas...", localReceipt.getReceiptCode());
+                // 1. ORDENAR la reversión de saldos en las facturas afectadas
+                if (localReceipt.getReceiptTypeId() == 1L) {
+                        log.info("Anulando recibo de abono {}. Reversando saldos de facturas...",
+                                        localReceipt.getReceiptCode());
                         for (ReceiptDetail detail : localReceipt.getDetails()) {
-                                InvoiceReplica invoice = invoiceProviderPort.findInvoiceById(detail.getOriginalInvoiceId())
-                                                .orElseThrow(() -> new IllegalStateException("Inconsistencia de datos: No se encontró la factura con código " + detail.getInvoiceCode() + " para anular el abono."));
+                                InvoiceReplica invoice = invoiceProviderPort
+                                                .findInvoiceById(detail.getOriginalInvoiceId())
+                                                .orElseThrow(() -> new IllegalStateException(
+                                                                "Inconsistencia: No se encontró la factura con ID "
+                                                                                + detail.getOriginalInvoiceId()));
 
-                                // Revertir saldos
-                                invoice.setPendingValue(invoice.getPendingValue() + detail.getAmountPaid().longValue());
-                                invoice.setTotalPay(invoice.getTotalPay() - detail.getAmountPaid().longValue());
-                                
+                                // La lógica de negocio está en el modelo de dominio.
+                                invoice.reversePayment(detail.getAmountPaid());
+
                                 invoiceProviderPort.updateInvoice(invoice);
-                                log.info("Factura {} reversada. Nuevo saldo pendiente: {}", invoice.getFactCode(), invoice.getPendingValue());
+                                log.info("Factura {} reversada. Nuevo saldo pendiente: {}", invoice.getFactCode(),
+                                                invoice.getPendingValue());
                         }
                 }
-                // --- FIN DE LÓGICA DE REVERSIÓN DE SALDOS DE FACTURAS ---
 
-
-                // 5. REVERTIR LOS SALDOS DE LAS CUENTAS USANDO EL ASIENTO ORIGINAL
+                // 2. ORQUESTAR la reversión de saldos contables
                 accountBalanceUpdateInputPort.reverseBalancesFromAccountingEntry(originalEntry);
                 log.info("Los saldos de las cuentas afectadas por el asiento {} han sido revertidos.",
                                 originalEntry.getCode());
 
-                // 6. ACTUALIZAR ESTADOS Y PERSISTIR (todo dentro de una transacción)
-                originalEntry.setStatus(AccountingEntryStatus.VOIDED);
+                // 3. ORDENAR al asiento contable que se anule a sí mismo
+                // Se respeta la encapsulación y las reglas de negocio internas de
+                // AccountingEntry.
+                originalEntry.voidEntry();
                 accountingEntryPersistenceOutputPort.save(originalEntry);
                 log.info("Asiento contable original {} marcado como VOIDED.", originalEntry.getCode());
 
-                // La creación del asiento de reversión ha sido eliminada.
-
+                // 4. ACTUALIZAR el estado final del recibo
                 localReceipt.setProcessingStatus(ProcessingStatus.VOIDED);
-                localReceipt.setStatus("VOIDED"); // Sincroniza el estado del recibo
+                localReceipt.setStatus("VOIDED");
                 receiptPersistenceOutputPort.save(localReceipt);
                 log.info("Recibo local {} actualizado a estado VOIDED.", localReceipt.getId());
-        }
-
-        private void validateDoubleEntry(List<AccountingMovement> movements) {
-                BigDecimal totalDebits = movements.stream()
-                                .map(AccountingMovement::getDebit)
-                                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-                BigDecimal totalCredits = movements.stream()
-                                .map(AccountingMovement::getCredit)
-                                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-                if (totalDebits.compareTo(totalCredits) != 0) {
-                        log.error("Partida doble no cuadra. Débitos: {}, Créditos: {}", totalDebits, totalCredits);
-                        throw new IllegalStateException(
-                                        "Error de partida doble: la suma de débitos no es igual a la suma de créditos.");
-                }
         }
 }

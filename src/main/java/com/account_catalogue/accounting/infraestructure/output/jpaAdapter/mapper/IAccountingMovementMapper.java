@@ -1,5 +1,7 @@
 package com.account_catalogue.accounting.infraestructure.output.jpaAdapter.mapper;
 
+import java.util.List;
+
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -13,4 +15,6 @@ public interface IAccountingMovementMapper {
     AccountingMovementEntity toEntity(AccountingMovement domain);
 
     AccountingMovement toDomain(AccountingMovementEntity entity);
+
+     List<AccountingMovement> toDomainList(List<AccountingMovementEntity> entities);
 }

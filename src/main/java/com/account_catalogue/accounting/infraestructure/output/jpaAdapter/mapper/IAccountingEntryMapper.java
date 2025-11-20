@@ -16,7 +16,7 @@ public interface IAccountingEntryMapper {
     AccountingEntryEntity toEntity(AccountingEntry domain);
 
     // Al convertir de entidad a dominio, mapeamos el ID de la entidad anidada al campo Long.
-  
+
     AccountingEntry toDomain(AccountingEntryEntity entity);
 
     @AfterMapping

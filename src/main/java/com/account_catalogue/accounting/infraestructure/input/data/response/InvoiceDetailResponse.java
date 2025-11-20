@@ -1,5 +1,6 @@
 package com.account_catalogue.accounting.infraestructure.input.data.response;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import lombok.Builder;
@@ -13,9 +14,9 @@ public class InvoiceDetailResponse {
     private Long clientId;
     private LocalDate creationDate;
     private LocalDate expirationDate;
-    private Long totalValue;
-    private Long totalPay;
-    private Long pendingValue;
+    private BigDecimal totalValue;
+    private BigDecimal totalPay;
+    private BigDecimal pendingValue;
     private String status;
     private Integer daysInArrears;
 }

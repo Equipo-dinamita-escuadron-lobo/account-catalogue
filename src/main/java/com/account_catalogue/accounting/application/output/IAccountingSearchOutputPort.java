@@ -7,6 +7,7 @@ import com.account_catalogue.accounting.domain.models.AccountingEntry;
 import com.account_catalogue.accounting.domain.models.AccountingMovement;
 import com.account_catalogue.accounting.domain.models.InvoiceReplica;
 import com.account_catalogue.accounting.domain.models.ReceiptDetail;
+import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
 
 public interface IAccountingSearchOutputPort {
     Optional<AccountingEntry> findById(Long id);
@@ -41,4 +42,17 @@ public interface IAccountingSearchOutputPort {
      * Busca todos los detalles de pago (abonos) aplicados a una factura específica.
      */
     List<ReceiptDetail> findReceiptDetailsByInvoiceId(Long invoiceId);
+
+    List<AccountCatalogue> findAllAccountsByEnterprise(String enterpriseId);
+    
+    List<AccountingMovement> findMovementsByThirdAndAccountCodes(Long thirdId, List<String> accountCodes);
+
+    /**
+     * Busca y devuelve la cabecera del asiento contable (AccountingEntry)
+     * a la que pertenece un movimiento específico.
+     *
+     * @param movementId El ID del movimiento contable.
+     * @return Un Optional que contiene el AccountingEntry si se encuentra, o vacío si no.
+     */
+    Optional<AccountingEntry> findEntryByMovementId(Long movementId);
 }

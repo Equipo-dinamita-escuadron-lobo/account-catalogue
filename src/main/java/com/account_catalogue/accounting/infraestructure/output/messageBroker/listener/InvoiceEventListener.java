@@ -1,10 +1,12 @@
 package com.account_catalogue.accounting.infraestructure.output.messageBroker.listener;
 
 import com.account_catalogue.accounting.application.input.IInvoiceProcessInputPort;
+import com.account_catalogue.accounting.domain.models.InvoiceReplica;
 import com.account_catalogue.accounting.domain.ports.IEventRecoveryActionPort;
 import com.account_catalogue.accounting.domain.ports.IMessageErrorHandlingPort;
 import com.account_catalogue.accounting.infraestructure.output.messageBroker.adapter.InvoicePersistenceAdapter;
 import com.account_catalogue.accounting.infraestructure.output.messageBroker.base.AbstractMessageListener;
+import com.account_catalogue.accounting.infraestructure.output.messageBroker.mapper.IInvoiceEventMapper;
 import com.account_catalogue.accounting.infraestructure.output.messageBroker.utils.JsonUtils;
 import com.account_catalogue.accounting.infraestructure.config.RabbitConfig;
 import com.account_catalogue.accounting.infraestructure.output.messageBroker.DTO.EventDTO;
@@ -31,6 +33,7 @@ public class InvoiceEventListener extends AbstractMessageListener<EventDTO<Invoi
     private final IMessageErrorHandlingPort messageErrorHandlingPortImpl;
     private final IEventRecoveryActionPort<EventDTO<InvoiceSyncDto>> productRecoveryActionPort;
     private final IInvoiceProcessInputPort invoiceProcessInputPort;
+    private final IInvoiceEventMapper invoiceEventMapper;
 
     @PostConstruct
     private void init() {
@@ -68,10 +71,14 @@ public class InvoiceEventListener extends AbstractMessageListener<EventDTO<Invoi
 
             switch (event.getType()) {
                 case "SALE":
-                    log.info("Processing SALE event for invoice factCode: {}", dto.getFactCode());
-                    invoicePersistenceAdapter.saveOrUpdate(dto);
-                    invoiceProcessInputPort.processInvoiceCreation(dto);
-                    log.info("Successfully processed sale for invoice factCode: {}", dto.getFactCode());
+                    // 1. MAPEAR: Convertir el DTO de infraestructura a un modelo de dominio.
+                    InvoiceReplica invoice = invoiceEventMapper.toDomain(dto);
+
+                    // 2. INVOCAR: Realizar una única llamada al caso de uso de la aplicación.
+                    // Toda la orquestación (guardar y actualizar saldos) está ahora dentro del
+                    // servicio.
+                    invoiceProcessInputPort.processInvoiceCreation(invoice);
+                    log.info("Successfully processed sale for invoice factCode: {}", factCode);
                     break;
 
                 case "DELETED":

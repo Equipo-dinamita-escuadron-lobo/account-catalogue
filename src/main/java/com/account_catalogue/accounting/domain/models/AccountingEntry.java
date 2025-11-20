@@ -22,4 +22,15 @@ public class AccountingEntry {
     private String type; // Tipo del documento que originó este asiento (ej. RECEIPT, PORTFOLIO_WRITEOFF).
     private List<AccountingMovement> movements;        // La lista de movimientos (débitos y créditos) que componen este asiento.
     private String idEnterprise; // ID de la empresa a la que pertenece el asiento contable.
+
+public void voidEntry() {
+    if (this.status == AccountingEntryStatus.VOIDED) {
+        // Idempotencia: si ya está anulado, no hacer nada.
+        return;
+    }
+    if (this.status != AccountingEntryStatus.ACTIVE) {
+        throw new IllegalStateException("Solo se puede anular un asiento en estado ACTIVE. Estado actual: " + this.status);
+    }
+    this.status = AccountingEntryStatus.VOIDED;
+}
 }

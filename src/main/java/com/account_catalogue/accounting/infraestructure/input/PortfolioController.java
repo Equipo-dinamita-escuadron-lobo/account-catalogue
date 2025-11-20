@@ -1,8 +1,9 @@
 package com.account_catalogue.accounting.infraestructure.input;
 
+import java.time.LocalDate;
 import java.util.List;
 
-
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.account_catalogue.accounting.application.input.IPortfolioSearchInputPort;
 import com.account_catalogue.accounting.infraestructure.input.data.response.ClientPortfolioSummaryResponse;
 import com.account_catalogue.accounting.infraestructure.input.data.response.InvoiceDetailResponse;
+import com.account_catalogue.accounting.infraestructure.input.data.response.PortfolioAgingAccountResponse;
 import com.account_catalogue.accounting.infraestructure.input.data.response.ReceiptSummaryResponse;
 
 import lombok.AllArgsConstructor;
@@ -28,7 +30,7 @@ public class PortfolioController {
         return ResponseEntity.ok(portfolioSearchInputPort.getClientPortfolioSummary(clientIds));
     }
 
-     @GetMapping("/invoices/by-client/{clientId}")
+    @GetMapping("/invoices/by-client/{clientId}")
     public ResponseEntity<List<InvoiceDetailResponse>> getInvoicesByClient(@PathVariable Long clientId) {
         List<InvoiceDetailResponse> invoices = portfolioSearchInputPort.getInvoiceDetailsByClientId(clientId);
         return ResponseEntity.ok(invoices);
@@ -37,5 +39,14 @@ public class PortfolioController {
     @GetMapping("/receipts/by-invoice/{invoiceId}")
     public ResponseEntity<List<ReceiptSummaryResponse>> getReceiptsByInvoice(@PathVariable Long invoiceId) {
         return ResponseEntity.ok(portfolioSearchInputPort.findReceiptsByInvoiceId(invoiceId));
+    }
+
+    @GetMapping("/aging-report/by-client/{clientId}")
+    public ResponseEntity<List<PortfolioAgingAccountResponse>> getPortfolioAgingReport(
+            @PathVariable Long clientId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate cutoffDate,
+            @RequestParam String enterpriseId) { 
+
+        return ResponseEntity.ok(portfolioSearchInputPort.getPortfolioAgingReport(clientId, cutoffDate, enterpriseId));
     }
 }

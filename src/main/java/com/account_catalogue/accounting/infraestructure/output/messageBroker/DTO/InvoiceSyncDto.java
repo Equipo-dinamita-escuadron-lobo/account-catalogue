@@ -1,5 +1,6 @@
 package com.account_catalogue.accounting.infraestructure.output.messageBroker.DTO;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import lombok.AllArgsConstructor;
@@ -16,9 +17,9 @@ public class InvoiceSyncDto {
     private Long factCode;
     private String entId;
     private Long thirdId;
-    private Long totalValue;
-    private Long totalPay;
-    private Long pendingValue;
+    private BigDecimal totalValue;
+    private BigDecimal totalPay;
+    private BigDecimal pendingValue;
     private LocalDate expirationDate;
     private LocalDate creationDate;
     private boolean active;

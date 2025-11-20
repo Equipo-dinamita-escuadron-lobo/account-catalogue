@@ -3,20 +3,31 @@ package com.account_catalogue.accounting.application.service;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
 import com.account_catalogue.accounting.application.input.IPortfolioSearchInputPort;
 import com.account_catalogue.accounting.application.output.IAccountingSearchOutputPort;
+import com.account_catalogue.accounting.domain.models.AccountingEntry;
+import com.account_catalogue.accounting.domain.models.AccountingMovement;
 import com.account_catalogue.accounting.domain.models.InvoiceReplica;
 import com.account_catalogue.accounting.infraestructure.input.data.response.ClientPortfolioSummaryResponse;
 import com.account_catalogue.accounting.infraestructure.input.data.response.InvoiceDetailResponse;
+import com.account_catalogue.accounting.infraestructure.input.data.response.PortfolioAgingAccountResponse;
 import com.account_catalogue.accounting.infraestructure.input.data.response.ReceiptSummaryResponse;
 import com.account_catalogue.accounting.infraestructure.output.jpaAdapter.entity.ReceiptEntity;
 import com.account_catalogue.accounting.infraestructure.output.jpaAdapter.repository.IReceiptDetailRepository;
+import com.account_catalogue.catalogue.domain.enums.NatureEnum;
+import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
 
 import lombok.AllArgsConstructor;
 
@@ -47,19 +58,17 @@ public class PortfolioSearchService implements IPortfolioSearchInputPort {
 
                     // Calculamos el valor total de la deuda
                     BigDecimal totalDebt = clientInvoices.stream()
-                            .map(inv -> BigDecimal.valueOf(inv.getPendingValue()))
+                            .map(InvoiceReplica::getPendingValue)
                             .reduce(BigDecimal.ZERO, BigDecimal::add);
 
                     // Calculamos la deuda vencida
                     BigDecimal overdueAmount = clientInvoices.stream()
-                            .filter(inv -> inv.getExpirationDate().isBefore(today))
-                            .map(inv -> BigDecimal.valueOf(inv.getPendingValue()))
+                            .filter(inv -> inv.getExpirationDate() != null && inv.getExpirationDate().isBefore(today))
+                            .map(InvoiceReplica::getPendingValue)
                             .reduce(BigDecimal.ZERO, BigDecimal::add);
 
                     // Calculamos la deuda por vencer
                     BigDecimal dueToAmount = totalDebt.subtract(overdueAmount);
-
-                    
 
                     // 4. Construir y devolver el DTO de respuesta
                     return ClientPortfolioSummaryResponse.builder()
@@ -94,37 +103,147 @@ public class PortfolioSearchService implements IPortfolioSearchInputPort {
     }
 
     public List<InvoiceDetailResponse> getInvoiceDetailsByClientId(Long clientId) {
-    // 1. Reutilizamos el método existente para obtener los modelos de dominio.
-    List<InvoiceReplica> invoices = this.findPendingInvoicesByClientId(clientId);
-    
-    // 2. Obtenemos la fecha actual una sola vez para eficiencia.
-    LocalDate today = LocalDate.now();
+        // 1. Reutilizamos el método existente para obtener los modelos de dominio.
+        List<InvoiceReplica> invoices = this.findPendingInvoicesByClientId(clientId);
 
-    // 3. Mapeamos la lista de modelos de dominio (InvoiceReplica) a la lista de DTOs (InvoiceDetailResponse)
-    return invoices.stream()
-            .map(invoice -> {
-                int daysInArrears = 0;
-                
-                // 4. Calculamos los días en mora (la misma lógica que estaba en el controlador)
-                if (invoice.getExpirationDate() != null && invoice.getExpirationDate().isBefore(today)) {
-                    daysInArrears = (int) ChronoUnit.DAYS.between(invoice.getExpirationDate(), today);
+        // 2. Obtenemos la fecha actual una sola vez para eficiencia.
+        LocalDate today = LocalDate.now();
+
+        // 3. Mapeamos la lista de modelos de dominio (InvoiceReplica) a la lista de
+        // DTOs (InvoiceDetailResponse)
+        return invoices.stream()
+                .map((InvoiceReplica invoice) -> {
+                    int daysInArrears = 0;
+
+                    // 4. Calculamos los días en mora (la misma lógica que estaba en el controlador)
+                    if (invoice.getExpirationDate() != null && invoice.getExpirationDate().isBefore(today)) {
+                        daysInArrears = (int) ChronoUnit.DAYS.between(invoice.getExpirationDate(), today);
+                    }
+
+                    // 5. Construimos el DTO de respuesta
+                    return InvoiceDetailResponse.builder()
+                            .id(invoice.getId())
+                            .factCode(invoice.getFactCode())
+                            .clientId(invoice.getThirdId())
+                            .creationDate(invoice.getCreationDate())
+                            .expirationDate(invoice.getExpirationDate())
+                            .totalValue(invoice.getTotalValue())
+                            .totalPay(invoice.getTotalPay())
+                            .pendingValue(invoice.getPendingValue())
+                            .status(invoice.getStatus().toString())
+                            .daysInArrears(daysInArrears) // Asignamos el valor calculado
+                            .build();
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<PortfolioAgingAccountResponse> getPortfolioAgingReport(Long clientId, LocalDate cutoffDate,
+            String enterpriseId) {
+
+        // --- PASO 1: OBTENER LOS DATOS BASE ---
+        List<AccountCatalogue> allAccounts = accountingSearchOutputPort.findAllAccountsByEnterprise(enterpriseId);
+        Map<String, AccountCatalogue> accountsByCode = allAccounts.stream()
+                .collect(Collectors.toMap(AccountCatalogue::getCode, Function.identity()));
+        List<InvoiceReplica> pendingInvoices = accountingSearchOutputPort.findPendingInvoicesByClientId(clientId);
+
+        // Mapa que contendrá el reporte completo. Lo inicializamos con CADA cuenta.
+        Map<Long, PortfolioAgingAccountResponse> reportMap = new LinkedHashMap<>();
+        for (AccountCatalogue account : allAccounts) {
+            reportMap.put(account.getId(), PortfolioAgingAccountResponse.builder()
+                    .accountCode(account.getCode())
+                    .accountName(account.getDescription())
+                    .build());
+        }
+
+        // --- PASO 2 Y 3 COMBINADOS: CONSTRUIR EL REPORTE DESDE LAS FACTURAS PENDIENTES
+        // ---
+        // Esta es la única fuente de verdad para un reporte de cartera.
+        for (InvoiceReplica invoice : pendingInvoices) {
+            AccountCatalogue account = accountsByCode.get(String.valueOf(invoice.getAccountingAccount()));
+            if (account == null)
+                continue;
+
+            PortfolioAgingAccountResponse accountResponse = reportMap.get(account.getId());
+            if (accountResponse == null)
+                continue;
+
+            BigDecimal pendingValue = invoice.getPendingValue();
+
+            // El "Total Adeudado" ES la suma de los saldos pendientes de las facturas.
+            accountResponse.setTotalAdeudado(accountResponse.getTotalAdeudado().add(pendingValue));
+
+            // Ahora clasificamos ese mismo saldo pendiente en las cubetas de edades.
+            if (invoice.getExpirationDate() != null && !invoice.getExpirationDate().isAfter(cutoffDate)) {
+                long daysOverdue = ChronoUnit.DAYS.between(invoice.getExpirationDate(), cutoffDate);
+                if (daysOverdue > 0) { // Si es vencido
+                    if (daysOverdue <= 30)
+                        accountResponse.setDias1a30(accountResponse.getDias1a30().add(pendingValue));
+                    else if (daysOverdue <= 60)
+                        accountResponse.setDias31a60(accountResponse.getDias31a60().add(pendingValue));
+                    else if (daysOverdue <= 90)
+                        accountResponse.setDias61a90(accountResponse.getDias61a90().add(pendingValue));
+                    else
+                        accountResponse.setMasDe90dias(accountResponse.getMasDe90dias().add(pendingValue));
                 }
+            }
+        }
 
-                // 5. Construimos el DTO de respuesta
-                return InvoiceDetailResponse.builder()
-                        .id(invoice.getId())
-                        .factCode(invoice.getFactCode())
-                        .clientId(invoice.getThirdId())
-                        .creationDate(invoice.getCreationDate())
-                        .expirationDate(invoice.getExpirationDate())
-                        .totalValue(invoice.getTotalValue())
-                        .totalPay(invoice.getTotalPay())
-                        .pendingValue(invoice.getPendingValue())
-                        .status(invoice.getStatus().toString())
-                        .daysInArrears(daysInArrears) // Asignamos el valor calculado
-                        .build();
-            })
-            .collect(Collectors.toList());
-}
+        // --- PASO 4: AGREGAR TODOS LOS VALORES HACIA ARRIBA ---
+        List<AccountCatalogue> reversedAccounts = new ArrayList<>(allAccounts);
+        Collections.reverse(reversedAccounts);
+
+        for (AccountCatalogue account : reversedAccounts) {
+            if (account.getParent() != null) {
+                PortfolioAgingAccountResponse childResponse = reportMap.get(account.getId());
+                PortfolioAgingAccountResponse parentResponse = reportMap.get(account.getParent().getId());
+
+                if (childResponse != null && parentResponse != null) {
+                    // Se suman los valores "brutos"
+                    parentResponse
+                            .setTotalAdeudado(parentResponse.getTotalAdeudado().add(childResponse.getTotalAdeudado()));
+                    parentResponse.setDias1a30(parentResponse.getDias1a30().add(childResponse.getDias1a30()));
+                    parentResponse.setDias31a60(parentResponse.getDias31a60().add(childResponse.getDias31a60()));
+                    parentResponse.setDias61a90(parentResponse.getDias61a90().add(childResponse.getDias61a90()));
+                    parentResponse.setMasDe90dias(parentResponse.getMasDe90dias().add(childResponse.getMasDe90dias()));
+                }
+            }
+        }
+
+        // --- PASO 5: CALCULAR 'CORRIENTE' PARA TODAS LAS CUENTAS ---
+        for (PortfolioAgingAccountResponse response : reportMap.values()) {
+            BigDecimal totalAged = response.getDias1a30()
+                    .add(response.getDias31a60())
+                    .add(response.getDias61a90())
+                    .add(response.getMasDe90dias());
+            response.setCorriente(response.getTotalAdeudado().subtract(totalAged));
+        }
+
+        // --- PASO 6: CONSTRUIR EL ÁRBOL FINAL ---
+        for (PortfolioAgingAccountResponse responseNode : reportMap.values()) {
+            AccountCatalogue account = accountsByCode.get(responseNode.getAccountCode());
+            if (account != null && account.getParent() != null) {
+                PortfolioAgingAccountResponse parentResponse = reportMap.get(account.getParent().getId());
+                // Añadimos solo hijos que tengan saldo para no poblar el árbol con ramas
+                // vacías.
+                if (parentResponse != null && responseNode.getTotalAdeudado().compareTo(BigDecimal.ZERO) != 0) {
+                    parentResponse.getChildren().add(responseNode);
+                }
+            }
+        }
+
+        // Filtramos para quedarnos únicamente con los nodos raíz que tengan saldo.
+        List<PortfolioAgingAccountResponse> rootNodes = reportMap.values().stream()
+                .filter(responseNode -> {
+                    // Un nodo raíz debe tener saldo Y no tener padre.
+                    if (responseNode.getTotalAdeudado().compareTo(BigDecimal.ZERO) == 0)
+                        return false;
+                    AccountCatalogue account = accountsByCode.get(responseNode.getAccountCode());
+                    return account != null && account.getParent() == null;
+                })
+                .collect(Collectors.toList());
+
+        return rootNodes;
+    }
 
 }

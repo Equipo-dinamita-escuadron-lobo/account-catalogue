@@ -7,6 +7,9 @@ import java.util.Optional;
 import com.account_catalogue.accounting.domain.models.InvoiceReplica;
 
 public interface IInvoiceProviderPort {
+
+    void saveOrUpdate(InvoiceReplica invoice);
+
     // Obtener el saldo pendiente de una factura por su ID
     Optional<Long> getInvoiceBalance(Long invoiceId);
 

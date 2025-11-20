@@ -1,5 +1,6 @@
 package com.account_catalogue.accounting.infraestructure.output.jpaAdapter.entity;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import com.account_catalogue.accounting.domain.enums.InvoiceStatus;
 
@@ -36,13 +37,13 @@ public class InvoiceReplicaEntity {
     private Long thirdId;
 
     @Column(name = "total_value", nullable = false)
-    private Long totalValue;
+    private BigDecimal totalValue;
 
     @Column(name = "total_pay", nullable = false)
-    private Long totalPay;
+    private BigDecimal totalPay;
 
     @Column(name = "pending_value", nullable = false)
-    private Long pendingValue;
+    private BigDecimal pendingValue;
 
      @Column(name = "creation_date", nullable = false)
     private LocalDate creationDate;

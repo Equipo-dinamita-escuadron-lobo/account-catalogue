@@ -6,7 +6,7 @@ import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
 
-import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.messageBroker.dto.AccountUsageEventDto;
+import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.messageBroker.dto.AccountUsedEventDto;
 import com.account_catalogue.catalogue.application.input.IAccountCatalogueUsagePort;
 import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.messageBroker.dto.EventDto;
 import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.messageBroker.enums.EventUsageType;
@@ -26,7 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class AccountUsageListener extends AbstractMessageListener<EventDto<AccountUsageEventDto, EventUsageType>> {
+public class AccountUsageListener extends AbstractMessageListener<EventDto<AccountUsedEventDto, EventUsageType>> {
 
     private final IAccountCatalogueUsagePort accountCatalogueUsagePort;
 
@@ -36,7 +36,7 @@ public class AccountUsageListener extends AbstractMessageListener<EventDto<Accou
      */
     @RabbitListener(queues = RabbitAccountCatalogueConfig.ACCOUNT_USED_QUEUE)
     public void handleAccountUsageEvent(
-            EventDto<AccountUsageEventDto, EventUsageType> event,
+            EventDto<AccountUsedEventDto, EventUsageType> event,
             Message message,
             Channel channel,
             @Header(AmqpHeaders.DELIVERY_TAG) long deliveryTag) {
@@ -49,56 +49,61 @@ public class AccountUsageListener extends AbstractMessageListener<EventDto<Accou
      * @param event Evento a validar
      * @return true si el evento es válido
      */
-    protected boolean isValidEvent(EventDto<AccountUsageEventDto, EventUsageType> event) {
+    protected boolean isValidEvent(EventDto<AccountUsedEventDto, EventUsageType> event) {
         if (event == null) {
             log.warn("Event is null");
             return false;
         }
-        
+
         if (event.getData() == null) {
             log.warn("Event data is null");
             return false;
         }
-        
-        AccountUsageEventDto data = event.getData();
-        
-        if (data.getAccountCatalogueId() == null) {
-            log.warn("AccountId is null - required field");
+
+        AccountUsedEventDto data = event.getData();
+
+        if (data.getAccount() == null) {
+            log.warn("Account is null - required field");
             return false;
         }
-        
+
         if (data.getEnterpriseId() == null || data.getEnterpriseId().trim().isEmpty()) {
             log.warn("EnterpriseId is null or empty - required field");
             return false;
         }
-        
-        if (data.getQuantityUsed() == null || data.getQuantityUsed() <= 0) {
-            log.warn("QuantityUsed is null or invalid - required field");
+
+        if (data.getSourceAccountType() == null || data.getSourceAccountType().trim().isEmpty()) {
+            log.warn("SourceAccountType is null or empty - required field");
             return false;
         }
-        
+
+        if (!"ID".equals(data.getSourceAccountType()) && !"CODE".equals(data.getSourceAccountType())) {
+            log.warn("SourceAccountType must be 'ID' or 'CODE', but was: {}", data.getSourceAccountType());
+            return false;
+        }
+
         return true;
     }
 
     @Override
-    protected void processEvent(EventDto<AccountUsageEventDto, EventUsageType> event) {
+    protected void processEvent(EventDto<AccountUsedEventDto, EventUsageType> event) {
         log.info("Received account usage event");
-        
+
         try {
             if (!isValidEvent(event)) {
                 log.warn("Invalid account usage event received");
                 return;
             }
-            
-            AccountUsageEventDto data = event.getData();
-            log.info("Processing usage for accountId: {}, enterpriseId: {}, quantity: {}",
-                     data.getAccountCatalogueId(), data.getEnterpriseId(), data.getQuantityUsed());
 
-            accountCatalogueUsagePort.incrementUsageCount(data.getAccountCatalogueId(), data.getEnterpriseId());
+            AccountUsedEventDto data = event.getData();
+            log.info("Processing usage for account: {} (type: {}) in enterprise: {}",
+                     data.getAccount(), data.getSourceAccountType(), data.getEnterpriseId());
 
-            log.info("Account usage event processed successfully for accountId: {} in enterprise: {}",
-                     data.getAccountCatalogueId(), data.getEnterpriseId());
-            
+            accountCatalogueUsagePort.incrementUsageCount(data);
+
+            log.info("Account usage event processed successfully for account: {} (type: {}) in enterprise: {}",
+                     data.getAccount(), data.getSourceAccountType(), data.getEnterpriseId());
+
         } catch (Exception e) {
             log.error("Error processing account usage event: {}", e.getMessage(), e);
             // En caso de error, el mensaje se pierde intencionalmente para no bloquear la cola
@@ -112,7 +117,7 @@ public class AccountUsageListener extends AbstractMessageListener<EventDto<Accou
     }
 
     @Override
-    protected String extractEventType(EventDto<AccountUsageEventDto, EventUsageType> event) {
+    protected String extractEventType(EventDto<AccountUsedEventDto, EventUsageType> event) {
         // Este método se requiere por la interfaz AbstractMessageListener
         // pero no se utiliza en el contexto de AccountUsageListener
         // ya que no se implementa manejo de errores en base de datos
@@ -120,7 +125,7 @@ public class AccountUsageListener extends AbstractMessageListener<EventDto<Accou
     }
 
     @Override
-    protected String convertEventToJson(EventDto<AccountUsageEventDto, EventUsageType> event) {
+    protected String convertEventToJson(EventDto<AccountUsedEventDto, EventUsageType> event) {
         // Este método se requiere por la interfaz AbstractMessageListener
         // pero no se utiliza en el contexto de AccountUsageListener
         // ya que no se implementa manejo de errores en base de datos

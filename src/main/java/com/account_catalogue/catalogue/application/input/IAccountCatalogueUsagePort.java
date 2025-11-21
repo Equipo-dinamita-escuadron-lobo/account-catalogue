@@ -1,5 +1,7 @@
 package com.account_catalogue.catalogue.application.input;
 
+import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.messageBroker.dto.AccountUsedEventDto;
+
 /**
  * @brief Puerto de entrada para gestión de uso de cuentas contables
  *
@@ -9,9 +11,8 @@ package com.account_catalogue.catalogue.application.input;
 public interface IAccountCatalogueUsagePort {
     /**
      * @brief Incrementa el contador de uso de una cuenta contable
-     * @param accountCatalogueId ID de la cuenta contable
-     * @param enterpriseId ID de la empresa
+     * @param accountUsedEvent Evento con información de la cuenta utilizada
      */
-    void incrementUsageCount(Long accountCatalogueId, String enterpriseId);
+    void incrementUsageCount(AccountUsedEventDto accountUsedEvent);
 }
 

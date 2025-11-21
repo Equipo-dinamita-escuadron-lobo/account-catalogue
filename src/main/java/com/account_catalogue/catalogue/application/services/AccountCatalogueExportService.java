@@ -1,14 +1,14 @@
 package com.account_catalogue.catalogue.application.services;
 
 import com.account_catalogue.catalogue.application.input.IAccountCatalogueExportInputPort;
-import com.account_catalogue.catalogue.application.input.IAccountCatalogueSearchInputPort;
 import com.account_catalogue.catalogue.domain.enums.ClassificationEnum;
 import com.account_catalogue.catalogue.domain.enums.FinancialStatusEnum;
 import com.account_catalogue.catalogue.domain.enums.NatureEnum;
-import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogueTemplateData;
-import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueExportException;
+import com.account_catalogue.catalogue.domain.models.ExportJobStatus;
+import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.request.AccountCatalogueExportRequest;
 import com.account_catalogue.commons.exceptions.catalogue.ExcelValidationException;
+import com.account_catalogue.commons.utils.ExcelFileNameGenerator;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,20 +16,18 @@ import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @brief Servicio para exportación del catálogo de cuentas a formato Excel
  *
- * Servicio para la exportación del catálogo de cuentas a formato Excel.
+ * Coordina el inicio de exportaciones asíncronas y gestiona el seguimiento
+ * del estado de los trabajos de exportación.
  */
 @Slf4j
 @Service
@@ -37,9 +35,10 @@ import java.util.List;
 public class AccountCatalogueExportService implements IAccountCatalogueExportInputPort {
 
     private final AccountCatalogueExcelValidationService excelValidationService;
-    private final IAccountCatalogueSearchInputPort accountCatalogueSearchInputPort;
+    private final AccountCatalogueExportJobTracker jobTracker;
+    private final AccountCatalogueAsyncExportProcessor asyncExportProcessor;
+    private final ExcelFileNameGenerator fileNameGenerator;
 
-    private static final int EXPORT_PAGE_SIZE = 1000;
     private static final String TEMPLATE_PLACEHOLDER_TEXT = "Seleccionar...";
 
     /**
@@ -60,35 +59,38 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
     }
 
     /**
-     * @brief Exporta catálogo completo de cuentas con datos reales y validaciones
-     *
-     * Recupera todas las cuentas mediante paginación, las convierte al formato de plantilla,
-     * genera archivo Excel con datos poblados y validaciones aplicadas.
-     * @param entId ID de empresa para filtrar cuentas
-     * @param status filtro opcional por estado activo/inactivo (null = todas)
-     * @return archivo Excel con datos reales y validaciones aplicadas
+     * @brief Inicia la exportación asíncrona de catálogo de cuentas
+     * @param request solicitud con parámetros de exportación (entId, companyName, status)
+     * @return jobId único para rastrear el estado de la exportación
      */
     @Override
-    public Resource exportAccountCatalogueWithValidations(String entId, Boolean status) {
-        try {
-            // Obtener todos los datos reales con paginación y orden jerárquico, filtrados por status
-            List<AccountCatalogue> accountCatalogues = getAllAccountCataloguesWithPagination(entId, status);
+    public String exportAccountCatalogueAsync(AccountCatalogueExportRequest request) {
+        log.info("Iniciando exportación asíncrona de catálogo de cuentas. EntId: {}, CompanyName: {}, Status: {}", 
+                request.getEntId(), request.getCompanyName(), request.getStatus());
 
-            // Verificar que haya datos para exportar
-            if (accountCatalogues.isEmpty()) {
-                throw AccountCatalogueExportException.forNoData(status);
-            }
+        String fileName = fileNameGenerator.generateExportFileName(
+                request.getEntId(), 
+                request.getCompanyName(), 
+                request.getStatus()
+        );
+        
+        String jobId = jobTracker.createJob(request.getEntId(), fileName);
 
-            // Convertir a template data para compatibilidad con el método existente
-            List<AccountCatalogueTemplateData> templateData = convertToTemplateData(accountCatalogues);
+        asyncExportProcessor.processExportAsync(request.getEntId(), request.getStatus(), jobId);
 
-            byte[] excelData = generateExcelFileWithValidations(templateData);
-            return new ByteArrayResource(excelData);
-        } catch (AccountCatalogueExportException | ExcelValidationException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new RuntimeException("Error al generar archivo de exportación", e);
-        }
+        log.info("Exportación asíncrona iniciada con jobId: {}", jobId);
+        return jobId;
+    }
+
+    /**
+     * @brief Obtiene el estado actual de una exportación asíncrona
+     * @param jobId identificador del trabajo de exportación
+     * @return Optional con el estado del trabajo si existe
+     */
+    @Override
+    public Optional<ExportJobStatus> getExportStatus(String jobId) {
+        log.debug("Consultando estado de exportación para jobId: {}", jobId);
+        return jobTracker.getJobStatus(jobId);
     }
 
     /**
@@ -126,39 +128,6 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
         }
     }
 
-    /**
-     * @brief Genera archivo Excel con datos reales y validaciones aplicadas
-     * @param data datos de cuentas a exportar
-     * @return archivo Excel con datos reales y validaciones aplicadas
-     * @throws IOException si ocurre un error al crear el archivo Excel
-     * @throws ExcelValidationException si ocurre un error al aplicar las validaciones
-     */
-    private byte[] generateExcelFileWithValidations(List<AccountCatalogueTemplateData> data) throws IOException, ExcelValidationException {
-        try (Workbook workbook = new XSSFWorkbook();
-             ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-
-            Sheet sheet = workbook.createSheet("Catalogo_Cuentas");
-
-            // Crear estilos
-            CellStyle headerStyle = createHeaderStyle(workbook);
-            CellStyle dataStyle = createDataStyle(workbook);
-
-            // Crear encabezados
-            createHeaders(sheet, headerStyle, createOptionalHeaderStyle(workbook));
-
-            // Llenar datos
-            fillData(sheet, data, dataStyle);
-
-            // Aplicar validaciones de datos
-            applyValidationsToDataSheet(sheet, data.size());
-
-            // Ajustar ancho de columnas
-            autoSizeColumns(sheet);
-
-            workbook.write(outputStream);
-            return outputStream.toByteArray();
-        }
-    }
 
     /**
      * @brief Crea estilo para celdas de encabezado en Excel
@@ -200,20 +169,6 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
         return style;
     }
 
-    /**
-     * @brief Crea estilo para celdas de datos en Excel
-     * @param workbook libro de Excel donde crear el estilo
-     * @return estilo configurado para celdas de datos
-     */
-    private CellStyle createDataStyle(Workbook workbook) {
-        CellStyle style = workbook.createCellStyle();
-        style.setBorderBottom(BorderStyle.THIN);
-        style.setBorderTop(BorderStyle.THIN);
-        style.setBorderRight(BorderStyle.THIN);
-        style.setBorderLeft(BorderStyle.THIN);
-        style.setVerticalAlignment(VerticalAlignment.CENTER);
-        return style;
-    }
 
     /**
      * @brief Crea estilo para celdas de encabezados opcionales en Excel
@@ -313,53 +268,6 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
         cell.setCellStyle(style);
     }
 
-    /**
-     * @brief Llena las filas de datos en la hoja de Excel
-     * @param sheet hoja de Excel donde llenar las filas de datos
-     * @param data datos de cuentas a exportar
-     * @param dataStyle estilo para celdas de datos
-     */
-    private void fillData(Sheet sheet, List<AccountCatalogueTemplateData> data, CellStyle dataStyle) {
-        int rowIndex = 1;
-        for (AccountCatalogueTemplateData item : data) {
-            Row row = sheet.createRow(rowIndex++);
-            fillDataRow(row, item, dataStyle);
-        }
-    }
-
-    /**
-     * @brief Llena una fila de datos en la hoja de Excel
-     * @param row fila de Excel donde llenar la fila de datos
-     * @param data datos de cuentas a exportar
-     * @param style estilo para celdas de datos
-     */
-    private void fillDataRow(Row row, AccountCatalogueTemplateData data, CellStyle style) {
-        int colIndex = 0;
-        row.createCell(colIndex++).setCellValue(data.getCode());
-        row.createCell(colIndex++).setCellValue(data.getName());
-        row.createCell(colIndex++).setCellValue(data.getNature().getState());
-        row.createCell(colIndex++).setCellValue(data.getFinancialStatus().getState());
-        row.createCell(colIndex++).setCellValue(data.getClassification().getState());
-        row.createCell(colIndex++).setCellValue(formatBooleanValue(data.getCruce()));
-        row.createCell(colIndex++).setCellValue(formatBooleanValue(data.getCentroCosto()));
-
-        // Aplicar estilo a todas las celdas
-        for (int i = 0; i < colIndex; i++) {
-            row.getCell(i).setCellStyle(style);
-        }
-    }
-
-    /**
-     * @brief Formatea un valor booleano como "SI" o "NO"
-     * @param value valor booleano a formatear
-     * @return "SI" si el valor es true, "NO" si es false, "" si es null
-     */
-    private String formatBooleanValue(Boolean value) {
-        if (value == null) {
-            return "";
-        }
-        return value ? "SI" : "NO";
-    }
 
     /**
      * @brief Aplica validaciones a la hoja de Excel de plantilla
@@ -374,35 +282,21 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
     }
 
     /**
-     * @brief Aplica validaciones a la hoja de Excel de datos
-     * @param sheet hoja de Excel donde aplicar las validaciones
-     * @param dataRowCount número de filas de datos en la hoja
-     * @throws ExcelValidationException si ocurre un error al aplicar las validaciones
-     */
-    private void applyValidationsToDataSheet(Sheet sheet, int dataRowCount) throws ExcelValidationException {
-        int startRow = 1; // Después del encabezado
-        int endRow = Math.max(dataRowCount + 100, 1000); // Datos existentes + filas adicionales
-
-        excelValidationService.applyAccountCatalogueValidations(sheet, startRow, endRow);
-    }
-
-    /**
      * @brief Ajusta el ancho de las columnas en la hoja de Excel
      * @param sheet hoja de Excel donde ajustar el ancho de las columnas
      */
     private void autoSizeColumns(Sheet sheet) {
         for (int i = 0; i < 7; i++) {
             sheet.autoSizeColumn(i);
-            // Asegurar un ancho mínimo
             if (sheet.getColumnWidth(i) < 3000) {
                 sheet.setColumnWidth(i, 3000);
             }
-            // Limitar ancho máximo
             if (sheet.getColumnWidth(i) > 8000) {
                 sheet.setColumnWidth(i, 8000);
             }
         }
     }
+
 
 
     /**
@@ -609,62 +503,5 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
         );
     }
 
-    /**
-     * @brief Recupera catálogo completo mediante paginación para evitar memory leaks
-     * @param entId ID de empresa para filtrar cuentas
-     * @param status filtro opcional por estado activo/inactivo (null = todas)
-     * @return lista de cuentas contables
-     */
-    private List<AccountCatalogue> getAllAccountCataloguesWithPagination(String entId, Boolean status) {
-        List<AccountCatalogue> allAccounts = new ArrayList<>();
-        int currentPage = 0;
-        Page<AccountCatalogue> page;
-
-        do {
-            // Crear pageable para la página actual
-            Pageable pageable = PageRequest.of(currentPage, EXPORT_PAGE_SIZE);
-
-            // Obtener página de cuentas ordenadas por código (jerarquía) filtradas por status
-            page = accountCatalogueSearchInputPort.getAllAccountCataloguesByStatus(entId, status, pageable);
-
-            // Agregar contenido de esta página a la lista total
-            if (page != null && page.hasContent()) {
-                allAccounts.addAll(page.getContent());
-            }
-
-            currentPage++;
-
-        } while (page != null && page.hasNext());
-
-        return allAccounts;
-    }
-
-    /**
-     * @brief Convierte una lista de cuentas contables a datos de plantilla
-     * @param accounts lista de cuentas contables a convertir
-     * @return lista de datos de plantilla
-     */
-    private List<AccountCatalogueTemplateData> convertToTemplateData(List<AccountCatalogue> accounts) {
-        return accounts.stream()
-            .map(this::convertAccountToTemplateData)
-            .toList();
-    }
-
-    /**
-     * @brief Convierte una cuenta contable a datos de plantilla
-     * @param account cuenta contable a convertir
-     * @return datos de plantilla
-     */
-    private AccountCatalogueTemplateData convertAccountToTemplateData(AccountCatalogue account) {
-        return AccountCatalogueTemplateData.builder()
-            .code(account.getCode())
-            .name(account.getDescription())
-            .nature(account.getNature())
-            .financialStatus(account.getFinancialStatus())
-            .classification(account.getClassification())
-            .cruce(account.getCrossing())
-            .centroCosto(account.getCostCenter())
-            .build();
-    }
 
 }

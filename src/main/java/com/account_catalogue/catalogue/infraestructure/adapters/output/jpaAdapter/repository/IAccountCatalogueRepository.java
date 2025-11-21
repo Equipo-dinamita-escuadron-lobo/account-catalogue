@@ -79,6 +79,16 @@ public interface IAccountCatalogueRepository extends JpaRepository<AccountCatalo
     @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.idEnterprise = ?1 AND a.status = false ORDER BY a.code ASC")
     Page<AccountCatalogueEntity> findAllInactiveByIdEnterpriseOrderByCode(String idEnterprise, Pageable pageable);
 
+    // Métodos optimizados para exportación con JOIN FETCH del parent
+    @Query("SELECT DISTINCT a FROM AccountCatalogueEntity a LEFT JOIN FETCH a.parent WHERE a.idEnterprise = :idEnterprise ORDER BY a.code ASC")
+    Page<AccountCatalogueEntity> findAllByIdEnterpriseForExport(@Param("idEnterprise") String idEnterprise, Pageable pageable);
+
+    @Query("SELECT DISTINCT a FROM AccountCatalogueEntity a LEFT JOIN FETCH a.parent WHERE a.idEnterprise = :idEnterprise AND a.status = true ORDER BY a.code ASC")
+    Page<AccountCatalogueEntity> findAllActiveByIdEnterpriseForExport(@Param("idEnterprise") String idEnterprise, Pageable pageable);
+
+    @Query("SELECT DISTINCT a FROM AccountCatalogueEntity a LEFT JOIN FETCH a.parent WHERE a.idEnterprise = :idEnterprise AND a.status = false ORDER BY a.code ASC")
+    Page<AccountCatalogueEntity> findAllInactiveByIdEnterpriseForExport(@Param("idEnterprise") String idEnterprise, Pageable pageable);
+
 
     /**
      * @brief Query recursiva nativa para construir jerarquía completa de árbol de cuentas

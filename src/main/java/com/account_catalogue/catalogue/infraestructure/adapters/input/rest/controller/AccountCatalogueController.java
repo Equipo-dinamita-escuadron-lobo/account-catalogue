@@ -1,13 +1,15 @@
 package com.account_catalogue.catalogue.infraestructure.adapters.input.rest.controller;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.core.io.Resource;
 //import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,7 +30,10 @@ import com.account_catalogue.catalogue.application.input.IAccountCatalogueExport
 import com.account_catalogue.catalogue.application.input.IAccountCatalogueImportInputPort;
 import com.account_catalogue.catalogue.application.input.IAccountCatalogueSearchInputPort;
 import com.account_catalogue.catalogue.application.input.IAccountCatalogueUpdateInputPort;
+import com.account_catalogue.catalogue.domain.enums.ImportStatus;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
+import com.account_catalogue.catalogue.domain.models.ExportJobStatus;
+import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.request.AccountCatalogueExportRequest;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.request.AccountCatalogueCreateReq;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.request.AccountCatalogueImportRequest;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.request.AccountCatalogueUpdateReq;
@@ -225,25 +230,90 @@ public class AccountCatalogueController {
     }
 
     /**
-     * @brief Exporta catálogo de cuentas con validaciones a Excel
+     * @brief Inicia exportación asíncrona de catálogo de cuentas
      * @param entId identificador de la empresa
-     * @param companyName nombre de la empresa (opcional)
-     * @param status estado de las cuentas a incluir (opcional)
-     * @return archivo Excel con catálogo de cuentas exportado
+     * @param companyName nombre de la empresa (opcional, para incluir en el nombre del archivo)
+     * @param status estado de las cuentas a incluir (opcional: true=activos, false=inactivos, null=todos)
+     * @return respuesta con jobId para rastrear el estado de la exportación
      */
     @GetMapping("/export/excel")
-    public ResponseEntity<Resource> exportAccountCatalogueWithValidations(
+    public ResponseEntity<java.util.Map<String, String>> exportAccountCatalogueAsync(
             @RequestParam String entId,
             @RequestParam(required = false) String companyName,
             @RequestParam(required = false) Boolean status) {
 
-        Resource excelFile = accountCatalogueExportInputPort.exportAccountCatalogueWithValidations(entId, status);
-        String filename = fileNameGenerator.generateExportFileName(entId, companyName, status);
+        log.info("Iniciando exportación asíncrona de catálogo de cuentas. EntId: {}, CompanyName: {}, Status: {}", 
+                entId, companyName, status);
+
+        AccountCatalogueExportRequest request = AccountCatalogueExportRequest.builder()
+                .entId(entId)
+                .companyName(companyName)
+                .status(status)
+                .build();
+
+        String jobId = accountCatalogueExportInputPort.exportAccountCatalogueAsync(request);
+
+        log.info("Exportación asíncrona iniciada. JobId: {}", jobId);
+
+        return ResponseEntity.accepted()
+                .body(java.util.Map.of(
+                        "jobId", jobId,
+                        "message", "Exportación iniciada exitosamente",
+                        "statusEndpoint", "/api/accountCatalogue/export/status/" + jobId
+                ));
+    }
+
+    /**
+     * @brief Consulta el estado de una exportación asíncrona
+     * @param jobId identificador del trabajo de exportación
+     * @return estado actual de la exportación con archivo si está completado
+     */
+    @GetMapping("/export/status/{jobId}")
+    public ResponseEntity<?> getExportStatus(@PathVariable String jobId) {
+        log.info("Consultando estado de exportación. JobId: {}", jobId);
+
+        return accountCatalogueExportInputPort.getExportStatus(jobId)
+                .map(status -> {
+                    log.info("Estado de exportación obtenido. JobId: {}, Estado: {}", jobId, status.getStatus());
+                    return ResponseEntity.ok(status);
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    /**
+     * @brief Descarga el archivo exportado de catálogo de cuentas
+     * @param jobId identificador del trabajo de exportación
+     * @return archivo Excel exportado
+     */
+    @GetMapping("/export/download/{jobId}")
+    public ResponseEntity<Resource> downloadExportedFile(@PathVariable String jobId) {
+        log.info("Descargando archivo exportado de catálogo. JobId: {}", jobId);
+
+        Optional<ExportJobStatus> jobStatus = accountCatalogueExportInputPort.getExportStatus(jobId);
+
+        if (jobStatus.isEmpty()) {
+            log.warn("JobId de exportación no encontrado: {}", jobId);
+            return ResponseEntity.notFound().build();
+        }
+
+        ExportJobStatus status = jobStatus.get();
+
+        if (status.getStatus() != ImportStatus.COMPLETED) {
+            log.warn("Exportación no completada. JobId: {}, Estado: {}", jobId, status.getStatus());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+
+        if (status.getFileData() == null) {
+            log.error("Archivo no disponible. JobId: {}", jobId);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+
+        Resource resource = new ByteArrayResource(status.getFileData());
 
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + status.getFileName() + "\"")
                 .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
-                .body(excelFile);
+                .body(resource);
     }
 
     

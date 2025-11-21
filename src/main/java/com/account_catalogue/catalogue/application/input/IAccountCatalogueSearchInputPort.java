@@ -78,6 +78,15 @@ public interface IAccountCatalogueSearchInputPort {
     Page<AccountCatalogue> getAllAccountCataloguesByStatus(String idEnterprise, Boolean status, Pageable pageable);
 
     /**
+     * @brief Obtiene cuentas con parent cargado eagerly para exportación
+     * @param idEnterprise ID de la empresa
+     * @param status estado de las cuentas (null = todos, true = activos, false = inactivos)
+     * @param pageable configuración de paginación
+     * @return página de cuentas con parent cargado
+     */
+    Page<AccountCatalogue> getAllAccountCataloguesForExport(String idEnterprise, Boolean status, Pageable pageable);
+
+    /**
      * @brief Obtiene todas las cuentas por empresa sin paginación
      * @param idEnterprise ID de la empresa
      * @return lista completa de cuentas contables

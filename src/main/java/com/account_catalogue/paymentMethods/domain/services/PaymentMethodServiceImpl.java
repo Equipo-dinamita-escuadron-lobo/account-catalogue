@@ -242,4 +242,14 @@ public class PaymentMethodServiceImpl implements IPaymentMethodService {
                             + idEnterprise + "'");
         }
     }
+
+    @Override
+    @Transactional
+    public void updateUsageCount(Long id, Integer usageCount) {
+        PaymentMethodEntity entity = repository.findById(id)
+                .orElseThrow(() -> new PaymentMethodsNotFoundException("Método de pago no encontrado con ID: " + id));
+
+        entity.setUsageCount(usageCount);
+        repository.save(entity);
+    }
 }

@@ -73,6 +73,7 @@ public class AuxiliaryAccountRestMapper implements IAuxiliaryAccountRestMapper {
                 .crossing(accountCatalogue.getCrossing())
                 .costCenter(accountCatalogue.getCostCenter())
                 .status(accountCatalogue.getStatus())
+                .usageCount(accountCatalogue.getUsageCount())
                 .parent(map(accountCatalogue.getParent())) // Usa el método de mapeo definido en la interfaz
                 .build();
     }

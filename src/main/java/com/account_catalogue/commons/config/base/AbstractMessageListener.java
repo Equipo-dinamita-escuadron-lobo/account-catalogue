@@ -1,4 +1,4 @@
-package com.account_catalogue.accounting.infraestructure.output.messageBroker.base;
+package com.account_catalogue.commons.config.base;
 
 import org.springframework.amqp.core.Message;
 

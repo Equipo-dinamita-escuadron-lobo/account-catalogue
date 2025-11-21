@@ -1,4 +1,4 @@
-package com.account_catalogue.accounting.infraestructure.output.messageBroker.aspect;
+package com.account_catalogue.commons.config.aspect;
 
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;

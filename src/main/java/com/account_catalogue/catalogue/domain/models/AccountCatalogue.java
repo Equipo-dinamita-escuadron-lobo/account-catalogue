@@ -45,4 +45,21 @@ public class AccountCatalogue {
     private Boolean isDeleted;
     @Builder.Default
     private BigDecimal amount = BigDecimal.ZERO;
+    @Builder.Default
+    private Integer usageCount = 0;
+
+    /**
+     * @brief Incrementa el contador de uso de la cuenta contable
+     */
+    public void incrementUsageCount() {
+        this.usageCount = this.usageCount == null ? 1 : this.usageCount + 1;
+    }
+
+    /**
+     * @brief Verifica si la cuenta contable está siendo usada
+     * @return true si la cuenta tiene uso registrado
+     */
+    public boolean isInUse() {
+        return this.usageCount != null && this.usageCount > 0;
+    }
 }

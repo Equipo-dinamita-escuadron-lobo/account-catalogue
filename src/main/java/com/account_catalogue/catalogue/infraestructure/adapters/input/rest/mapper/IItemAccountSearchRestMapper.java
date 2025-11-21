@@ -36,6 +36,7 @@ public interface IItemAccountSearchRestMapper {
                .costCenter(accountCatalogue.getCostCenter())
                .status(accountCatalogue.getStatus())
                .parent(accountCatalogue.getParent() != null ? accountCatalogue.getParent().getCode() : null)
+               .usageCount(accountCatalogue.getUsageCount())
                .build();
    }
 }

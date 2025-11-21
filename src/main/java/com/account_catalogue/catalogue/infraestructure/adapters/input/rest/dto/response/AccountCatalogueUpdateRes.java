@@ -24,4 +24,5 @@ public class AccountCatalogueUpdateRes {
     private Boolean crossing;
     private Boolean costCenter;
     private Boolean status;
+    private Integer usageCount;
 }

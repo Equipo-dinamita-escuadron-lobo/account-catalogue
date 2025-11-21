@@ -20,4 +20,5 @@ public class PaymentMethodRes {
     private Long accountingAccountId; // Solo el ID de la cuenta contable
     private Boolean status;
     private String idEnterprise;
+    private Integer usageCount;
 }

@@ -30,6 +30,9 @@ public class AccountUsageListener extends AbstractMessageListener<EventDto<Accou
 
     private final IAccountCatalogueUsagePort accountCatalogueUsagePort;
 
+    private static final String ACCOUNT_TYPE_ID = "ID";
+    private static final String ACCOUNT_TYPE_CODE = "CODE";
+
     /**
      * @brief Maneja eventos de uso de productos desde la cola
      * @param event Evento con información del producto usado
@@ -77,8 +80,8 @@ public class AccountUsageListener extends AbstractMessageListener<EventDto<Accou
             return false;
         }
 
-        if (!"ID".equals(data.getSourceAccountType()) && !"CODE".equals(data.getSourceAccountType())) {
-            log.warn("SourceAccountType must be 'ID' or 'CODE', but was: {}", data.getSourceAccountType());
+        if (!ACCOUNT_TYPE_ID.equalsIgnoreCase(data.getSourceAccountType()) && !ACCOUNT_TYPE_CODE.equalsIgnoreCase(data.getSourceAccountType())) {
+            log.warn("SourceAccountType must be '{}' or '{}', but was: {}", ACCOUNT_TYPE_ID, ACCOUNT_TYPE_CODE, data.getSourceAccountType());
             return false;
         }
 

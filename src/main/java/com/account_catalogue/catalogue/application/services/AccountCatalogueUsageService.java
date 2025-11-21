@@ -26,8 +26,12 @@ public class AccountCatalogueUsageService implements IAccountCatalogueUsagePort 
     private final IAccountCatalogueSearchOutputPort accountCatalogueSearchOutputPort;
     private final IAccountCatalogueUpdateOutputPort accountCatalogueUpdateOutputPort;
 
+    private static final String ACCOUNT_TYPE_ID = "ID";
+    private static final String ACCOUNT_TYPE_CODE = "CODE";
+
     @Override
     public void incrementUsageCount(AccountUsedEventDto accountUsedEvent) {
+        
         String sourceAccountType = accountUsedEvent.getSourceAccountType();
         Long account = accountUsedEvent.getAccount();
         String enterpriseId = accountUsedEvent.getEnterpriseId();
@@ -38,13 +42,13 @@ public class AccountCatalogueUsageService implements IAccountCatalogueUsagePort 
         AccountCatalogue accountCatalogue;
 
         // Determinar si buscar por ID o código
-        if ("ID".equals(sourceAccountType)) {
+        if (ACCOUNT_TYPE_ID.equalsIgnoreCase(sourceAccountType)) {
             accountCatalogue = accountCatalogueSearchOutputPort.getAccountCatalogueById(account, enterpriseId);
-        } else if ("CODE".equals(sourceAccountType)) {
+        } else if (ACCOUNT_TYPE_CODE.equalsIgnoreCase(sourceAccountType)) {
             accountCatalogue = accountCatalogueSearchOutputPort.getAccountCatalogueByCode(account.toString(), enterpriseId);
         } else {
-            log.error("Invalid sourceAccountType: {}. Must be 'ID' or 'CODE'", sourceAccountType);
-            throw new IllegalArgumentException("Tipo de fuente de cuenta inválido: " + sourceAccountType);
+            log.error("Invalid sourceAccountType: {}. Must be '{}' or '{}'", sourceAccountType, ACCOUNT_TYPE_ID, ACCOUNT_TYPE_CODE);
+            throw new IllegalArgumentException("Tipo de fuente de cuenta inválido: " + sourceAccountType + ". Debe ser '" + ACCOUNT_TYPE_ID + "' o '" + ACCOUNT_TYPE_CODE + "'");
         }
 
         if (accountCatalogue == null) {

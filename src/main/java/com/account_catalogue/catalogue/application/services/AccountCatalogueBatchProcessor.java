@@ -118,47 +118,72 @@ public class AccountCatalogueBatchProcessor {
         int successCount = 0;
         int failureCount = 0;
 
-        // Obtener códigos únicos de padres necesarios para este lote
-        Set<String> requiredParentCodes = extractRequiredParentCodes(batch);
-        
-        // Construir mapa de padres desde BD (solo los que no están en processedAccountsMap)
-        Set<String> missingParentCodes = new HashSet<>(requiredParentCodes);
-        missingParentCodes.removeAll(processedAccountsMap.keySet());
-        
-        Map<String, AccountCatalogueEntity> parentsMap = 
-                hierarchyProcessor.buildParentMapFromDatabase(missingParentCodes, entId);
+        try {
+            // Obtener códigos únicos de padres necesarios para este lote
+            Set<String> requiredParentCodes = extractRequiredParentCodes(batch);
+            
+            // Construir mapa de padres desde BD (solo los que no están en processedAccountsMap)
+            Set<String> missingParentCodes = new HashSet<>(requiredParentCodes);
+            missingParentCodes.removeAll(processedAccountsMap.keySet());
+            
+            Map<String, AccountCatalogueEntity> parentsMap = 
+                    hierarchyProcessor.buildParentMapFromDatabase(missingParentCodes, entId);
 
-        // Procesar cada registro del lote
-        for (AccountCatalogueExcelData excelData : batch) {
-            try {
-                // Convertir a dominio
-                AccountCatalogue accountCatalogue = dataConverter.convertToAccountCatalogue(
-                        excelData, parentsMap, processedAccountsMap);
+            // Convertir todo el batch a dominio primero
+            List<AccountCatalogue> accountsToCreate = new ArrayList<>();
+            List<AccountCatalogueExcelData> validExcelData = new ArrayList<>();
+            
+            for (AccountCatalogueExcelData excelData : batch) {
+                try {
+                    AccountCatalogue accountCatalogue = dataConverter.convertToAccountCatalogue(
+                            excelData, parentsMap, processedAccountsMap);
+                    accountsToCreate.add(accountCatalogue);
+                    validExcelData.add(excelData);
+                } catch (Exception e) {
+                    failureCount++;
+                    errors.add(ImportErrorDetail.builder()
+                            .rowNumber(excelData.getRowNumber())
+                            .columnName(ImportConstants.CODE_COLUMN)
+                            .fieldValue(excelData.getCode())
+                            .errorCode(ImportConstants.ErrorCodes.SYSTEM_ERROR)
+                            .errorMessage("Error convirtiendo cuenta: " + e.getMessage())
+                            .errorType(ImportErrorType.SYSTEM_ERROR)
+                            .build());
+                }
+            }
 
-                // Crear usando el servicio existente (ya tiene validaciones)
-                AccountCatalogue created = createService.createAccountCatalogue(accountCatalogue);
-
-                // Almacenar en mapa de procesados para usar como padre en siguientes registros
-                processedAccountsMap.put(created.getCode(), created);
-
-                successCount++;
-         
-            } catch (Exception e) {
-                failureCount++;
+            // Crear todas las cuentas en batch (mucho más rápido)
+            if (!accountsToCreate.isEmpty()) {
+                List<AccountCatalogue> createdAccounts = createService.createAllAccountCatalogues(accountsToCreate);
                 
+                // ✅ OPTIMIZACIÓN CRÍTICA: No reload - confiar en la transacción
+                // Las cuentas creadas ya tienen toda la info necesaria en el mismo contexto
+                for (AccountCatalogue created : createdAccounts) {
+                    // Almacenar directamente en mapa de procesados
+                    processedAccountsMap.put(created.getCode(), created);
+                    successCount++;
+                }
+                
+                log.debug("Lote {}: Creadas {} cuentas en batch sin reload", batchNumber, createdAccounts.size());
+            }
+
+        } catch (Exception e) {
+            log.error("Error crítico en procesamiento de lote {}: {}", batchNumber, e.getMessage(), e);
+            // Si hay error crítico, marcar todo el lote como fallido
+            for (AccountCatalogueExcelData excelData : batch) {
                 errors.add(ImportErrorDetail.builder()
                         .rowNumber(excelData.getRowNumber())
                         .columnName(ImportConstants.CODE_COLUMN)
                         .fieldValue(excelData.getCode())
                         .errorCode(ImportConstants.ErrorCodes.SYSTEM_ERROR)
-                        .errorMessage("Error creando cuenta: " + e.getMessage())
+                        .errorMessage("Error de lote: " + e.getMessage())
                         .errorType(ImportErrorType.SYSTEM_ERROR)
                         .build());
-
-                // Si CONTINUE_ON_ERROR es false, propagar excepción para rollback
-                if (!ImportConstants.Defaults.CONTINUE_ON_ERROR) {
-                    throw e;
-                }
+            }
+            failureCount = batch.size();
+            
+            if (!ImportConstants.Defaults.CONTINUE_ON_ERROR) {
+                throw e;
             }
         }
 

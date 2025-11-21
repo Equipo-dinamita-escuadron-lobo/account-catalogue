@@ -28,14 +28,12 @@ import com.account_catalogue.catalogue.application.input.IAccountCatalogueExport
 import com.account_catalogue.catalogue.application.input.IAccountCatalogueImportInputPort;
 import com.account_catalogue.catalogue.application.input.IAccountCatalogueSearchInputPort;
 import com.account_catalogue.catalogue.application.input.IAccountCatalogueUpdateInputPort;
-import com.account_catalogue.catalogue.domain.enums.ImportStatus;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.request.AccountCatalogueCreateReq;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.request.AccountCatalogueImportRequest;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.request.AccountCatalogueUpdateReq;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.response.AccountCatalogueChangeStateRes;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.response.AccountCatalogueCreateRes;
-import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.response.AccountCatalogueImportResponse;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.response.AccountCatalogueListRes;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.response.AccountCatalogueUpdateRes;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.response.AuxiliaryAccountListRes;
@@ -50,6 +48,7 @@ import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.util.
 
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @brief Controlador REST para gestión completa del catálogo de cuentas
@@ -57,6 +56,7 @@ import lombok.AllArgsConstructor;
  * Expone endpoints para operaciones CRUD, importación/exportación Excel,
  * búsqueda jerárquica y gestión de estados de cuentas contables.
  */
+@Slf4j
 @RequestMapping("/api/accountCatalogue")
 @RestController
 @AllArgsConstructor
@@ -248,39 +248,51 @@ public class AccountCatalogueController {
 
     
     /**
-     * @brief Importa cuentas contables desde archivo Excel
+     * @brief Inicia importación asíncrona de cuentas contables desde archivo Excel
      * @param entId identificador de la empresa
      * @param file archivo Excel con datos de cuentas
-     * @return respuesta con resultado del proceso de importación
+     * @return respuesta con jobId para rastrear el estado de la importación
      */
     @PostMapping("/import/excel")
-    public ResponseEntity<AccountCatalogueImportResponse> importFromExcel(
+    public ResponseEntity<java.util.Map<String, String>> importFromExcel(
             @RequestParam String entId,
             @RequestParam MultipartFile file) {
+
+        log.info("Iniciando importación asíncrona de catálogo de cuentas. EntId: {}, Archivo: {}", 
+                entId, file.getOriginalFilename());
 
         // Construir request
         AccountCatalogueImportRequest request = AccountCatalogueImportRequest.from(entId, file);
 
-        // Ejecutar importación
-        AccountCatalogueImportResponse response = accountCatalogueImportInputPort
-                .importAccountCatalogueFromExcel(request);
+        // Iniciar importación asíncrona
+        String jobId = accountCatalogueImportInputPort.importAccountCatalogueAsync(request);
 
-        // Mapear estado a código HTTP apropiado
-        HttpStatus httpStatus = mapImportStatusToHttpStatus(response.getStatus());
+        log.info("Importación asíncrona iniciada. JobId: {}", jobId);
 
-        return ResponseEntity.status(httpStatus).body(response);
+        // Retornar jobId para que el cliente pueda consultar el estado
+        return ResponseEntity.accepted()
+                .body(java.util.Map.of(
+                        "jobId", jobId,
+                        "message", "Importación iniciada exitosamente",
+                        "statusEndpoint", "/api/accountCatalogue/import/status/" + jobId
+                ));
     }
 
     /**
-     * Mapea el estado de importación a código HTTP apropiado.
+     * @brief Consulta el estado de una importación asíncrona
+     * @param jobId identificador del trabajo de importación
+     * @return estado actual de la importación
      */
-    private HttpStatus mapImportStatusToHttpStatus(ImportStatus status) {
-        return switch (status) {
-            case COMPLETED -> HttpStatus.OK;
-            case COMPLETED_WITH_ERRORS -> HttpStatus.ACCEPTED;
-            case FAILED -> HttpStatus.BAD_REQUEST;
-            default -> HttpStatus.INTERNAL_SERVER_ERROR;
-        };
+    @GetMapping("/import/status/{jobId}")
+    public ResponseEntity<?> getImportStatus(@PathVariable String jobId) {
+        log.info("Consultando estado de importación. JobId: {}", jobId);
+
+        return accountCatalogueImportInputPort.getImportStatus(jobId)
+                .map(status -> {
+                    log.info("Estado de importación obtenido. JobId: {}, Estado: {}", jobId, status.getStatus());
+                    return ResponseEntity.ok(status);
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 
 }

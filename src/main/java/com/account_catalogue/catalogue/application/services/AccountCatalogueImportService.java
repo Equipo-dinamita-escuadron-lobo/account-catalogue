@@ -1,225 +1,76 @@
 package com.account_catalogue.catalogue.application.services;
 
 import com.account_catalogue.catalogue.application.input.IAccountCatalogueImportInputPort;
-import com.account_catalogue.catalogue.domain.enums.ImportErrorType;
-import com.account_catalogue.catalogue.domain.models.AccountCatalogueExcelData;
-import com.account_catalogue.catalogue.domain.models.ImportErrorDetail;
-import com.account_catalogue.catalogue.domain.utils.ImportConstants;
+import com.account_catalogue.catalogue.domain.models.ImportJobStatus;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.request.AccountCatalogueImportRequest;
-import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.response.AccountCatalogueImportResponse;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.io.IOException;
+import java.util.Optional;
 
 /**
- * @brief Servicio para importación masiva de cuentas contables desde Excel
+ * @brief Servicio para importación asíncrona de cuentas contables desde Excel
  *
- *        Coordina el proceso completo de importación de cuentas desde archivos
- *        Excel,
- *        incluyendo validación, procesamiento por lotes y manejo de errores.
+ * Coordina el inicio de importaciones asíncronas de catálogo de cuentas y
+ * gestiona el seguimiento del estado de los trabajos de importación.
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class AccountCatalogueImportService implements IAccountCatalogueImportInputPort {
 
+        private final AccountCatalogueImportJobTracker jobTracker;
+        private final AccountCatalogueAsyncImportProcessor asyncImportProcessor;
         private final AccountCatalogueFileValidationService fileValidationService;
-        private final AccountCatalogueExcelParsingService excelParsingService;
-        private final AccountCatalogueBatchValidationService batchValidationService;
-        private final AccountCatalogueDuplicateDetectionService duplicateDetectionService;
-        private final AccountCatalogueHierarchyProcessor hierarchyProcessor;
-        private final AccountCatalogueBatchProcessor batchProcessor;
-        private final AccountCatalogueImportResponseBuilder responseBuilder;
 
         /**
-         * @brief Maneja lógica de duplicados sin registros únicos
-         * @param entId ID de empresa
-         * @param fileName nombre del archivo
-         * @param parsingResult resultado del parsing del archivo
-         * @param duplicateResult resultado de la detección de duplicados
-         * @param allErrors errores de validación
-         * @return respuesta de importación
-         */
-        private AccountCatalogueImportResponse handleNoUniqueRecords(String entId, String fileName,
-                        AccountCatalogueExcelParsingService.ExcelParsingResult parsingResult,
-                        AccountCatalogueDuplicateDetectionService.DuplicateDetectionResult duplicateResult,
-                        List<ImportErrorDetail> allErrors) {
-
-                if (duplicateResult.getDuplicateCount() > 0) {
-                        if (allErrors.isEmpty()) {
-                                // Todos son duplicados, sin errores
-                                return responseBuilder.buildSuccessResponse(
-                                                entId,
-                                                fileName,
-                                                parsingResult.getTotalRows(),
-                                                0, // successCount
-                                                0, // failureCount
-                                                duplicateResult.getDuplicateCount(),
-                                                allErrors);
-                        } else {
-                                // Hay duplicados Y errores de validación
-                                long failedRecords = allErrors.stream()
-                                                .map(ImportErrorDetail::getRowNumber)
-                                                .filter(Objects::nonNull)
-                                                .distinct()
-                                                .count();
-
-                                return responseBuilder.buildSuccessResponse(
-                                                entId,
-                                                fileName,
-                                                parsingResult.getTotalRows(),
-                                                0, // successCount
-                                                (int) failedRecords, // failureCount
-                                                duplicateResult.getDuplicateCount(),
-                                                allErrors);
-                        }
-                }
-                // No hay duplicados ni registros únicos, entonces falló
-                return responseBuilder.buildFailedResponse(entId, fileName,
-                                parsingResult.getTotalRows(), allErrors);
-        }
-
-        /**
-         * @brief Maneja caso sin cuentas válidas después de filtro jerárquico
-         * @param entId ID de empresa
-         * @param fileName nombre del archivo
-         * @param parsingResult resultado del parsing del archivo
-         * @param duplicateResult resultado de la detección de duplicados
-         * @param allErrors errores de validación
-         * @return respuesta de importación
-         */
-        private AccountCatalogueImportResponse handleEmptyAccountsAfterHierarchyFilter(String entId, String fileName,
-                        AccountCatalogueExcelParsingService.ExcelParsingResult parsingResult,
-                        AccountCatalogueDuplicateDetectionService.DuplicateDetectionResult duplicateResult,
-                        List<ImportErrorDetail> allErrors) {
-
-                if (duplicateResult.getDuplicateCount() > 0) {
-                        // Hay duplicados (con o sin otros errores)
-                        long failedRecords = allErrors.stream()
-                                        .map(ImportErrorDetail::getRowNumber)
-                                        .filter(Objects::nonNull)
-                                        .distinct()
-                                        .count();
-
-                        return responseBuilder.buildSuccessResponse(
-                                        entId,
-                                        fileName,
-                                        parsingResult.getTotalRows(),
-                                        0, // successCount
-                                        (int) failedRecords, // failureCount
-                                        duplicateResult.getDuplicateCount(),
-                                        allErrors);
-                }
-                // No hay duplicados ni registros válidos
-                return responseBuilder.buildFailedResponse(entId, fileName,
-                                parsingResult.getTotalRows(), allErrors);
-        }
-
-        /**
-         * @brief Coordina proceso completo de importación desde Excel
+         * @brief Inicia la importación asíncrona de cuentas contables
+         * @details Valida el archivo, crea un trabajo de importación y delega el procesamiento
+         * al procesador asíncrono en un hilo separado
          * @param request solicitud con archivo Excel y configuración
-         * @return respuesta detallada con resultados de importación
+         * @return jobId único para rastrear el estado de la importación
          */
         @Override
-        public AccountCatalogueImportResponse importAccountCatalogueFromExcel(AccountCatalogueImportRequest request) {
+        public String importAccountCatalogueAsync(AccountCatalogueImportRequest request) {
                 String entId = request.getEntId();
                 String fileName = request.getExcelFile().getOriginalFilename();
-                List<ImportErrorDetail> allErrors = new ArrayList<>();
+
+                log.info("Iniciando importación asíncrona de catálogo de cuentas para entidad: {}, archivo: {}", 
+                        entId, fileName);
 
                 try {
+                        // Validar archivo antes de crear el trabajo
                         fileValidationService.validate(request.getExcelFile());
 
-                        AccountCatalogueExcelParsingService.ExcelParsingResult parsingResult = excelParsingService
-                                        .parseExcelFile(request.getExcelFile(), entId);
+                        // Crear trabajo de importación
+                        String jobId = jobTracker.createJob(entId, fileName);
 
-                        allErrors.addAll(parsingResult.getErrors());
+                        // Convertir archivo a bytes para procesamiento asíncrono
+                        byte[] fileBytes = request.getExcelFile().getBytes();
 
-                        if (parsingResult.getAccountsData().isEmpty()) {
-                                return responseBuilder.buildEmptyFileResponse(entId, fileName);
-                        }
+                        // Iniciar procesamiento asíncrono
+                        asyncImportProcessor.processImportAsync(request, jobId, fileBytes);
 
-                        AccountCatalogueBatchValidationService.BatchValidationResult validationResult = batchValidationService
-                                        .validateBatch(
-                                                        parsingResult.getAccountsData(), entId,
-                                                        parsingResult.getColumnMap());
+                        log.info("Importación asíncrona iniciada con jobId: {}", jobId);
+                        return jobId;
 
-                        allErrors.addAll(validationResult.getErrors());
-
-                        if (validationResult.getValidRecords().isEmpty()) {
-                                return responseBuilder.buildFailedResponse(entId, fileName,
-                                                parsingResult.getTotalRows(), allErrors);
-                        }
-
-                        AccountCatalogueDuplicateDetectionService.DuplicateDetectionResult duplicateResult = duplicateDetectionService
-                                        .detectDuplicates(validationResult.getValidRecords(), entId);
-
-                        allErrors.addAll(duplicateResult.getErrors());
-
-                        // Si no hay registros únicos
-                        if (duplicateResult.getUniqueRecords().isEmpty()) {
-                                return handleNoUniqueRecords(entId, fileName, parsingResult, duplicateResult,
-                                                allErrors);
-                        }
-
-                        List<AccountCatalogueExcelData> sortedAccounts = hierarchyProcessor
-                                        .sortByHierarchy(duplicateResult.getUniqueRecords());
-
-                        List<ImportErrorDetail> hierarchyErrors = hierarchyProcessor
-                                        .validateHierarchyWithDetails(sortedAccounts, entId);
-
-                        allErrors.addAll(hierarchyErrors);
-
-                        if (!hierarchyErrors.isEmpty()) {
-
-                                if (!ImportConstants.Defaults.CONTINUE_ON_ERROR) {
-                                        return responseBuilder.buildFailedResponse(entId, fileName,
-                                                        parsingResult.getTotalRows(), allErrors);
-                                }
-
-                                Set<Integer> errorRows = hierarchyErrors.stream()
-                                                .map(ImportErrorDetail::getRowNumber)
-                                                .collect(Collectors.toSet());
-
-                                sortedAccounts = sortedAccounts.stream()
-                                                .filter(account -> !errorRows.contains(account.getRowNumber()))
-                                                .toList();
-                        }
-
-                        // Si no quedan cuentas después de filtrar errores de jerarquía
-                        if (sortedAccounts.isEmpty()) {
-                                return handleEmptyAccountsAfterHierarchyFilter(entId, fileName, parsingResult,
-                                                duplicateResult, allErrors);
-                        }
-
-                        AccountCatalogueBatchProcessor.BatchProcessingResult processingResult = batchProcessor
-                                        .processBatch(sortedAccounts, entId);
-
-                        allErrors.addAll(processingResult.getErrors());
-
-                        return responseBuilder.buildSuccessResponse(
-                                        entId,
-                                        fileName,
-                                        parsingResult.getTotalRows(),
-                                        processingResult.getSuccessCount(),
-                                        processingResult.getFailureCount(),
-                                        duplicateResult.getDuplicateCount(),
-                                        allErrors);
-
-                } catch (Exception e) {
-                        allErrors.add(ImportErrorDetail.builder()
-                                        .errorCode("SYSTEM_ERROR")
-                                        .errorMessage("Error del sistema: " + e.getMessage())
-                                        .errorType(ImportErrorType.SYSTEM_ERROR)
-                                        .build());
-
-                        return responseBuilder.buildFailedResponse(entId, fileName, 0, allErrors);
+                } catch (IOException e) {
+                        log.error("Error al leer el archivo para importación asíncrona: {}", e.getMessage(), e);
+                        throw new RuntimeException("Error al leer el archivo: " + e.getMessage(), e);
                 }
+        }
+
+        /**
+         * @brief Obtiene el estado actual de una importación asíncrona
+         * @param jobId identificador del trabajo de importación
+         * @return Optional con el estado del trabajo si existe
+         */
+        @Override
+        public Optional<ImportJobStatus> getImportStatus(String jobId) {
+                log.debug("Consultando estado de importación para jobId: {}", jobId);
+                return jobTracker.getJobStatus(jobId);
         }
 }

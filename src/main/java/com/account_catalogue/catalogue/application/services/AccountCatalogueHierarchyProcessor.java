@@ -1,6 +1,7 @@
 package com.account_catalogue.catalogue.application.services;
 
 import com.account_catalogue.catalogue.domain.enums.ImportErrorType;
+import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogueExcelData;
 import com.account_catalogue.catalogue.domain.models.ImportErrorDetail;
 import com.account_catalogue.catalogue.domain.utils.AccountCodeUtils;
@@ -116,11 +117,15 @@ public class AccountCatalogueHierarchyProcessor {
         }
     }
 
+   
     /**
-     * @brief Construye mapa de cuentas padre desde base de datos
-     * @param parentCodes conjunto de códigos de cuentas padre
-     * @param entId ID de la empresa
-     * @return mapa de códigos a entidades de cuentas padre
+     * @brief Construye mapa de cuentas padre desde BD con jerarquía completa
+     * @details Usa findByCodeWithFullHierarchy para cargar toda la cadena de padres eagerly,
+     * evitando LazyInitializationException en procesamiento asíncrono batch.
+     * Crítico para importación donde las entidades se usan fuera del contexto transaccional original.
+     * @param parentCodes conjunto de códigos de cuentas padre a buscar
+     * @param entId ID de empresa para filtrado
+     * @return mapa con códigos como keys y entidades completamente cargadas como values
      */
     public Map<String, AccountCatalogueEntity> buildParentMapFromDatabase(Set<String> parentCodes, String entId) {
         Map<String, AccountCatalogueEntity> parentMap = new HashMap<>();
@@ -128,16 +133,66 @@ public class AccountCatalogueHierarchyProcessor {
         for (String parentCode : parentCodes) {
             if (parentCode != null && !parentMap.containsKey(parentCode)) {
                 try {
-                    AccountCatalogueEntity parent = accountCatalogueRepository.findByCode(parentCode, entId);
+                    // Usar findByCodeWithFullHierarchy en lugar de findByCode para cargar toda la jerarquía
+                    AccountCatalogueEntity parent = accountCatalogueRepository.findByCodeWithFullHierarchy(parentCode, entId);
                     if (parent != null) {
                         parentMap.put(parentCode, parent);
                     }
                 } catch (Exception e) {
-                    throw new RuntimeException("Error al obtener cuenta padre", e);
+                    log.error("Error al obtener cuenta padre con código {}: {}", parentCode, e.getMessage(), e);
+                    throw new RuntimeException("Error al obtener cuenta padre con código: " + parentCode, e);
                 }
             }
         }
-
+        
         return parentMap;
+    }
+
+    /**
+     * @brief Recarga una cuenta con toda su jerarquía de padres
+     * @details Usa findByCodeWithFullHierarchy para cargar toda la cadena de padres,
+     * evitando LazyInitializationException. Convierte entity a dominio.
+     * @param code código de la cuenta a recargar
+     * @param entId ID de empresa
+     * @return cuenta de dominio con jerarquía completa cargada, o null si no existe
+     */
+    public AccountCatalogue reloadAccountWithFullHierarchy(String code, String entId) {
+        AccountCatalogueEntity entity = accountCatalogueRepository.findByCodeWithFullHierarchy(code, entId);
+        if (entity == null) {
+            return null;
+        }
+        
+        // Convertir a dominio (necesitamos un mapper aquí)
+        return convertEntityToDomain(entity);
+    }
+
+    /**
+     * @brief Convierte entity a dominio con parent si existe
+     * @param entity entidad JPA a convertir
+     * @return modelo de dominio
+     */
+    private AccountCatalogue convertEntityToDomain(AccountCatalogueEntity entity) {
+        if (entity == null) {
+            return null;
+        }
+        
+        AccountCatalogue parent = null;
+        if (entity.getParent() != null) {
+            parent = convertEntityToDomain(entity.getParent());
+        }
+        
+        return AccountCatalogue.builder()
+                .id(entity.getId())
+                .idEnterprise(entity.getIdEnterprise())
+                .code(entity.getCode())
+                .description(entity.getDescription())
+                .nature(entity.getNature())
+                .financialStatus(entity.getFinancialStatus())
+                .classification(entity.getClassification())
+                .parent(parent)
+                .crossing(entity.getCrossing())
+                .costCenter(entity.getCostCenter())
+                .status(entity.getStatus())
+                .build();
     }
 }

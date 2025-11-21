@@ -94,6 +94,61 @@ public class AccountCatalogueExcelParsingService {
     }
 
     /**
+     * @brief Parsea archivo Excel desde bytes para procesamiento asíncrono
+     * @details Sobrecarga del método principal para permitir procesamiento asíncrono
+     * donde el archivo ya fue convertido a bytes por el controlador.
+     * @param fileBytes contenido del archivo Excel en bytes
+     * @param entId ID de empresa para asociar datos parseados
+     * @return estructura completa con datos parseados, errores y metadatos
+     */
+    public ExcelParsingResult parseExcelFileFromBytes(byte[] fileBytes, String entId) {
+        List<AccountCatalogueExcelData> accountsData = new ArrayList<>();
+        List<ImportErrorDetail> errors = new ArrayList<>();
+        Map<String, Integer> columnMap = new HashMap<>();
+
+        try (Workbook workbook = new XSSFWorkbook(new java.io.ByteArrayInputStream(fileBytes))) {
+            Sheet sheet = workbook.getSheetAt(0);
+
+            if (sheet.getPhysicalNumberOfRows() == 0) {
+                throw AccountCatalogueImportException.forEmptyFile("archivo.xlsx");
+            }
+
+            // Detectar mapa de columnas dinámicamente
+            columnMap = detectColumnMapping(sheet, errors);
+            if (columnMap.isEmpty()) {
+                throw AccountCatalogueImportException.forInvalidExcelFile("archivo.xlsx",
+                        "No se pudieron detectar las columnas requeridas");
+            }
+
+            // Procesar filas de datos (empezar después de headers)
+            for (int rowIndex = DATA_START_ROW_INDEX; rowIndex <= sheet.getLastRowNum(); rowIndex++) {
+                Row row = sheet.getRow(rowIndex);
+                if (row == null || isEmptyRow(row)) {
+                    continue;
+                }
+
+                AccountCatalogueExcelData accountData = parseRow(row, rowIndex + 1, entId, columnMap, errors);
+                if (accountData != null) {
+                    accountsData.add(accountData);
+                }
+            }
+
+        } catch (IOException e) {
+            throw new AccountCatalogueImportException(
+                    AccountCatalogueErrorCode.EXCEL_VALIDATION_ERROR,
+                    "Error leyendo archivo Excel: " + e.getMessage(),
+                    e);
+        }
+
+        return ExcelParsingResult.builder()
+                .accountsData(accountsData)
+                .errors(errors)
+                .totalRows(accountsData.size())
+                .columnMap(columnMap)
+                .build();
+    }
+
+    /**
      * @brief Detecta automáticamente mapeo de columnas por encabezados con normalización
      * @param sheet hoja de Excel a procesar
      * @param errors lista donde agregar errores encontrados

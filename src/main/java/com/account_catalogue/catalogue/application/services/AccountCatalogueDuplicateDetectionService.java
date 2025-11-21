@@ -126,8 +126,9 @@ public class AccountCatalogueDuplicateDetectionService {
     }
 
     /**
-     * @brief Consulta base de datos para detectar códigos existentes
-     * 
+     * @brief Consulta base de datos para detectar códigos existentes EN BATCH
+     * @details Usa findByCodesIn para ejecutar una sola query con IN clause
+     * en lugar de N queries individuales. Optimización crítica para importación masiva.
      * @param codes códigos a consultar
      * @param entId ID de empresa para contexto de consulta
      * @return mapa de códigos a entidades encontradas
@@ -140,28 +141,34 @@ public class AccountCatalogueDuplicateDetectionService {
 
         Map<String, AccountCatalogueEntity> duplicates = new HashMap<>();
 
-        // Consultar cada código individualmente (no hay método bulk en el repositorio)
-        for (String code : codes) {
-            try {
-                AccountCatalogueEntity existing = accountCatalogueRepository.findByCode(code, entId);
-                if (existing != null) {
-                    duplicates.put(code, existing);
-                }
-            } catch (Exception e) {
-                throw new AccountCatalogueImportException(
-                    AccountCatalogueErrorCode.ACCOUNT_IMPORT_ERROR,
-                    "Error al consultar duplicado por código: " + code,
-                    e
-                );
+        try {
+           
+            List<AccountCatalogueEntity> existingAccounts = accountCatalogueRepository.findByCodesIn(codes, entId);
+            
+            // Construir mapa de resultados
+            for (AccountCatalogueEntity entity : existingAccounts) {
+                duplicates.put(entity.getCode(), entity);
             }
+            
+            log.debug("Detección batch de duplicados por código: {} códigos consultados, {} encontrados en BD", 
+                    codes.size(), duplicates.size());
+            
+        } catch (Exception e) {
+            log.error("Error al consultar duplicados por código en batch: {}", e.getMessage(), e);
+            throw new AccountCatalogueImportException(
+                AccountCatalogueErrorCode.ACCOUNT_IMPORT_ERROR,
+                "Error al consultar duplicados por código en batch",
+                e
+            );
         }
 
         return duplicates;
     }
 
     /**
-     * @brief Consulta base de datos para detectar descripciones existentes con normalización
-     * 
+     * @brief Consulta base de datos para detectar descripciones existentes EN BATCH
+     * @details Usa findByDescriptionsInIgnoreCase para ejecutar una sola query con IN clause
+     * en lugar de N queries individuales. Normaliza las descripciones para comparación.
      * @param descriptions descripciones a consultar
      * @param entId ID de empresa para contexto de consulta
      * @return mapa de descripciones normalizadas a entidades encontradas
@@ -174,25 +181,35 @@ public class AccountCatalogueDuplicateDetectionService {
 
         Map<String, AccountCatalogueEntity> duplicates = new HashMap<>();
 
-        // Consultar cada descripción individualmente
-        for (String description : descriptions) {
-            try {
-                AccountCatalogueEntity existing = accountCatalogueRepository
-                        .findByDescriptionIgnoreCaseAndIdEnterprise(description, entId);
-                if (existing != null) {
-                    String normalized = StringNormalizer.normalizeForComparison(description);
-                    if (normalized == null) {
-                        normalized = "";
-                    }
-                    duplicates.put(normalized, existing);
+        try {
+            // Convertir a uppercase para la query (case-insensitive)
+            List<String> upperDescriptions = descriptions.stream()
+                    .map(String::toUpperCase)
+                    .distinct()
+                    .toList();
+            
+            List<AccountCatalogueEntity> existingAccounts = accountCatalogueRepository
+                    .findByDescriptionsInIgnoreCase(upperDescriptions, entId);
+            
+            // Construir mapa de resultados con descripciones normalizadas
+            for (AccountCatalogueEntity entity : existingAccounts) {
+                String normalized = StringNormalizer.normalizeForComparison(entity.getDescription());
+                if (normalized == null) {
+                    normalized = "";
                 }
-            } catch (Exception e) {
-                throw new AccountCatalogueImportException(
-                    AccountCatalogueErrorCode.ACCOUNT_IMPORT_ERROR,
-                    "Error al consultar duplicado por descripción: " + description,
-                    e
-                );
+                duplicates.put(normalized, entity);
             }
+            
+            log.debug("Detección batch de duplicados por descripción: {} descripciones consultadas, {} encontradas en BD", 
+                    descriptions.size(), duplicates.size());
+            
+        } catch (Exception e) {
+            log.error("Error al consultar duplicados por descripción en batch: {}", e.getMessage(), e);
+            throw new AccountCatalogueImportException(
+                AccountCatalogueErrorCode.ACCOUNT_IMPORT_ERROR,
+                "Error al consultar duplicados por descripción en batch",
+                e
+            );
         }
 
         return duplicates;

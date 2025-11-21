@@ -45,8 +45,9 @@ public class PortfolioController {
     public ResponseEntity<List<PortfolioAgingAccountResponse>> getPortfolioAgingReport(
             @PathVariable Long clientId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate cutoffDate,
-            @RequestParam String enterpriseId) { 
+            @RequestParam String enterpriseId,
+            @RequestParam(required = false, defaultValue = "false") boolean includeDocuments){ 
 
-        return ResponseEntity.ok(portfolioSearchInputPort.getPortfolioAgingReport(clientId, cutoffDate, enterpriseId));
+        return ResponseEntity.ok(portfolioSearchInputPort.getPortfolioAgingReport(clientId, cutoffDate, enterpriseId, includeDocuments));
     }
 }

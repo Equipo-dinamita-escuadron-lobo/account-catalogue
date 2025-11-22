@@ -18,9 +18,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @brief Procesador asíncrono para exportación de catálogo de cuentas
@@ -47,25 +45,12 @@ public class AccountCatalogueAsyncExportProcessor {
      */
     @Async
     public void processExportAsync(String entId, Boolean status, String jobId) {
-        log.info("JobId {}: Iniciando exportación asíncrona de catálogo de cuentas para entidad: {}", jobId, entId);
-
-        long startTime = System.currentTimeMillis();
-        Map<String, Long> phaseTimes = new LinkedHashMap<>();
-
         try {
             jobTracker.updateJobStatus(jobId, ImportStatus.PROCESSING);
             jobTracker.updateProgress(jobId, 10);
 
             // ==================== FASE 1: OBTENCIÓN DE DATOS ====================
-            long phaseStart = System.currentTimeMillis();
-            log.info("JobId {}: FASE 1 - Obtención de datos", jobId);
-
             List<AccountCatalogue> accountCatalogues = getAllAccountCataloguesWithPagination(entId, status);
-
-            long phaseDuration = System.currentTimeMillis() - phaseStart;
-            phaseTimes.put("1. Obtención Datos", phaseDuration);
-            log.info("JobId {}: FASE 1 completada en {} ms. Cuentas obtenidas: {}", 
-                    jobId, phaseDuration, accountCatalogues.size());
 
             if (accountCatalogues.isEmpty()) {
                 handleNoData(jobId, status);
@@ -76,43 +61,21 @@ public class AccountCatalogueAsyncExportProcessor {
             jobTracker.updateProgress(jobId, 50);
 
             // ==================== FASE 2: GENERACIÓN EXCEL ====================
-            phaseStart = System.currentTimeMillis();
-            log.info("JobId {}: FASE 2 - Generación de archivo Excel", jobId);
-
             List<AccountCatalogueTemplateData> templateData = convertToTemplateData(accountCatalogues);
             byte[] excelData = generateExcelFile(templateData);
-
-            phaseDuration = System.currentTimeMillis() - phaseStart;
-            phaseTimes.put("2. Generación Excel", phaseDuration);
-            log.info("JobId {}: FASE 2 completada en {} ms. Archivo generado: {} bytes", 
-                    jobId, phaseDuration, excelData.length);
 
             jobTracker.updateProgress(jobId, 90);
 
             // ==================== FASE 3: ALMACENAMIENTO ====================
-            phaseStart = System.currentTimeMillis();
-            log.info("JobId {}: FASE 3 - Almacenamiento del archivo", jobId);
-
             jobTracker.setFileData(jobId, excelData);
 
-            phaseDuration = System.currentTimeMillis() - phaseStart;
-            phaseTimes.put("3. Almacenamiento", phaseDuration);
-            log.info("JobId {}: FASE 3 completada en {} ms", jobId, phaseDuration);
-
             // ==================== FINALIZACIÓN ====================
-            long totalDuration = System.currentTimeMillis() - startTime;
-
             jobTracker.updateProgress(jobId, 100);
             jobTracker.updateJobStatus(jobId, ImportStatus.COMPLETED);
-
-            printPhaseTimesTable(jobId, totalDuration, phaseTimes, accountCatalogues.size());
-
-            log.info("JobId {}: Exportación completada exitosamente en {} ms", jobId, totalDuration);
 
         } catch (AccountCatalogueExportException e) {
             handleError(jobId, e.getMessage());
         } catch (Exception e) {
-            log.error("JobId {}: Error crítico durante la exportación", jobId, e);
             handleError(jobId, "Error del sistema: " + e.getMessage());
         }
     }
@@ -384,41 +347,5 @@ public class AccountCatalogueAsyncExportProcessor {
         jobTracker.updateProgress(jobId, 100);
     }
 
-    private void printPhaseTimesTable(String jobId, long totalDuration, Map<String, Long> phaseTimes, int totalRecords) {
-        double totalSeconds = totalDuration / 1000.0;
-        double performance = totalRecords * 1000.0 / totalDuration;
-
-        log.info("╔══════════════════════════════════════════════════════════════════════════════╗");
-        log.info("║  RESUMEN DE TIEMPOS - JobId: {}                                        ║", jobId.substring(0, 8));
-        log.info("╠══════════════════════════════════════════════════════════════════════════════╣");
-        log.info("║  Fase                          │ Tiempo (ms) │ Tiempo (s) │      %          ║");
-        log.info("╠══════════════════════════════════════════════════════════════════════════════╣");
-
-        for (Map.Entry<String, Long> entry : phaseTimes.entrySet()) {
-            String fase = entry.getKey();
-            long tiempo = entry.getValue();
-            double segundos = tiempo / 1000.0;
-            double porcentaje = (tiempo * 100.0) / totalDuration;
-
-            String linea = String.format("║  %-29s │ %,11d │ %10.2f │ %6.1f%%         ║",
-                    fase, tiempo, segundos, porcentaje);
-            log.info(linea);
-        }
-
-        log.info("╠══════════════════════════════════════════════════════════════════════════════╣");
-        String lineaTotal = String.format("║  TOTAL                         │ %,11d │ %10.2f │  100.0%%         ║",
-                totalDuration, totalSeconds);
-        log.info(lineaTotal);
-
-        log.info("╠══════════════════════════════════════════════════════════════════════════════╣");
-        String lineaRegistros = String.format("║  Total Registros: %,8d                                                     ║",
-                totalRecords);
-        log.info(lineaRegistros);
-
-        String lineaRendimiento = String.format("║  Rendimiento: %8.2f registros/seg                                        ║",
-                performance);
-        log.info(lineaRendimiento);
-        log.info("╚══════════════════════════════════════════════════════════════════════════════╝");
-    }
 }
 

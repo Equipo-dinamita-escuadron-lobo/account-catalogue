@@ -66,20 +66,16 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
      */
     @Override
     public String exportAccountCatalogueAsync(AccountCatalogueExportRequest request) {
-        log.info("Iniciando exportación asíncrona de catálogo de cuentas. EntId: {}, CompanyName: {}, Status: {}", 
-                request.getEntId(), request.getCompanyName(), request.getStatus());
-
         String fileName = fileNameGenerator.generateExportFileName(
-                request.getEntId(), 
-                request.getCompanyName(), 
+                request.getEntId(),
+                request.getCompanyName(),
                 request.getStatus()
         );
-        
+
         String jobId = jobTracker.createJob(request.getEntId(), fileName);
 
         asyncExportProcessor.processExportAsync(request.getEntId(), request.getStatus(), jobId);
 
-        log.info("Exportación asíncrona iniciada con jobId: {}", jobId);
         return jobId;
     }
 
@@ -90,7 +86,6 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
      */
     @Override
     public Optional<ExportJobStatus> getExportStatus(String jobId) {
-        log.debug("Consultando estado de exportación para jobId: {}", jobId);
         return jobTracker.getJobStatus(jobId);
     }
 

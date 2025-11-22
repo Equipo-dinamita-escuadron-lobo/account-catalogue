@@ -39,9 +39,6 @@ public class AccountCatalogueImportService implements IAccountCatalogueImportInp
                 String entId = request.getEntId();
                 String fileName = request.getExcelFile().getOriginalFilename();
 
-                log.info("Iniciando importación asíncrona de catálogo de cuentas para entidad: {}, archivo: {}", 
-                        entId, fileName);
-
                 try {
                         // Validar archivo antes de crear el trabajo
                         fileValidationService.validate(request.getExcelFile());
@@ -55,11 +52,9 @@ public class AccountCatalogueImportService implements IAccountCatalogueImportInp
                         // Iniciar procesamiento asíncrono
                         asyncImportProcessor.processImportAsync(request, jobId, fileBytes);
 
-                        log.info("Importación asíncrona iniciada con jobId: {}", jobId);
                         return jobId;
 
                 } catch (IOException e) {
-                        log.error("Error al leer el archivo para importación asíncrona: {}", e.getMessage(), e);
                         throw new RuntimeException("Error al leer el archivo: " + e.getMessage(), e);
                 }
         }
@@ -71,7 +66,6 @@ public class AccountCatalogueImportService implements IAccountCatalogueImportInp
          */
         @Override
         public Optional<ImportJobStatus> getImportStatus(String jobId) {
-                log.debug("Consultando estado de importación para jobId: {}", jobId);
                 return jobTracker.getJobStatus(jobId);
         }
 }

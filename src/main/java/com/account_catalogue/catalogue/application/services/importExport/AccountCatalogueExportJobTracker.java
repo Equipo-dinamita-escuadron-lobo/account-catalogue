@@ -41,7 +41,6 @@ public class AccountCatalogueExportJobTracker {
                 .totalRecords(0)
                 .build();
         jobStatuses.put(jobId, jobStatus);
-        log.info("Job de exportación de catálogo de cuentas creado: {} para entidad: {}", jobId, entId);
         return jobId;
     }
 
@@ -65,7 +64,6 @@ public class AccountCatalogueExportJobTracker {
             if (status == ImportStatus.COMPLETED || status == ImportStatus.FAILED) {
                 job.setEndTime(LocalDateTime.now());
             }
-            log.debug("JobId {}: Estado de exportación actualizado a {}", jobId, status);
         });
     }
 
@@ -77,7 +75,6 @@ public class AccountCatalogueExportJobTracker {
     public void updateProgress(String jobId, Integer progress) {
         getJobStatus(jobId).ifPresent(job -> {
             job.setProgress(progress);
-            log.debug("JobId {}: Progreso de exportación actualizado a {}%", jobId, progress);
         });
     }
 
@@ -89,7 +86,6 @@ public class AccountCatalogueExportJobTracker {
     public void updateTotalRecords(String jobId, Integer totalRecords) {
         getJobStatus(jobId).ifPresent(job -> {
             job.setTotalRecords(totalRecords);
-            log.debug("JobId {}: Total de registros actualizado a {}", jobId, totalRecords);
         });
     }
 
@@ -101,7 +97,6 @@ public class AccountCatalogueExportJobTracker {
     public void setFileData(String jobId, byte[] fileData) {
         getJobStatus(jobId).ifPresent(job -> {
             job.setFileData(fileData);
-            log.debug("JobId {}: Archivo de exportación almacenado ({} bytes)", jobId, fileData.length);
         });
     }
 
@@ -113,7 +108,6 @@ public class AccountCatalogueExportJobTracker {
     public void setErrorMessage(String jobId, String errorMessage) {
         getJobStatus(jobId).ifPresent(job -> {
             job.setErrorMessage(errorMessage);
-            log.error("JobId {}: Error en exportación: {}", jobId, errorMessage);
         });
     }
 }

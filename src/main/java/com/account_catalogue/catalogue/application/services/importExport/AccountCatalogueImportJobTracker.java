@@ -46,8 +46,6 @@ public class AccountCatalogueImportJobTracker {
                 .duplicatesSkipped(0)
                 .build();
         jobStatuses.put(jobId, jobStatus);
-        log.info("Job de importación de catálogo de cuentas creado: {} para entidad: {} archivo: {}", 
-                jobId, entId, fileName);
         return jobId;
     }
 
@@ -68,11 +66,10 @@ public class AccountCatalogueImportJobTracker {
     public void updateJobStatus(String jobId, ImportStatus status) {
         getJobStatus(jobId).ifPresent(job -> {
             job.setStatus(status);
-            if (status == ImportStatus.COMPLETED || status == ImportStatus.COMPLETED_WITH_ERRORS || 
+            if (status == ImportStatus.COMPLETED || status == ImportStatus.COMPLETED_WITH_ERRORS ||
                 status == ImportStatus.FAILED) {
                 job.setEndTime(LocalDateTime.now());
             }
-            log.debug("JobId {}: Estado de importación actualizado a {}", jobId, status);
         });
     }
 
@@ -84,7 +81,6 @@ public class AccountCatalogueImportJobTracker {
     public void updateProgress(String jobId, Integer progress) {
         getJobStatus(jobId).ifPresent(job -> {
             job.setProgress(progress);
-            log.debug("JobId {}: Progreso de importación actualizado a {}%", jobId, progress);
         });
     }
 
@@ -103,8 +99,6 @@ public class AccountCatalogueImportJobTracker {
             job.setSuccessfulImports(successfulImports);
             job.setFailedImports(failedImports);
             job.setDuplicatesSkipped(duplicatesSkipped);
-            log.debug("JobId {}: Métricas actualizadas - Total: {}, Exitosos: {}, Fallidos: {}, Duplicados: {}",
-                    jobId, totalRecords, successfulImports, failedImports, duplicatesSkipped);
         });
     }
 
@@ -116,7 +110,6 @@ public class AccountCatalogueImportJobTracker {
     public void addErrors(String jobId, List<ImportErrorDetail> errors) {
         getJobStatus(jobId).ifPresent(job -> {
             job.getErrors().addAll(errors);
-            log.debug("JobId {}: {} errores agregados", jobId, errors.size());
         });
     }
 
@@ -126,7 +119,6 @@ public class AccountCatalogueImportJobTracker {
      */
     public void removeJob(String jobId) {
         jobStatuses.remove(jobId);
-        log.debug("JobId {}: Trabajo de importación eliminado del tracker", jobId);
     }
 }
 

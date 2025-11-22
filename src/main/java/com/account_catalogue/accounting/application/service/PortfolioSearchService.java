@@ -5,11 +5,9 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -17,8 +15,6 @@ import org.springframework.stereotype.Service;
 
 import com.account_catalogue.accounting.application.input.IPortfolioSearchInputPort;
 import com.account_catalogue.accounting.application.output.IAccountingSearchOutputPort;
-import com.account_catalogue.accounting.domain.models.AccountingEntry;
-import com.account_catalogue.accounting.domain.models.AccountingMovement;
 import com.account_catalogue.accounting.domain.models.InvoiceReplica;
 import com.account_catalogue.accounting.infraestructure.input.data.response.ClientPortfolioSummaryResponse;
 import com.account_catalogue.accounting.infraestructure.input.data.response.InvoiceDetailResponse;
@@ -26,7 +22,6 @@ import com.account_catalogue.accounting.infraestructure.input.data.response.Port
 import com.account_catalogue.accounting.infraestructure.input.data.response.ReceiptSummaryResponse;
 import com.account_catalogue.accounting.infraestructure.output.jpaAdapter.entity.ReceiptEntity;
 import com.account_catalogue.accounting.infraestructure.output.jpaAdapter.repository.IReceiptDetailRepository;
-import com.account_catalogue.catalogue.domain.enums.NatureEnum;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
 
 import lombok.AllArgsConstructor;
@@ -139,7 +134,7 @@ public class PortfolioSearchService implements IPortfolioSearchInputPort {
 
     @Override
     public List<PortfolioAgingAccountResponse> getPortfolioAgingReport(Long clientId, LocalDate cutoffDate,
-            String enterpriseId) {
+            String enterpriseId, boolean includeDocuments) {
 
         // --- PASO 1: OBTENER LOS DATOS BASE ---
         List<AccountCatalogue> allAccounts = accountingSearchOutputPort.findAllAccountsByEnterprise(enterpriseId);
@@ -174,8 +169,9 @@ public class PortfolioSearchService implements IPortfolioSearchInputPort {
             accountResponse.setTotalAdeudado(accountResponse.getTotalAdeudado().add(pendingValue));
 
             // Ahora clasificamos ese mismo saldo pendiente en las cubetas de edades.
+            long daysOverdue = 0L;
             if (invoice.getExpirationDate() != null && !invoice.getExpirationDate().isAfter(cutoffDate)) {
-                long daysOverdue = ChronoUnit.DAYS.between(invoice.getExpirationDate(), cutoffDate);
+                daysOverdue = ChronoUnit.DAYS.between(invoice.getExpirationDate(), cutoffDate);
                 if (daysOverdue > 0) { // Si es vencido
                     if (daysOverdue <= 30)
                         accountResponse.setDias1a30(accountResponse.getDias1a30().add(pendingValue));
@@ -186,6 +182,27 @@ public class PortfolioSearchService implements IPortfolioSearchInputPort {
                     else
                         accountResponse.setMasDe90dias(accountResponse.getMasDe90dias().add(pendingValue));
                 }
+            }
+            // Si el flag 'includeDocuments' es verdadero, creamos el DTO del detalle
+            // de la factura y lo añadimos a la lista de documentos de la cuenta
+            // correspondiente.
+
+            if (includeDocuments) {
+                InvoiceDetailResponse invoiceDetail = InvoiceDetailResponse.builder()
+                        .id(invoice.getId())
+                        .factCode(invoice.getFactCode())
+                        .clientId(invoice.getThirdId())
+                        .creationDate(invoice.getCreationDate())
+                        .expirationDate(invoice.getExpirationDate())
+                        .totalValue(invoice.getTotalValue())
+                        .totalPay(invoice.getTotalPay())
+                        .pendingValue(invoice.getPendingValue())
+                        .status(invoice.getStatus().toString())
+                        .daysInArrears(daysOverdue > 0 ? (int) daysOverdue : 0)
+                        .build();
+
+                // Agregamos el detalle de la factura a la respuesta de la cuenta
+                accountResponse.getDocuments().add(invoiceDetail);
             }
         }
 

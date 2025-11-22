@@ -28,4 +28,7 @@ public class PortfolioAgingAccountResponse {
     
     @Builder.Default
     private List<PortfolioAgingAccountResponse> children = new ArrayList<>();
+
+    @Builder.Default
+    private List<InvoiceDetailResponse> documents = new ArrayList<>();
 }

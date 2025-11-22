@@ -105,7 +105,7 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
 
             // Crear estilos
             CellStyle headerStyle = ExcelStyleHelper.createHeaderStyle(workbook);
-            CellStyle templateStyle = createTemplateStyle(workbook);
+            CellStyle templateStyle = ExcelStyleHelper.createTemplateStyle(workbook);
 
             // Crear encabezados
             createHeaders(sheet, headerStyle, ExcelStyleHelper.createOptionalHeaderStyle(workbook));
@@ -125,23 +125,6 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
         }
     }
 
-
-    /**
-     * @brief Crea estilo para celdas de plantilla en Excel
-     * @param workbook libro de Excel donde crear el estilo
-     * @return estilo configurado para celdas de plantilla
-     */
-    private CellStyle createTemplateStyle(Workbook workbook) {
-        CellStyle style = workbook.createCellStyle();
-        Font font = workbook.createFont();
-        style.setFont(font);
-        style.setBorderBottom(BorderStyle.THIN);
-        style.setBorderTop(BorderStyle.THIN);
-        style.setBorderRight(BorderStyle.THIN);
-        style.setBorderLeft(BorderStyle.THIN);
-        style.setVerticalAlignment(VerticalAlignment.CENTER);
-        return style;
-    }
 
     /**
      * @brief Crea encabezados en la hoja de Excel

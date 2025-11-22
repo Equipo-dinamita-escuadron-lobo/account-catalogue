@@ -72,4 +72,21 @@ public class ExcelStyleHelper {
         style.setVerticalAlignment(VerticalAlignment.CENTER);
         return style;
     }
+
+    /**
+     * @brief Crea estilo para celdas de plantilla en Excel
+     * @param workbook Libro de Excel donde crear el estilo
+     * @return estilo configurado para celdas de plantilla
+     */
+    public static CellStyle createTemplateStyle(Workbook workbook) {
+        CellStyle style = workbook.createCellStyle();
+        Font font = workbook.createFont();
+        style.setFont(font);
+        style.setBorderBottom(BorderStyle.THIN);
+        style.setBorderTop(BorderStyle.THIN);
+        style.setBorderRight(BorderStyle.THIN);
+        style.setBorderLeft(BorderStyle.THIN);
+        style.setVerticalAlignment(VerticalAlignment.CENTER);
+        return style;
+    }
 }

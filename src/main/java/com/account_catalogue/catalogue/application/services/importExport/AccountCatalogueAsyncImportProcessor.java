@@ -208,8 +208,6 @@ public class AccountCatalogueAsyncImportProcessor {
                                            AccountCatalogueExcelParsingService.ExcelParsingResult parsingResult,
                                            AccountCatalogueDuplicateDetectionService.DuplicateDetectionResult duplicateResult,
                                            List<ImportErrorDetail> allErrors) {
-        log.warn("JobId {}: No quedan cuentas válidas después de la validación de jerarquía", jobId);
-        
         long failedRecords = allErrors.stream()
                 .map(ImportErrorDetail::getRowNumber)
                 .filter(Objects::nonNull)
@@ -228,10 +226,8 @@ public class AccountCatalogueAsyncImportProcessor {
         jobTracker.updateProgress(jobId, 100);
     }
 
-    private void handleCriticalError(String jobId, String entId, String fileName, 
+    private void handleCriticalError(String jobId, String entId, String fileName,
                                      String errorMessage, List<ImportErrorDetail> allErrors) {
-        log.error("JobId {}: Error crítico: {}", jobId, errorMessage);
-        
         jobTracker.updateJobMetrics(jobId, 0, 0, 0, 0);
         jobTracker.addErrors(jobId, allErrors);
         jobTracker.updateJobStatus(jobId, ImportStatus.FAILED);

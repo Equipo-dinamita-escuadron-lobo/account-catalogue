@@ -149,12 +149,8 @@ public class AccountCatalogueDuplicateDetectionService {
             for (AccountCatalogueEntity entity : existingAccounts) {
                 duplicates.put(entity.getCode(), entity);
             }
-            
-            log.debug("Detección batch de duplicados por código: {} códigos consultados, {} encontrados en BD", 
-                    codes.size(), duplicates.size());
-            
+
         } catch (Exception e) {
-            log.error("Error al consultar duplicados por código en batch: {}", e.getMessage(), e);
             throw new AccountCatalogueImportException(
                 AccountCatalogueErrorCode.ACCOUNT_IMPORT_ERROR,
                 "Error al consultar duplicados por código en batch",
@@ -199,12 +195,8 @@ public class AccountCatalogueDuplicateDetectionService {
                 }
                 duplicates.put(normalized, entity);
             }
-            
-            log.debug("Detección batch de duplicados por descripción: {} descripciones consultadas, {} encontradas en BD", 
-                    descriptions.size(), duplicates.size());
-            
+
         } catch (Exception e) {
-            log.error("Error al consultar duplicados por descripción en batch: {}", e.getMessage(), e);
             throw new AccountCatalogueImportException(
                 AccountCatalogueErrorCode.ACCOUNT_IMPORT_ERROR,
                 "Error al consultar duplicados por descripción en batch",

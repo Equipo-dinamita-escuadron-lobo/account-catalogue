@@ -248,15 +248,13 @@ public class AccountCatalogueAsyncExportProcessor {
     private void applyValidationsToDataSheet(Sheet sheet, int dataRowCount) throws Exception {
         // Para exportaciones grandes (>3000), omitir validaciones (son datos de solo lectura)
         if (dataRowCount > 3000) {
-            log.info("Exportación grande ({} registros): Omitiendo validaciones para mejorar rendimiento", dataRowCount);
             return;
         }
-        
+
         // Para archivos medianos, aplicar validaciones con buffer pequeño
         int startRow = 1;
         int buffer = dataRowCount > 1000 ? 50 : 100;
         int endRow = dataRowCount + buffer;
-        log.debug("Aplicando validaciones a {} registros", dataRowCount);
         excelValidationService.applyAccountCatalogueValidations(sheet, startRow, endRow);
     }
 
@@ -290,14 +288,12 @@ public class AccountCatalogueAsyncExportProcessor {
     }
 
     private void handleNoData(String jobId, Boolean status) {
-        log.warn("JobId {}: No hay datos para exportar con el filtro especificado", jobId);
         jobTracker.setErrorMessage(jobId, AccountCatalogueExportException.forNoData(status).getMessage());
         jobTracker.updateJobStatus(jobId, ImportStatus.FAILED);
         jobTracker.updateProgress(jobId, 100);
     }
 
     private void handleError(String jobId, String errorMessage) {
-        log.error("JobId {}: Error en exportación: {}", jobId, errorMessage);
         jobTracker.setErrorMessage(jobId, errorMessage);
         jobTracker.updateJobStatus(jobId, ImportStatus.FAILED);
         jobTracker.updateProgress(jobId, 100);

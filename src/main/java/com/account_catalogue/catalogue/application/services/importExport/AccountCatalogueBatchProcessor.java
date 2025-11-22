@@ -141,11 +141,8 @@ public class AccountCatalogueBatchProcessor {
             
             // Procesar nivel por nivel (1→2→4→6→8 dígitos)
             for (Map.Entry<Integer, List<AccountCatalogueExcelData>> levelEntry : accountsByLevel.entrySet()) {
-                int level = levelEntry.getKey();
                 List<AccountCatalogueExcelData> levelAccounts = levelEntry.getValue();
-                
-                log.debug("Procesando nivel {} ({} dígitos): {} cuentas", level, level, levelAccounts.size());
-                
+
                 // Convertir todas las cuentas del nivel a dominio
                 List<AccountCatalogue> accountsToCreate = new ArrayList<>();
                 List<AccountCatalogueExcelData> validExcelData = new ArrayList<>();
@@ -179,16 +176,10 @@ public class AccountCatalogueBatchProcessor {
                         processedAccountsMap.put(created.getCode(), created);
                         successCount++;
                     }
-                    
-                    log.debug("Nivel {}: Creadas {} cuentas en batch", level, createdAccounts.size());
                 }
             }
-            
-            log.debug("Lote {}: Procesadas {} cuentas exitosamente en {} niveles", 
-                    batchNumber, successCount, accountsByLevel.size());
 
         } catch (Exception e) {
-            log.error("Error crítico en procesamiento de lote {}: {}", batchNumber, e.getMessage(), e);
             // Si hay error crítico, marcar todo el lote como fallido
             for (AccountCatalogueExcelData excelData : batch) {
                 errors.add(ImportErrorDetail.builder()

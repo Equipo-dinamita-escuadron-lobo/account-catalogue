@@ -82,11 +82,6 @@ public class AccountCatalogueController {
     private final AccountCatalogueExcelFileNameGenerator fileNameGenerator;
 
 
-    /**
-     * @brief Crea nueva cuenta contable en el catálogo
-     * @param accountCatalogueCreateReq datos de la cuenta a crear
-     * @return respuesta con datos de la cuenta creada
-     */
     @PostMapping("/")
     public ResponseEntity<AccountCatalogueCreateRes> createAccountCatalogue(
             @Valid @RequestBody AccountCatalogueCreateReq accountCatalogueCreateReq) {
@@ -99,12 +94,6 @@ public class AccountCatalogueController {
         return ResponseEntity.ok(accountCreateRestMapper.toCreateResponse(account));
     }
 
-    /**
-     * @brief Actualiza cuenta contable existente
-     * @param id identificador único de la cuenta
-     * @param accountCatalogueUpdateReq datos actualizados de la cuenta
-     * @return respuesta con datos de la cuenta actualizada
-     */
     @PutMapping("/{id}")
     public ResponseEntity<AccountCatalogueUpdateRes> updateAccountCatalogue(@PathVariable("id") int id,
             @Valid @RequestBody AccountCatalogueUpdateReq accountCatalogueUpdateReq) {
@@ -116,12 +105,6 @@ public class AccountCatalogueController {
         return ResponseEntity.ok(accountUpdateRestMapper.toUpdateResponse(updateAccountCatalogue));
     }
 
-    /**
-     * @brief Obtiene cuenta contable por código y empresa
-     * @param code código de la cuenta a buscar
-     * @param idEnterprise ID de la empresa
-     * @return respuesta con datos de la cuenta encontrada
-     */
     @GetMapping("/accountByCode/{code}/{idEnterprise}")
     public ResponseEntity<ItemAccountCatalogueSearchRes> getAccountCatalogue(@PathVariable String code,
             @PathVariable String idEnterprise) {
@@ -129,12 +112,6 @@ public class AccountCatalogueController {
         return ResponseEntity.ok(itemAccountSearchRestMapper.toItemAccountCatalogueSearch(accountCatalogue));
     }
 
-    /**
-     * @brief Elimina cuenta contable por ID y empresa
-     * @param id identificador único de la cuenta
-     * @param idEnterprise ID de la empresa
-     * @return respuesta sin contenido (204)
-     */
     @DeleteMapping("/{id}/{idEnterprise}")
     public ResponseEntity<Void> deleteByCode(@PathVariable Long id, @PathVariable String idEnterprise) {
         accountCatalogueDeleteInputPort.deleteById(id, idEnterprise);
@@ -210,11 +187,6 @@ public class AccountCatalogueController {
     }
 
     
-    /**
-     * @brief Descarga plantilla Excel para importación de cuentas
-     * @param entId identificador de la empresa
-     * @return archivo Excel con estructura de plantilla
-     */
     @GetMapping("/template/excel")
     public ResponseEntity<Resource> exportAccountCatalogueTemplate(
             @RequestParam String entId) {
@@ -228,13 +200,6 @@ public class AccountCatalogueController {
                 .body(templateFile);
     }
 
-    /**
-     * @brief Inicia exportación asíncrona de catálogo de cuentas
-     * @param entId identificador de la empresa
-     * @param companyName nombre de la empresa (opcional, para incluir en el nombre del archivo)
-     * @param status estado de las cuentas a incluir (opcional: true=activos, false=inactivos, null=todos)
-     * @return respuesta con jobId para rastrear el estado de la exportación
-     */
     @GetMapping("/export/excel")
     public ResponseEntity<Map<String, String>> exportAccountCatalogueAsync(
             @RequestParam String entId,
@@ -259,11 +224,6 @@ public class AccountCatalogueController {
                 ));
     }
 
-    /**
-     * @brief Consulta el estado de una exportación asíncrona
-     * @param jobId identificador del trabajo de exportación
-     * @return estado actual de la exportación con archivo si está completado
-     */
     @GetMapping("/export/status/{jobId}")
     public ResponseEntity<?> getExportStatus(@PathVariable String jobId) {
 
@@ -274,11 +234,6 @@ public class AccountCatalogueController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    /**
-     * @brief Descarga el archivo exportado de catálogo de cuentas
-     * @param jobId identificador del trabajo de exportación
-     * @return archivo Excel exportado
-     */
     @GetMapping("/export/download/{jobId}")
     public ResponseEntity<Resource> downloadExportedFile(@PathVariable String jobId) {
 
@@ -307,12 +262,6 @@ public class AccountCatalogueController {
     }
 
     
-    /**
-     * @brief Inicia importación asíncrona de cuentas contables desde archivo Excel
-     * @param entId identificador de la empresa
-     * @param file archivo Excel con datos de cuentas
-     * @return respuesta con jobId para rastrear el estado de la importación
-     */
     @PostMapping("/import/excel")
     public ResponseEntity<Map<String, String>> importFromExcel(
             @RequestParam String entId,
@@ -335,11 +284,6 @@ public class AccountCatalogueController {
                 ));
     }
 
-    /**
-     * @brief Consulta el estado de una importación asíncrona
-     * @param jobId identificador del trabajo de importación
-     * @return estado actual de la importación
-     */
     @GetMapping("/import/status/{jobId}")
     public ResponseEntity<?> getImportStatus(@PathVariable String jobId) {
 

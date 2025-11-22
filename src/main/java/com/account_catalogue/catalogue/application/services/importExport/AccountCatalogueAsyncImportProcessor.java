@@ -1,6 +1,5 @@
 package com.account_catalogue.catalogue.application.services.importExport;
 
-import com.account_catalogue.catalogue.application.services.AccountCatalogueDuplicateDetectionService;
 import com.account_catalogue.catalogue.application.services.AccountCatalogueHierarchyProcessor;
 import com.account_catalogue.catalogue.application.services.validation.AccountCatalogueBatchValidationService;
 import com.account_catalogue.catalogue.domain.enums.ImportStatus;

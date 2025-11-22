@@ -6,7 +6,7 @@ import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.request.AccountCatalogueUpdateReq;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.response.AccountCatalogueUpdateRes;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.mapper.IAccountUpdateRestMapper;
-import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.util.AdjustEnumAccount;
+import com.account_catalogue.catalogue.infraestructure.utils.AdjustEnumAccount;
 
 /**
  * @brief Implementación del mapper para operaciones de actualización de cuentas

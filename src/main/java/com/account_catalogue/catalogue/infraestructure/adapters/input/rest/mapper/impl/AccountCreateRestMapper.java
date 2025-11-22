@@ -9,7 +9,7 @@ import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.request.AccountCatalogueCreateReq;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.response.AccountCatalogueCreateRes;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.mapper.IAccountCreateRestMapper;
-import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.util.AdjustEnumAccount;
+import com.account_catalogue.catalogue.infraestructure.utils.AdjustEnumAccount;
 
 /**
  * @brief Implementación del mapper para operaciones de creación de cuentas

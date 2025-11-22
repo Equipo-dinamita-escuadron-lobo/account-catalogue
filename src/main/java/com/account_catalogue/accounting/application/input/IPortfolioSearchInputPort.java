@@ -14,5 +14,5 @@ public interface IPortfolioSearchInputPort {
     List<InvoiceReplica> findPendingInvoicesByClientId(Long thirdIds);
     List<ReceiptSummaryResponse> findReceiptsByInvoiceId(Long invoiceId);
     List<InvoiceDetailResponse> getInvoiceDetailsByClientId(Long clientId);
-    List<PortfolioAgingAccountResponse> getPortfolioAgingReport(Long clientId, LocalDate cutoffDate, String enterpriseId);
+    List<PortfolioAgingAccountResponse> getPortfolioAgingReport(Long clientId, LocalDate cutoffDate, String enterpriseId, boolean includeDocuments);
 }

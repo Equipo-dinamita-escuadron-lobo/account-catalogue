@@ -49,7 +49,7 @@ import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.mappe
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.mapper.IAccountUpdateRestMapper;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.mapper.IAuxiliaryAccountRestMapper;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.mapper.IItemAccountSearchRestMapper;
-import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.util.AccountCatalogueExcelFileNameGenerator;
+import com.account_catalogue.catalogue.infraestructure.utils.AccountCatalogueExcelFileNameGenerator;
 
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;

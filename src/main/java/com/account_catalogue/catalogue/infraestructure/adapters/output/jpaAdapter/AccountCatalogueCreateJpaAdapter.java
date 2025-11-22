@@ -101,12 +101,11 @@ public class AccountCatalogueCreateJpaAdapter implements IAccountCatalogueCreate
             
             AccountCatalogueEntity entity = accountCatalogueCreateMapper.toEntity(accountCatalogue, parent);
             if (entity != null) {
-                
                 entitiesToSave.add(entity);
             }
         }
         
-        // Batch save - mucho más rápido que saves individuales
+        // Batch save - útil para importaciones sin dependencias jerárquicas en el mismo lote
         List<AccountCatalogueEntity> savedEntities = accountCatalogueRepository.saveAll(entitiesToSave);
         
         // Convertir a dominio

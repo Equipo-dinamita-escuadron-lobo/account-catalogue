@@ -129,43 +129,61 @@ public class AccountCatalogueBatchProcessor {
             Map<String, AccountCatalogueEntity> parentsMap = 
                     hierarchyProcessor.buildParentMapFromDatabase(missingParentCodes, entId);
 
-            // Convertir todo el batch a dominio primero
-            List<AccountCatalogue> accountsToCreate = new ArrayList<>();
-            List<AccountCatalogueExcelData> validExcelData = new ArrayList<>();
-            
+            // ✅ OPTIMIZACIÓN: Procesar por niveles jerárquicos en sub-lotes
+            // Agrupa cuentas por longitud de código (nivel jerárquico)
+            Map<Integer, List<AccountCatalogueExcelData>> accountsByLevel = new TreeMap<>();
             for (AccountCatalogueExcelData excelData : batch) {
-                try {
-                    AccountCatalogue accountCatalogue = dataConverter.convertToAccountCatalogue(
-                            excelData, parentsMap, processedAccountsMap);
-                    accountsToCreate.add(accountCatalogue);
-                    validExcelData.add(excelData);
-                } catch (Exception e) {
-                    failureCount++;
-                    errors.add(ImportErrorDetail.builder()
-                            .rowNumber(excelData.getRowNumber())
-                            .columnName(ImportConstants.CODE_COLUMN)
-                            .fieldValue(excelData.getCode())
-                            .errorCode(ImportConstants.ErrorCodes.SYSTEM_ERROR)
-                            .errorMessage("Error convirtiendo cuenta: " + e.getMessage())
-                            .errorType(ImportErrorType.SYSTEM_ERROR)
-                            .build());
+                int level = excelData.getCode().length();
+                accountsByLevel.computeIfAbsent(level, k -> new ArrayList<>()).add(excelData);
+            }
+            
+            // Procesar nivel por nivel (1→2→4→6→8 dígitos)
+            for (Map.Entry<Integer, List<AccountCatalogueExcelData>> levelEntry : accountsByLevel.entrySet()) {
+                int level = levelEntry.getKey();
+                List<AccountCatalogueExcelData> levelAccounts = levelEntry.getValue();
+                
+                log.debug("Procesando nivel {} ({} dígitos): {} cuentas", level, level, levelAccounts.size());
+                
+                // Convertir todas las cuentas del nivel a dominio
+                List<AccountCatalogue> accountsToCreate = new ArrayList<>();
+                List<AccountCatalogueExcelData> validExcelData = new ArrayList<>();
+                
+                for (AccountCatalogueExcelData excelData : levelAccounts) {
+                    try {
+                        // Los padres de este nivel YA están en processedAccountsMap o parentsMap
+                        AccountCatalogue accountCatalogue = dataConverter.convertToAccountCatalogue(
+                                excelData, parentsMap, processedAccountsMap);
+                        accountsToCreate.add(accountCatalogue);
+                        validExcelData.add(excelData);
+                    } catch (Exception e) {
+                        failureCount++;
+                        errors.add(ImportErrorDetail.builder()
+                                .rowNumber(excelData.getRowNumber())
+                                .columnName(ImportConstants.CODE_COLUMN)
+                                .fieldValue(excelData.getCode())
+                                .errorCode(ImportConstants.ErrorCodes.SYSTEM_ERROR)
+                                .errorMessage("Error convirtiendo cuenta: " + e.getMessage())
+                                .errorType(ImportErrorType.SYSTEM_ERROR)
+                                .build());
+                    }
+                }
+                
+                // Batch insert de todo el nivel (mucho más rápido)
+                if (!accountsToCreate.isEmpty()) {
+                    List<AccountCatalogue> createdAccounts = createService.createAllAccountCatalogues(accountsToCreate);
+                    
+                    // Agregar todas al mapa de procesados para el siguiente nivel
+                    for (AccountCatalogue created : createdAccounts) {
+                        processedAccountsMap.put(created.getCode(), created);
+                        successCount++;
+                    }
+                    
+                    log.debug("Nivel {}: Creadas {} cuentas en batch", level, createdAccounts.size());
                 }
             }
-
-            // Crear todas las cuentas en batch (mucho más rápido)
-            if (!accountsToCreate.isEmpty()) {
-                List<AccountCatalogue> createdAccounts = createService.createAllAccountCatalogues(accountsToCreate);
-                
-                // ✅ OPTIMIZACIÓN CRÍTICA: No reload - confiar en la transacción
-                // Las cuentas creadas ya tienen toda la info necesaria en el mismo contexto
-                for (AccountCatalogue created : createdAccounts) {
-                    // Almacenar directamente en mapa de procesados
-                    processedAccountsMap.put(created.getCode(), created);
-                    successCount++;
-                }
-                
-                log.debug("Lote {}: Creadas {} cuentas en batch sin reload", batchNumber, createdAccounts.size());
-            }
+            
+            log.debug("Lote {}: Procesadas {} cuentas exitosamente en {} niveles", 
+                    batchNumber, successCount, accountsByLevel.size());
 
         } catch (Exception e) {
             log.error("Error crítico en procesamiento de lote {}: {}", batchNumber, e.getMessage(), e);
@@ -271,4 +289,5 @@ public class AccountCatalogueBatchProcessor {
         private int totalProcessed;
     }
 }
+
 

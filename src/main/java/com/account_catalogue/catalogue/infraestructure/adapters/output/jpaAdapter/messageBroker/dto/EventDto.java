@@ -2,18 +2,17 @@ package com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapt
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 /**
  * @brief DTO genérico para eventos de message broker
  *
  * Estructura genérica que encapsula eventos con tipo de operación
  * y datos asociados para comunicación vía RabbitMQ.
+ * Compatible con ms-debt-payments EventDto.
  */
 @Data
 @AllArgsConstructor
-@NoArgsConstructor
-public class EventDto<T, U> {
+public class EventDto<T> {
+    private String type;
     private T data;
-    private U type;
 }

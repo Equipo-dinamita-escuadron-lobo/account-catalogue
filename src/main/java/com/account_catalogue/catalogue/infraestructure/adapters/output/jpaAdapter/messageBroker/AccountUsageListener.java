@@ -9,7 +9,6 @@ import org.springframework.stereotype.Component;
 import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.messageBroker.dto.AccountUsedEventDto;
 import com.account_catalogue.catalogue.application.input.IAccountCatalogueUsagePort;
 import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.messageBroker.dto.EventDto;
-import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.messageBroker.enums.EventUsageType;
 import com.account_catalogue.catalogue.infraestructure.config.rabbitConfig.RabbitAccountCatalogueConfig;
 import com.account_catalogue.commons.config.base.AbstractMessageListener;
 import com.rabbitmq.client.Channel;
@@ -18,15 +17,15 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * @brief Listener para eventos de uso de productos desde PEPS
+ * @brief Listener para eventos de uso de cuentas contables desde ms-debt-payments
  *
- * Escucha eventos de RabbitMQ cuando PEPS notifica que ha utilizado un producto,
+ * Escucha eventos de RabbitMQ cuando ms-debt-payments notifica que ha utilizado una cuenta contable,
  * actualizando el contador de uso correspondiente.
  */
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class AccountUsageListener extends AbstractMessageListener<EventDto<AccountUsedEventDto, EventUsageType>> {
+public class AccountUsageListener extends AbstractMessageListener<EventDto<AccountUsedEventDto>> {
 
     private final IAccountCatalogueUsagePort accountCatalogueUsagePort;
 
@@ -34,16 +33,16 @@ public class AccountUsageListener extends AbstractMessageListener<EventDto<Accou
     private static final String ACCOUNT_TYPE_CODE = "CODE";
 
     /**
-     * @brief Maneja eventos de uso de productos desde la cola
-     * @param event Evento con información del producto usado
+     * @brief Maneja eventos de uso de cuentas contables desde la cola
+     * @param event Evento con información de la cuenta usada
      */
     @RabbitListener(queues = RabbitAccountCatalogueConfig.ACCOUNT_USED_QUEUE)
     public void handleAccountUsageEvent(
-            EventDto<AccountUsedEventDto, EventUsageType> event,
+            EventDto<AccountUsedEventDto> event,
             Message message,
             Channel channel,
             @Header(AmqpHeaders.DELIVERY_TAG) long deliveryTag) {
-        
+
         handleMessage(event, channel, deliveryTag);
     }
 
@@ -52,7 +51,7 @@ public class AccountUsageListener extends AbstractMessageListener<EventDto<Accou
      * @param event Evento a validar
      * @return true si el evento es válido
      */
-    protected boolean isValidEvent(EventDto<AccountUsedEventDto, EventUsageType> event) {
+    protected boolean isValidEvent(EventDto<AccountUsedEventDto> event) {
         if (event == null) {
             log.warn("Event is null");
             return false;
@@ -89,7 +88,7 @@ public class AccountUsageListener extends AbstractMessageListener<EventDto<Accou
     }
 
     @Override
-    protected void processEvent(EventDto<AccountUsedEventDto, EventUsageType> event) {
+    protected void processEvent(EventDto<AccountUsedEventDto> event) {
         log.info("Received account usage event");
 
         try {
@@ -120,15 +119,15 @@ public class AccountUsageListener extends AbstractMessageListener<EventDto<Accou
     }
 
     @Override
-    protected String extractEventType(EventDto<AccountUsedEventDto, EventUsageType> event) {
+    protected String extractEventType(EventDto<AccountUsedEventDto> event) {
         // Este método se requiere por la interfaz AbstractMessageListener
         // pero no se utiliza en el contexto de AccountUsageListener
         // ya que no se implementa manejo de errores en base de datos
-        return null;
+        return event.getType();
     }
 
     @Override
-    protected String convertEventToJson(EventDto<AccountUsedEventDto, EventUsageType> event) {
+    protected String convertEventToJson(EventDto<AccountUsedEventDto> event) {
         // Este método se requiere por la interfaz AbstractMessageListener
         // pero no se utiliza en el contexto de AccountUsageListener
         // ya que no se implementa manejo de errores en base de datos

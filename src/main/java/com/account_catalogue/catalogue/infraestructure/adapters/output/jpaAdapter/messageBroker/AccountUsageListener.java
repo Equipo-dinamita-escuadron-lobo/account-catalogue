@@ -98,12 +98,12 @@ public class AccountUsageListener extends AbstractMessageListener<EventDto<Accou
             }
 
             AccountUsedEventDto data = event.getData();
-            log.info("Processing usage for account: {} (type: {}) in enterprise: {}",
+            log.info("Processing usage for account: {} (type: '{}') in enterprise: '{}'",
                      data.getAccount(), data.getSourceAccountType(), data.getEnterpriseId());
 
             accountCatalogueUsagePort.incrementUsageCount(data);
 
-            log.info("Account usage event processed successfully for account: {} (type: {}) in enterprise: {}",
+            log.info("Account usage event processed successfully for account: {} (type: '{}') in enterprise: '{}'",
                      data.getAccount(), data.getSourceAccountType(), data.getEnterpriseId());
 
         } catch (Exception e) {

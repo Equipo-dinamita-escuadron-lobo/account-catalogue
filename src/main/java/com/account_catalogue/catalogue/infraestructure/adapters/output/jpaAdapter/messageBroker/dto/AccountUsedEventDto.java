@@ -17,8 +17,9 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class AccountUsedEventDto {
-    private String enterpriseId; // ID de empresa
+    
     private Long account; // Información de la cuenta (ID/código)
+    private String enterpriseId; // ID de empresa
     private String sourceAccountType; // "ID" o "CODE" para indicar el tipo de account
 }
 

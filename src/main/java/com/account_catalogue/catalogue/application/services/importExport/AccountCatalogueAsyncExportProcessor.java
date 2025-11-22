@@ -3,6 +3,7 @@ package com.account_catalogue.catalogue.application.services.importExport;
 import com.account_catalogue.catalogue.application.input.IAccountCatalogueSearchInputPort;
 import com.account_catalogue.catalogue.application.services.validation.AccountCatalogueExcelValidationService;
 import com.account_catalogue.catalogue.domain.enums.ImportStatus;
+import com.account_catalogue.catalogue.infraestructure.utils.ExcelStyleHelper;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogueTemplateData;
 import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueExportException;
@@ -146,9 +147,9 @@ public class AccountCatalogueAsyncExportProcessor {
 
             Sheet sheet = workbook.createSheet("Catalogo_Cuentas");
 
-            CellStyle headerStyle = createHeaderStyle(workbook);
-            CellStyle dataStyle = createDataStyle(workbook);
-            CellStyle optionalHeaderStyle = createOptionalHeaderStyle(workbook);
+            CellStyle headerStyle = ExcelStyleHelper.createHeaderStyle(workbook);
+            CellStyle dataStyle = ExcelStyleHelper.createDataStyle(workbook);
+            CellStyle optionalHeaderStyle = ExcelStyleHelper.createOptionalHeaderStyle(workbook);
 
             // Establecer anchos fijos de columnas ANTES de llenar datos (más eficiente)
             setFixedColumnWidths(sheet);
@@ -162,51 +163,6 @@ public class AccountCatalogueAsyncExportProcessor {
         }
     }
 
-    private CellStyle createHeaderStyle(Workbook workbook) {
-        CellStyle style = workbook.createCellStyle();
-        Font font = workbook.createFont();
-        font.setBold(true);
-        font.setColor(IndexedColors.WHITE.getIndex());
-        style.setFont(font);
-        style.setFillForegroundColor(IndexedColors.DARK_BLUE.getIndex());
-        style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-        style.setBorderBottom(BorderStyle.THIN);
-        style.setBorderTop(BorderStyle.THIN);
-        style.setBorderRight(BorderStyle.THIN);
-        style.setBorderLeft(BorderStyle.THIN);
-        style.setAlignment(HorizontalAlignment.CENTER);
-        style.setVerticalAlignment(VerticalAlignment.CENTER);
-        style.setWrapText(true);
-        return style;
-    }
-
-    private CellStyle createOptionalHeaderStyle(Workbook workbook) {
-        CellStyle style = workbook.createCellStyle();
-        Font font = workbook.createFont();
-        font.setBold(true);
-        font.setColor(IndexedColors.BLACK.getIndex());
-        style.setFont(font);
-        style.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
-        style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-        style.setBorderBottom(BorderStyle.THIN);
-        style.setBorderTop(BorderStyle.THIN);
-        style.setBorderRight(BorderStyle.THIN);
-        style.setBorderLeft(BorderStyle.THIN);
-        style.setAlignment(HorizontalAlignment.CENTER);
-        style.setVerticalAlignment(VerticalAlignment.CENTER);
-        style.setWrapText(true);
-        return style;
-    }
-
-    private CellStyle createDataStyle(Workbook workbook) {
-        CellStyle style = workbook.createCellStyle();
-        style.setBorderBottom(BorderStyle.THIN);
-        style.setBorderTop(BorderStyle.THIN);
-        style.setBorderRight(BorderStyle.THIN);
-        style.setBorderLeft(BorderStyle.THIN);
-        style.setVerticalAlignment(VerticalAlignment.CENTER);
-        return style;
-    }
 
     private void createHeaders(Sheet sheet, CellStyle requiredHeaderStyle, CellStyle optionalHeaderStyle) {
         Row headerRow = sheet.createRow(0);

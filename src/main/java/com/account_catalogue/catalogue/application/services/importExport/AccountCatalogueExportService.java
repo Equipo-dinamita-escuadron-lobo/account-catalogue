@@ -8,6 +8,7 @@ import com.account_catalogue.catalogue.domain.enums.NatureEnum;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogueTemplateData;
 import com.account_catalogue.catalogue.domain.models.ExportJobStatus;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.request.AccountCatalogueExportRequest;
+import com.account_catalogue.catalogue.infraestructure.utils.ExcelStyleHelper;
 import com.account_catalogue.commons.exceptions.catalogue.ExcelValidationException;
 import com.account_catalogue.commons.utils.ExcelFileNameGenerator;
 
@@ -103,11 +104,11 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
             Sheet sheet = workbook.createSheet("Plantilla_Catalogo_Cuentas");
 
             // Crear estilos
-            CellStyle headerStyle = createHeaderStyle(workbook);
+            CellStyle headerStyle = ExcelStyleHelper.createHeaderStyle(workbook);
             CellStyle templateStyle = createTemplateStyle(workbook);
 
             // Crear encabezados
-            createHeaders(sheet, headerStyle, createOptionalHeaderStyle(workbook));
+            createHeaders(sheet, headerStyle, ExcelStyleHelper.createOptionalHeaderStyle(workbook));
 
             // Crear filas de ejemplo con estilos
             List<AccountCatalogueTemplateData> exampleData = getHardcodedTemplateData();
@@ -126,29 +127,6 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
 
 
     /**
-     * @brief Crea estilo para celdas de encabezado en Excel
-     * @param workbook libro de Excel donde crear el estilo
-     * @return estilo configurado para celdas de encabezado
-     */
-    private CellStyle createHeaderStyle(Workbook workbook) {
-        CellStyle style = workbook.createCellStyle();
-        Font font = workbook.createFont();
-        font.setBold(true);
-        font.setColor(IndexedColors.WHITE.getIndex());
-        style.setFont(font);
-        style.setFillForegroundColor(IndexedColors.DARK_BLUE.getIndex());
-        style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-        style.setBorderBottom(BorderStyle.THIN);
-        style.setBorderTop(BorderStyle.THIN);
-        style.setBorderRight(BorderStyle.THIN);
-        style.setBorderLeft(BorderStyle.THIN);
-        style.setAlignment(HorizontalAlignment.CENTER);
-        style.setVerticalAlignment(VerticalAlignment.CENTER);
-        style.setWrapText(true);
-        return style;
-    }
-
-    /**
      * @brief Crea estilo para celdas de plantilla en Excel
      * @param workbook libro de Excel donde crear el estilo
      * @return estilo configurado para celdas de plantilla
@@ -162,30 +140,6 @@ public class AccountCatalogueExportService implements IAccountCatalogueExportInp
         style.setBorderRight(BorderStyle.THIN);
         style.setBorderLeft(BorderStyle.THIN);
         style.setVerticalAlignment(VerticalAlignment.CENTER);
-        return style;
-    }
-
-
-    /**
-     * @brief Crea estilo para celdas de encabezados opcionales en Excel
-     * @param workbook libro de Excel donde crear el estilo
-     * @return estilo configurado para celdas de encabezados opcionales
-     */
-    private CellStyle createOptionalHeaderStyle(Workbook workbook) {
-        CellStyle style = workbook.createCellStyle();
-        Font font = workbook.createFont();
-        font.setBold(true);
-        font.setColor(IndexedColors.BLACK.getIndex());
-        style.setFont(font);
-        style.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
-        style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-        style.setBorderBottom(BorderStyle.THIN);
-        style.setBorderTop(BorderStyle.THIN);
-        style.setBorderRight(BorderStyle.THIN);
-        style.setBorderLeft(BorderStyle.THIN);
-        style.setAlignment(HorizontalAlignment.CENTER);
-        style.setVerticalAlignment(VerticalAlignment.CENTER);
-        style.setWrapText(true);
         return style;
     }
 

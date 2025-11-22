@@ -1,6 +1,7 @@
-package com.account_catalogue.catalogue.application.services;
+package com.account_catalogue.catalogue.application.services.importExport;
 
 import com.account_catalogue.catalogue.application.input.IAccountCatalogueImportInputPort;
+import com.account_catalogue.catalogue.application.services.validation.AccountCatalogueFileValidationService;
 import com.account_catalogue.catalogue.domain.models.ImportJobStatus;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.request.AccountCatalogueImportRequest;
 

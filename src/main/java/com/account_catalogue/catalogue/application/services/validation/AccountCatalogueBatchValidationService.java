@@ -1,4 +1,4 @@
-package com.account_catalogue.catalogue.application.services;
+package com.account_catalogue.catalogue.application.services.validation;
 
 import com.account_catalogue.catalogue.domain.enums.FinancialStatusEnum;
 import com.account_catalogue.catalogue.domain.enums.ImportErrorType;

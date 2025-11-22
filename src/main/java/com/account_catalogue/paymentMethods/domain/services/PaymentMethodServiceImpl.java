@@ -3,7 +3,7 @@ package com.account_catalogue.paymentMethods.domain.services;
 import com.account_catalogue.commons.exceptions.paymentMethods.PaymentMethodsAlreadyExistsException;
 import com.account_catalogue.commons.exceptions.paymentMethods.PaymentMethodsNotFoundException;
 import com.account_catalogue.commons.exceptions.paymentMethods.InvalidAccountingAccountException;
-import com.account_catalogue.catalogue.application.services.AccountCatalogueValidationService;
+import com.account_catalogue.catalogue.application.services.validation.AccountCatalogueValidationService;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
 import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.entity.AccountCatalogueEntity;
 

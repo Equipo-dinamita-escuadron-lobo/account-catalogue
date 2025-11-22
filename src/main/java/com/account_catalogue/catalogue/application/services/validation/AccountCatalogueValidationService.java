@@ -1,4 +1,4 @@
-package com.account_catalogue.catalogue.application.services;
+package com.account_catalogue.catalogue.application.services.validation;
 
 import java.util.regex.Pattern;
 import org.springframework.stereotype.Service;

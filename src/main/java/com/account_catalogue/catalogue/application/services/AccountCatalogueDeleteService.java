@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import com.account_catalogue.catalogue.application.input.IAccountCatalogueDeleteInputPort;
 import com.account_catalogue.catalogue.application.output.IAccountCatalogueDeleteOutputPort;
 import com.account_catalogue.catalogue.application.output.IAccountCatalogueSearchOutputPort;
+import com.account_catalogue.catalogue.application.services.validation.AccountCatalogueValidationService;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
 import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueHasChildrenException;
 import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueNotFoundException;

@@ -1,6 +1,7 @@
-package com.account_catalogue.catalogue.application.services;
+package com.account_catalogue.catalogue.application.services.importExport;
 
 import com.account_catalogue.catalogue.application.input.IAccountCatalogueExportInputPort;
+import com.account_catalogue.catalogue.application.services.validation.AccountCatalogueExcelValidationService;
 import com.account_catalogue.catalogue.domain.enums.ClassificationEnum;
 import com.account_catalogue.catalogue.domain.enums.FinancialStatusEnum;
 import com.account_catalogue.catalogue.domain.enums.NatureEnum;

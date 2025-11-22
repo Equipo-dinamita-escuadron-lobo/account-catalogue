@@ -2,6 +2,7 @@ package com.account_catalogue.catalogue.application.services;
 
 import com.account_catalogue.catalogue.application.input.IAccountCatalogueCreateInputPort;
 import com.account_catalogue.catalogue.application.output.IAccountCatalogueCreateOutputPort;
+import com.account_catalogue.catalogue.application.services.validation.AccountCatalogueValidationService;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
 
 import lombok.AllArgsConstructor;

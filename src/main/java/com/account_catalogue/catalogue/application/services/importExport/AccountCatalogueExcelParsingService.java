@@ -1,4 +1,4 @@
-package com.account_catalogue.catalogue.application.services;
+package com.account_catalogue.catalogue.application.services.importExport;
 
 import com.account_catalogue.catalogue.domain.enums.ClassificationEnum;
 import com.account_catalogue.catalogue.domain.enums.FinancialStatusEnum;

@@ -71,7 +71,14 @@ public class Receipt {
                         .build());
             }
         } else if (this.receiptTypeId == 2L) { // TIPO: INGRESO DIRECTO
-            // ... Lógica para ingreso directo
+            AccountCatalogue creditAccount = accountFinder.apply(this.ledgerAccountId.toString());
+            movements.add(AccountingMovement.builder()
+                    .account(creditAccount.getId())
+                    .thirdPartyId(this.thirdPartyId)
+                    .description("Ingreso directo por Recibo de Caja " + this.receiptCode)
+                    .debit(BigDecimal.ZERO)
+                    .credit(this.totalAmount)
+                    .build());
         } else {
             throw new IllegalStateException("Tipo de recibo desconocido: " + this.receiptTypeId);
         }

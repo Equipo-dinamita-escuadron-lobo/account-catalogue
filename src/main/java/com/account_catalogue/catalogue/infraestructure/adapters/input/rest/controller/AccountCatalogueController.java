@@ -1,6 +1,7 @@
 package com.account_catalogue.catalogue.infraestructure.adapters.input.rest.controller;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -53,7 +54,6 @@ import com.account_catalogue.catalogue.infraestructure.utils.AccountCatalogueExc
 
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @brief Controlador REST para gestión completa del catálogo de cuentas
@@ -61,7 +61,6 @@ import lombok.extern.slf4j.Slf4j;
  * Expone endpoints para operaciones CRUD, importación/exportación Excel,
  * búsqueda jerárquica y gestión de estados de cuentas contables.
  */
-@Slf4j
 @RequestMapping("/api/accountCatalogue")
 @RestController
 @AllArgsConstructor
@@ -237,13 +236,11 @@ public class AccountCatalogueController {
      * @return respuesta con jobId para rastrear el estado de la exportación
      */
     @GetMapping("/export/excel")
-    public ResponseEntity<java.util.Map<String, String>> exportAccountCatalogueAsync(
+    public ResponseEntity<Map<String, String>> exportAccountCatalogueAsync(
             @RequestParam String entId,
             @RequestParam(required = false) String companyName,
             @RequestParam(required = false) Boolean status) {
 
-        log.info("Iniciando exportación asíncrona de catálogo de cuentas. EntId: {}, CompanyName: {}, Status: {}", 
-                entId, companyName, status);
 
         AccountCatalogueExportRequest request = AccountCatalogueExportRequest.builder()
                 .entId(entId)
@@ -253,10 +250,9 @@ public class AccountCatalogueController {
 
         String jobId = accountCatalogueExportInputPort.exportAccountCatalogueAsync(request);
 
-        log.info("Exportación asíncrona iniciada. JobId: {}", jobId);
 
         return ResponseEntity.accepted()
-                .body(java.util.Map.of(
+                .body(Map.of(
                         "jobId", jobId,
                         "message", "Exportación iniciada exitosamente",
                         "statusEndpoint", "/api/accountCatalogue/export/status/" + jobId
@@ -270,11 +266,9 @@ public class AccountCatalogueController {
      */
     @GetMapping("/export/status/{jobId}")
     public ResponseEntity<?> getExportStatus(@PathVariable String jobId) {
-        log.info("Consultando estado de exportación. JobId: {}", jobId);
 
         return accountCatalogueExportInputPort.getExportStatus(jobId)
                 .map(status -> {
-                    log.info("Estado de exportación obtenido. JobId: {}, Estado: {}", jobId, status.getStatus());
                     return ResponseEntity.ok(status);
                 })
                 .orElse(ResponseEntity.notFound().build());
@@ -287,24 +281,20 @@ public class AccountCatalogueController {
      */
     @GetMapping("/export/download/{jobId}")
     public ResponseEntity<Resource> downloadExportedFile(@PathVariable String jobId) {
-        log.info("Descargando archivo exportado de catálogo. JobId: {}", jobId);
 
         Optional<ExportJobStatus> jobStatus = accountCatalogueExportInputPort.getExportStatus(jobId);
 
         if (jobStatus.isEmpty()) {
-            log.warn("JobId de exportación no encontrado: {}", jobId);
             return ResponseEntity.notFound().build();
         }
 
         ExportJobStatus status = jobStatus.get();
 
         if (status.getStatus() != ImportStatus.COMPLETED) {
-            log.warn("Exportación no completada. JobId: {}, Estado: {}", jobId, status.getStatus());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
 
         if (status.getFileData() == null) {
-            log.error("Archivo no disponible. JobId: {}", jobId);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
 
@@ -324,12 +314,10 @@ public class AccountCatalogueController {
      * @return respuesta con jobId para rastrear el estado de la importación
      */
     @PostMapping("/import/excel")
-    public ResponseEntity<java.util.Map<String, String>> importFromExcel(
+    public ResponseEntity<Map<String, String>> importFromExcel(
             @RequestParam String entId,
             @RequestParam MultipartFile file) {
 
-        log.info("Iniciando importación asíncrona de catálogo de cuentas. EntId: {}, Archivo: {}", 
-                entId, file.getOriginalFilename());
 
         // Construir request
         AccountCatalogueImportRequest request = AccountCatalogueImportRequest.from(entId, file);
@@ -337,11 +325,10 @@ public class AccountCatalogueController {
         // Iniciar importación asíncrona
         String jobId = accountCatalogueImportInputPort.importAccountCatalogueAsync(request);
 
-        log.info("Importación asíncrona iniciada. JobId: {}", jobId);
 
         // Retornar jobId para que el cliente pueda consultar el estado
         return ResponseEntity.accepted()
-                .body(java.util.Map.of(
+                .body(Map.of(
                         "jobId", jobId,
                         "message", "Importación iniciada exitosamente",
                         "statusEndpoint", "/api/accountCatalogue/import/status/" + jobId
@@ -355,11 +342,9 @@ public class AccountCatalogueController {
      */
     @GetMapping("/import/status/{jobId}")
     public ResponseEntity<?> getImportStatus(@PathVariable String jobId) {
-        log.info("Consultando estado de importación. JobId: {}", jobId);
 
         return accountCatalogueImportInputPort.getImportStatus(jobId)
                 .map(status -> {
-                    log.info("Estado de importación obtenido. JobId: {}, Estado: {}", jobId, status.getStatus());
                     return ResponseEntity.ok(status);
                 })
                 .orElse(ResponseEntity.notFound().build());

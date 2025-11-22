@@ -44,6 +44,7 @@ public interface IItemAccountCatalogueSearchMapper {
                 .salesTaxes(accountCatalogueEntity.getSalesTaxes())
                 .purchaseTaxes(accountCatalogueEntity.getPurchaseTaxes())
                 .amount(accountCatalogueEntity.getAmount())
+                .usageCount(accountCatalogueEntity.getUsageCount())
                 .parent(auxParent(
                         accountCatalogueEntity.getParent() == null ? null : accountCatalogueEntity.getParent()))
                 .build();
@@ -86,6 +87,7 @@ public interface IItemAccountCatalogueSearchMapper {
                 .status(accountCatalogueEntity.getStatus())
                 .salesTaxes(accountCatalogueEntity.getSalesTaxes())
                 .purchaseTaxes(accountCatalogueEntity.getPurchaseTaxes())
+                .usageCount(accountCatalogueEntity.getUsageCount())
                 .parent(auxParent(
                         accountCatalogueEntity.getParent() == null ? null : accountCatalogueEntity.getParent()))
                 .build();

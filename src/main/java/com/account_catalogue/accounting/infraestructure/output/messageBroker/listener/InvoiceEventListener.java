@@ -5,7 +5,7 @@ import com.account_catalogue.accounting.domain.models.InvoiceReplica;
 import com.account_catalogue.accounting.domain.ports.IEventRecoveryActionPort;
 import com.account_catalogue.accounting.domain.ports.IMessageErrorHandlingPort;
 import com.account_catalogue.accounting.infraestructure.output.messageBroker.adapter.InvoicePersistenceAdapter;
-import com.account_catalogue.accounting.infraestructure.output.messageBroker.base.AbstractMessageListener;
+import com.account_catalogue.commons.config.base.AbstractMessageListener;
 import com.account_catalogue.accounting.infraestructure.output.messageBroker.mapper.IInvoiceEventMapper;
 import com.account_catalogue.accounting.infraestructure.output.messageBroker.utils.JsonUtils;
 import com.account_catalogue.accounting.infraestructure.config.RabbitConfig;

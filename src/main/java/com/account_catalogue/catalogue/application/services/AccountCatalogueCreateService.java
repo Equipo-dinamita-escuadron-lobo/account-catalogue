@@ -2,10 +2,13 @@ package com.account_catalogue.catalogue.application.services;
 
 import com.account_catalogue.catalogue.application.input.IAccountCatalogueCreateInputPort;
 import com.account_catalogue.catalogue.application.output.IAccountCatalogueCreateOutputPort;
+import com.account_catalogue.catalogue.application.services.validation.AccountCatalogueValidationService;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  * @brief Servicio para operaciones de creación de cuentas contables
@@ -58,5 +61,16 @@ public class AccountCatalogueCreateService implements IAccountCatalogueCreateInp
         validationService.validateCostCenterRequiresIncomeStatement(accountCatalogue);
         
         return accountCatalogueCreateOutputPort.createAccountCatalogue(accountCatalogue);
+    }
+
+    /**
+     * @brief Crea múltiples cuentas en batch sin validaciones individuales
+     * @details Usado durante importación masiva donde las validaciones ya se realizaron en fase previa.
+     * Delega directamente al output port para máximo rendimiento.
+     * @param accountCatalogues lista de cuentas ya validadas
+     * @return lista de cuentas creadas con IDs asignados
+     */
+    public List<AccountCatalogue> createAllAccountCatalogues(List<AccountCatalogue> accountCatalogues) {
+        return accountCatalogueCreateOutputPort.createAllAccountCatalogues(accountCatalogues);
     }
 }

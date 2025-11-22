@@ -16,16 +16,33 @@ public interface IAccountCatalogueRepository extends JpaRepository<AccountCatalo
     @Query("SELECT a FROM AccountCatalogueEntity a LEFT JOIN FETCH a.parent WHERE a.code = ?1 AND a.idEnterprise = ?2")
     AccountCatalogueEntity findByCode(String code, String idEnterprise);
 
-    @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.id = ?1 AND a.idEnterprise = ?2")
+    /**
+     * @brief Busca cuenta por código cargando toda la jerarquía de padres para importación
+     * @details Usa múltiples JOIN FETCH para cargar recursivamente todos los niveles de padres,
+     * evitando LazyInitializationException durante procesamiento asíncrono batch.
+     * Limitado a 4 niveles de profundidad (suficiente para catálogos contables estándar).
+     * @param code código de la cuenta a buscar
+     * @param idEnterprise ID de la empresa
+     * @return entidad con toda la jerarquía de padres cargada eagerly
+     */
+    @Query("SELECT a FROM AccountCatalogueEntity a " +
+           "LEFT JOIN FETCH a.parent p1 " +
+           "LEFT JOIN FETCH p1.parent p2 " +
+           "LEFT JOIN FETCH p2.parent p3 " +
+           "LEFT JOIN FETCH p3.parent p4 " +
+           "WHERE a.code = ?1 AND a.idEnterprise = ?2")
+    AccountCatalogueEntity findByCodeWithFullHierarchy(String code, String idEnterprise);
+
+    @Query("SELECT a FROM AccountCatalogueEntity a LEFT JOIN FETCH a.parent WHERE a.id = ?1 AND a.idEnterprise = ?2")
     AccountCatalogueEntity findByIdAndIdEnterprise(Long id, String idEnterprise);
 
     @Query("SELECT a FROM AccountCatalogueEntity a WHERE UPPER(a.description) = UPPER(?1) AND a.idEnterprise = ?2")
     AccountCatalogueEntity findByDescriptionIgnoreCaseAndIdEnterprise(String description, String idEnterprise);
 
-    @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.codeLength = 8 AND a.idEnterprise = ?1 AND a.status = true ORDER BY a.code ASC")
+    @Query("SELECT DISTINCT a FROM AccountCatalogueEntity a LEFT JOIN FETCH a.parent WHERE a.codeLength = 8 AND a.idEnterprise = ?1 AND a.status = true ORDER BY a.code ASC")
     List<AccountCatalogueEntity> findAuxiliaryAccountsByIdEnterprise(String idEnterprise);
 
-    @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.codeLength = 8 AND a.idEnterprise = ?1 AND a.status = true AND a.crossing = true ORDER BY a.code ASC")
+    @Query("SELECT DISTINCT a FROM AccountCatalogueEntity a LEFT JOIN FETCH a.parent WHERE a.codeLength = 8 AND a.idEnterprise = ?1 AND a.status = true AND a.crossing = true ORDER BY a.code ASC")
     List<AccountCatalogueEntity> findAuxiliaryAccountsWithCrossingByIdEnterprise(String idEnterprise);
 
     /**
@@ -62,6 +79,16 @@ public interface IAccountCatalogueRepository extends JpaRepository<AccountCatalo
     @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.idEnterprise = ?1 AND a.status = false ORDER BY a.code ASC")
     Page<AccountCatalogueEntity> findAllInactiveByIdEnterpriseOrderByCode(String idEnterprise, Pageable pageable);
 
+    // Métodos optimizados para exportación con JOIN FETCH del parent
+    @Query("SELECT DISTINCT a FROM AccountCatalogueEntity a LEFT JOIN FETCH a.parent WHERE a.idEnterprise = :idEnterprise ORDER BY a.code ASC")
+    Page<AccountCatalogueEntity> findAllByIdEnterpriseForExport(@Param("idEnterprise") String idEnterprise, Pageable pageable);
+
+    @Query("SELECT DISTINCT a FROM AccountCatalogueEntity a LEFT JOIN FETCH a.parent WHERE a.idEnterprise = :idEnterprise AND a.status = true ORDER BY a.code ASC")
+    Page<AccountCatalogueEntity> findAllActiveByIdEnterpriseForExport(@Param("idEnterprise") String idEnterprise, Pageable pageable);
+
+    @Query("SELECT DISTINCT a FROM AccountCatalogueEntity a LEFT JOIN FETCH a.parent WHERE a.idEnterprise = :idEnterprise AND a.status = false ORDER BY a.code ASC")
+    Page<AccountCatalogueEntity> findAllInactiveByIdEnterpriseForExport(@Param("idEnterprise") String idEnterprise, Pageable pageable);
+
 
     /**
      * @brief Query recursiva nativa para construir jerarquía completa de árbol de cuentas
@@ -88,7 +115,7 @@ public interface IAccountCatalogueRepository extends JpaRepository<AccountCatalo
         """, nativeQuery = true)
     List<Object[]> findHierarchyByCode(@Param("code") String code, @Param("idEnterprise") String idEnterprise);
 
-    @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.idEnterprise = ?1 ORDER BY a.code ASC")
+    @Query("SELECT DISTINCT a FROM AccountCatalogueEntity a LEFT JOIN FETCH a.parent WHERE a.idEnterprise = ?1 ORDER BY a.code ASC")
     List<AccountCatalogueEntity> findByIdEnterpriseOrderByCode(String idEnterprise);
 
     /**
@@ -96,13 +123,34 @@ public interface IAccountCatalogueRepository extends JpaRepository<AccountCatalo
      *
      * Combina búsqueda por código exacto con LIKE y búsqueda
      * case-insensitive por descripción usando UPPER. Útil para búsqueda global.
+     * Incluye LEFT JOIN FETCH del parent para evitar LazyInitializationException.
      * @param idEnterprise filtro de empresa para aislamiento de datos
      * @param search término de búsqueda que puede coincidir con código o descripción
      * @return lista de cuentas que coinciden con el criterio de búsqueda
      */
-    @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.idEnterprise = ?1 AND (a.code LIKE %?2% OR UPPER(a.description) LIKE UPPER(CONCAT('%', ?2, '%'))) ORDER BY a.code ASC")
+    @Query("SELECT DISTINCT a FROM AccountCatalogueEntity a LEFT JOIN FETCH a.parent WHERE a.idEnterprise = ?1 AND (a.code LIKE %?2% OR UPPER(a.description) LIKE UPPER(CONCAT('%', ?2, '%'))) ORDER BY a.code ASC")
     List<AccountCatalogueEntity> findByIdEnterpriseAndCodeOrDescription(String idEnterprise, String search);
 
     @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.parent.id = ?1 AND a.idEnterprise = ?2 ORDER BY a.code ASC")
     List<AccountCatalogueEntity> findByParentIdAndIdEnterprise(Long parentId, String idEnterprise);
+
+    /**
+     * @brief Busca múltiples cuentas por códigos en batch
+     * @details Ejecuta una sola query con IN clause en lugar de N queries individuales
+     * @param codes lista de códigos a buscar
+     * @param idEnterprise ID de la empresa
+     * @return lista de entidades encontradas
+     */
+    @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.code IN :codes AND a.idEnterprise = :idEnterprise")
+    List<AccountCatalogueEntity> findByCodesIn(@Param("codes") List<String> codes, @Param("idEnterprise") String idEnterprise);
+
+    /**
+     * @brief Busca múltiples cuentas por descripciones en batch
+     * @details Ejecuta una sola query con IN clause case-insensitive
+     * @param descriptions lista de descripciones a buscar
+     * @param idEnterprise ID de la empresa
+     * @return lista de entidades encontradas
+     */
+    @Query("SELECT a FROM AccountCatalogueEntity a WHERE UPPER(a.description) IN :descriptions AND a.idEnterprise = :idEnterprise")
+    List<AccountCatalogueEntity> findByDescriptionsInIgnoreCase(@Param("descriptions") List<String> descriptions, @Param("idEnterprise") String idEnterprise);
 }

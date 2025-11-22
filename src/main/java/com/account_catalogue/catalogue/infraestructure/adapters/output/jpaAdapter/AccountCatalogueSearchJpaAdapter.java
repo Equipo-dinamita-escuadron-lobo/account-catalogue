@@ -183,6 +183,28 @@ public class AccountCatalogueSearchJpaAdapter implements IAccountCatalogueSearch
     }
 
     /**
+     * @brief Obtiene cuentas con parent cargado eagerly para exportación
+     * @param idEnterprise identificador de la empresa
+     * @param status filtro por estado (null = todos, true = activos, false = inactivos)
+     * @param pageable configuración de paginación
+     * @return página de cuentas con parent cargado
+     */
+    public Page<AccountCatalogue> getAllAccountCataloguesForExport(String idEnterprise, Boolean status, Pageable pageable) {
+        Page<AccountCatalogueEntity> entities;
+        if (status == null) {
+            // Todos (activos e inactivos)
+            entities = accountCatalogueRepository.findAllByIdEnterpriseForExport(idEnterprise, pageable);
+        } else if (status) {
+            // Solo activos
+            entities = accountCatalogueRepository.findAllActiveByIdEnterpriseForExport(idEnterprise, pageable);
+        } else {
+            // Solo inactivos
+            entities = accountCatalogueRepository.findAllInactiveByIdEnterpriseForExport(idEnterprise, pageable);
+        }
+        return entities.map(itemAccountCatalogueSearchMapper::toDomain);
+    }
+
+    /**
      * Obtiene todas las cuentas (activas e inactivas) para una empresa específica ordenadas por código.
      *
      * @param idEnterprise el ID de la empresa

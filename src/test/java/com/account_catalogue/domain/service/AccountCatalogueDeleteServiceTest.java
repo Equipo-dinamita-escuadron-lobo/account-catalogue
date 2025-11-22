@@ -10,7 +10,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import com.account_catalogue.catalogue.application.output.IAccountCatalogueDeleteOutputPort;
 import com.account_catalogue.catalogue.application.services.AccountCatalogueDeleteService;
-import com.account_catalogue.catalogue.application.services.AccountCatalogueValidationService;
+import com.account_catalogue.catalogue.application.services.validation.AccountCatalogueValidationService;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
 
 import static org.mockito.BDDMockito.*;

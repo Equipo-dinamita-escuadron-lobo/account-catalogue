@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import com.account_catalogue.catalogue.application.input.IAccountCatalogueDeleteInputPort;
 import com.account_catalogue.catalogue.application.output.IAccountCatalogueDeleteOutputPort;
 import com.account_catalogue.catalogue.application.output.IAccountCatalogueSearchOutputPort;
+import com.account_catalogue.catalogue.application.services.validation.AccountCatalogueValidationService;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
 import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueHasChildrenException;
 import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueNotFoundException;
@@ -48,9 +49,6 @@ public class AccountCatalogueDeleteService implements IAccountCatalogueDeleteInp
                 "No se puede eliminar la cuenta '" + accountTreeToDelete.getCode() + "' porque tiene cuentas hijas asociadas."
             );
         }
-
-        // Validar recursivamente que ni la cuenta padre ni ninguna de sus hijas estén asociadas a movimientos contables
-        validationService.validateAccountAndChildrenNotAssociatedWithAccountingMovements(accountTreeToDelete, "eliminar");
 
         // Validar recursivamente que ni la cuenta padre ni ninguna de sus hijas estén asociadas a impuestos
         validationService.validateAccountAndChildrenNotAssociatedWithTaxes(accountTreeToDelete);

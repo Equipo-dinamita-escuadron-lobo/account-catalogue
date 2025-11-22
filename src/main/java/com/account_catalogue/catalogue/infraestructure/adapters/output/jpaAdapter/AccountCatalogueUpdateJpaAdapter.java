@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 
 /**
@@ -25,6 +26,7 @@ import java.util.List;
 @Component
 @Data
 @RequiredArgsConstructor
+@Slf4j
 public class AccountCatalogueUpdateJpaAdapter implements IAccountCatalogueUpdateOutputPort {
 
 
@@ -66,14 +68,24 @@ public class AccountCatalogueUpdateJpaAdapter implements IAccountCatalogueUpdate
         accountCatalogueEntity.setCrossing(accountCatalogue.getCrossing());
         accountCatalogueEntity.setCostCenter(accountCatalogue.getCostCenter());
         accountCatalogueEntity.setAmount(accountCatalogue.getAmount());
+        accountCatalogueEntity.setUsageCount(accountCatalogue.getUsageCount());
+
+        log.info("=== JPA ADAPTER UPDATE ===");
+        log.info("Setting usageCount to: {}", accountCatalogue.getUsageCount());
+        log.info("Entity before save - usageCount: {}", accountCatalogueEntity.getUsageCount());
+
         accountCatalogueEntity = accountCatalogueRepository.save(accountCatalogueEntity);
+
+        log.info("Entity after save - usageCount: {}", accountCatalogueEntity.getUsageCount());
 
         // Si el código cambió, actualizar códigos de hijos en cascada
         if (!oldCode.equals(newCode)) {
             updateChildrenCodes(accountCatalogueEntity.getId(), oldCode, newCode, accountCatalogue.getIdEnterprise());
         }
 
-        return accountCatalogueUpdateMapper.toAccountCatalogue(accountCatalogueEntity);
+        AccountCatalogue result = accountCatalogueUpdateMapper.toAccountCatalogue(accountCatalogueEntity);
+        log.info("Mapped result - usageCount: {}", result.getUsageCount());
+        return result;
     }
 
     /**

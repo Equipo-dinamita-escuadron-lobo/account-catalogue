@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 
 import com.account_catalogue.catalogue.application.input.IAccountCatalogueChangeStateInputPort;
 import com.account_catalogue.catalogue.application.output.IAccountCatalogueChangeStateOutputPort;
+import com.account_catalogue.catalogue.application.services.validation.AccountCatalogueValidationService;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
 
 import jakarta.transaction.Transactional;

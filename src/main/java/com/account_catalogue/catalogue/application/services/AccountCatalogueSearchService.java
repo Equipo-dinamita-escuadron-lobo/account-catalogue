@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 
 import com.account_catalogue.catalogue.application.input.IAccountCatalogueSearchInputPort;
 import com.account_catalogue.catalogue.application.output.IAccountCatalogueSearchOutputPort;
+import com.account_catalogue.catalogue.application.services.validation.AccountCatalogueValidationService;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
 import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueNotFoundException;
 
@@ -144,6 +145,23 @@ public class AccountCatalogueSearchService implements IAccountCatalogueSearchInp
         }
 
         return accountCatalogueSearchOutputPort.getAllAccountCataloguesByIdEnterpriseAndStatus(idEnterprise.trim(), status, pageable);
+    }
+
+    /**
+     * @brief Obtiene cuentas con parent cargado eagerly para exportación
+     * @param idEnterprise ID de la empresa
+     * @param status filtro por estado (null = todos, true = activos, false = inactivos)
+     * @param pageable configuración de paginación
+     * @return página de cuentas con parent cargado
+     */
+    @Override
+    public Page<AccountCatalogue> getAllAccountCataloguesForExport(String idEnterprise, Boolean status, Pageable pageable) {
+        if (idEnterprise == null || idEnterprise.trim().isEmpty()) {
+            throw new IllegalArgumentException("El ID de empresa es requerido para exportar catálogos de cuentas");
+        }
+
+        return ((com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.AccountCatalogueSearchJpaAdapter) 
+                accountCatalogueSearchOutputPort).getAllAccountCataloguesForExport(idEnterprise.trim(), status, pageable);
     }
 
     /**

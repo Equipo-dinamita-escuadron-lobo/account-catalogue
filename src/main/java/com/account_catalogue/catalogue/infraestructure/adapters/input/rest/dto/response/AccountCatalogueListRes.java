@@ -30,6 +30,7 @@ public class AccountCatalogueListRes {
     Boolean crossing;
     Boolean costCenter;
     Boolean status;
-    
+    Integer usageCount;
+
     List<AccountCatalogueListRes> children;
 }

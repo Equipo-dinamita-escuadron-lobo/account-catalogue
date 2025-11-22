@@ -45,6 +45,10 @@ public class PaymentMethodEntity {
     @Column(name = "id_enterprise", nullable = false)
     private String idEnterprise;
 
+    @Column(name = "usage_count", nullable = false)
+    @Builder.Default
+    private Integer usageCount = 0;
+
     @TenantId
     @Column(name = "tenant_id")
     private String tenantId;

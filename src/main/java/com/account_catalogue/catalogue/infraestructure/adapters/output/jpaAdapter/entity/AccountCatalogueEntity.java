@@ -80,4 +80,8 @@ public class AccountCatalogueEntity {
     @Builder.Default
     private BigDecimal amount = BigDecimal.ZERO;
 
+    @Column(name = "usage_count", nullable = false)
+    @Builder.Default
+    private Integer usageCount = 0;
+
 }

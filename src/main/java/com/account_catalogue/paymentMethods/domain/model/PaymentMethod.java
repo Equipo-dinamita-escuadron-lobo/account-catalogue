@@ -21,4 +21,21 @@ public class PaymentMethod {
     private AccountCatalogue accountingAccountEntity;
     private Boolean status;
     private String idEnterprise;
+    @Builder.Default
+    private Integer usageCount = 0;
+
+    /**
+     * @brief Incrementa el contador de uso del método de pago
+     */
+    public void incrementUsageCount() {
+        this.usageCount = this.usageCount == null ? 1 : this.usageCount + 1;
+    }
+
+    /**
+     * @brief Verifica si el método de pago está siendo usado
+     * @return true si el método de pago tiene uso registrado
+     */
+    public boolean isInUse() {
+        return this.usageCount != null && this.usageCount > 0;
+    }
 }

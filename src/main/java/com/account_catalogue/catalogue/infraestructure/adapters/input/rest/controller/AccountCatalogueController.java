@@ -1,13 +1,16 @@
 package com.account_catalogue.catalogue.infraestructure.adapters.input.rest.controller;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.core.io.Resource;
 //import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,12 +33,13 @@ import com.account_catalogue.catalogue.application.input.IAccountCatalogueSearch
 import com.account_catalogue.catalogue.application.input.IAccountCatalogueUpdateInputPort;
 import com.account_catalogue.catalogue.domain.enums.ImportStatus;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
+import com.account_catalogue.catalogue.domain.models.ExportJobStatus;
+import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.request.AccountCatalogueExportRequest;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.request.AccountCatalogueCreateReq;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.request.AccountCatalogueImportRequest;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.request.AccountCatalogueUpdateReq;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.response.AccountCatalogueChangeStateRes;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.response.AccountCatalogueCreateRes;
-import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.response.AccountCatalogueImportResponse;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.response.AccountCatalogueListRes;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.response.AccountCatalogueUpdateRes;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.dto.response.AuxiliaryAccountListRes;
@@ -46,7 +50,7 @@ import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.mappe
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.mapper.IAccountUpdateRestMapper;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.mapper.IAuxiliaryAccountRestMapper;
 import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.mapper.IItemAccountSearchRestMapper;
-import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.util.AccountCatalogueExcelFileNameGenerator;
+import com.account_catalogue.catalogue.infraestructure.utils.AccountCatalogueExcelFileNameGenerator;
 
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -78,11 +82,6 @@ public class AccountCatalogueController {
     private final AccountCatalogueExcelFileNameGenerator fileNameGenerator;
 
 
-    /**
-     * @brief Crea nueva cuenta contable en el catálogo
-     * @param accountCatalogueCreateReq datos de la cuenta a crear
-     * @return respuesta con datos de la cuenta creada
-     */
     @PostMapping("/")
     public ResponseEntity<AccountCatalogueCreateRes> createAccountCatalogue(
             @Valid @RequestBody AccountCatalogueCreateReq accountCatalogueCreateReq) {
@@ -95,12 +94,6 @@ public class AccountCatalogueController {
         return ResponseEntity.ok(accountCreateRestMapper.toCreateResponse(account));
     }
 
-    /**
-     * @brief Actualiza cuenta contable existente
-     * @param id identificador único de la cuenta
-     * @param accountCatalogueUpdateReq datos actualizados de la cuenta
-     * @return respuesta con datos de la cuenta actualizada
-     */
     @PutMapping("/{id}")
     public ResponseEntity<AccountCatalogueUpdateRes> updateAccountCatalogue(@PathVariable("id") int id,
             @Valid @RequestBody AccountCatalogueUpdateReq accountCatalogueUpdateReq) {
@@ -112,12 +105,6 @@ public class AccountCatalogueController {
         return ResponseEntity.ok(accountUpdateRestMapper.toUpdateResponse(updateAccountCatalogue));
     }
 
-    /**
-     * @brief Obtiene cuenta contable por código y empresa
-     * @param code código de la cuenta a buscar
-     * @param idEnterprise ID de la empresa
-     * @return respuesta con datos de la cuenta encontrada
-     */
     @GetMapping("/accountByCode/{code}/{idEnterprise}")
     public ResponseEntity<ItemAccountCatalogueSearchRes> getAccountCatalogue(@PathVariable String code,
             @PathVariable String idEnterprise) {
@@ -125,12 +112,6 @@ public class AccountCatalogueController {
         return ResponseEntity.ok(itemAccountSearchRestMapper.toItemAccountCatalogueSearch(accountCatalogue));
     }
 
-    /**
-     * @brief Elimina cuenta contable por ID y empresa
-     * @param id identificador único de la cuenta
-     * @param idEnterprise ID de la empresa
-     * @return respuesta sin contenido (204)
-     */
     @DeleteMapping("/{id}/{idEnterprise}")
     public ResponseEntity<Void> deleteByCode(@PathVariable Long id, @PathVariable String idEnterprise) {
         accountCatalogueDeleteInputPort.deleteById(id, idEnterprise);
@@ -206,11 +187,6 @@ public class AccountCatalogueController {
     }
 
     
-    /**
-     * @brief Descarga plantilla Excel para importación de cuentas
-     * @param entId identificador de la empresa
-     * @return archivo Excel con estructura de plantilla
-     */
     @GetMapping("/template/excel")
     public ResponseEntity<Resource> exportAccountCatalogueTemplate(
             @RequestParam String entId) {
@@ -224,63 +200,98 @@ public class AccountCatalogueController {
                 .body(templateFile);
     }
 
-    /**
-     * @brief Exporta catálogo de cuentas con validaciones a Excel
-     * @param entId identificador de la empresa
-     * @param companyName nombre de la empresa (opcional)
-     * @param status estado de las cuentas a incluir (opcional)
-     * @return archivo Excel con catálogo de cuentas exportado
-     */
     @GetMapping("/export/excel")
-    public ResponseEntity<Resource> exportAccountCatalogueWithValidations(
+    public ResponseEntity<Map<String, String>> exportAccountCatalogueAsync(
             @RequestParam String entId,
             @RequestParam(required = false) String companyName,
             @RequestParam(required = false) Boolean status) {
 
-        Resource excelFile = accountCatalogueExportInputPort.exportAccountCatalogueWithValidations(entId, status);
-        String filename = fileNameGenerator.generateExportFileName(entId, companyName, status);
+
+        AccountCatalogueExportRequest request = AccountCatalogueExportRequest.builder()
+                .entId(entId)
+                .companyName(companyName)
+                .status(status)
+                .build();
+
+        String jobId = accountCatalogueExportInputPort.exportAccountCatalogueAsync(request);
+
+
+        return ResponseEntity.accepted()
+                .body(Map.of(
+                        "jobId", jobId,
+                        "message", "Exportación iniciada exitosamente",
+                        "statusEndpoint", "/api/accountCatalogue/export/status/" + jobId
+                ));
+    }
+
+    @GetMapping("/export/status/{jobId}")
+    public ResponseEntity<?> getExportStatus(@PathVariable String jobId) {
+
+        return accountCatalogueExportInputPort.getExportStatus(jobId)
+                .map(status -> {
+                    return ResponseEntity.ok(status);
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/export/download/{jobId}")
+    public ResponseEntity<Resource> downloadExportedFile(@PathVariable String jobId) {
+
+        Optional<ExportJobStatus> jobStatus = accountCatalogueExportInputPort.getExportStatus(jobId);
+
+        if (jobStatus.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        ExportJobStatus status = jobStatus.get();
+
+        if (status.getStatus() != ImportStatus.COMPLETED) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+
+        if (status.getFileData() == null) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+
+        Resource resource = new ByteArrayResource(status.getFileData());
 
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + status.getFileName() + "\"")
                 .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
-                .body(excelFile);
+                .body(resource);
     }
 
     
-    /**
-     * @brief Importa cuentas contables desde archivo Excel
-     * @param entId identificador de la empresa
-     * @param file archivo Excel con datos de cuentas
-     * @return respuesta con resultado del proceso de importación
-     */
     @PostMapping("/import/excel")
-    public ResponseEntity<AccountCatalogueImportResponse> importFromExcel(
+    public ResponseEntity<Map<String, String>> importFromExcel(
             @RequestParam String entId,
             @RequestParam MultipartFile file) {
+
 
         // Construir request
         AccountCatalogueImportRequest request = AccountCatalogueImportRequest.from(entId, file);
 
-        // Ejecutar importación
-        AccountCatalogueImportResponse response = accountCatalogueImportInputPort
-                .importAccountCatalogueFromExcel(request);
+        // Iniciar importación asíncrona
+        String jobId = accountCatalogueImportInputPort.importAccountCatalogueAsync(request);
 
-        // Mapear estado a código HTTP apropiado
-        HttpStatus httpStatus = mapImportStatusToHttpStatus(response.getStatus());
 
-        return ResponseEntity.status(httpStatus).body(response);
+        // Retornar jobId para que el cliente pueda consultar el estado
+        return ResponseEntity.accepted()
+                .body(Map.of(
+                        "jobId", jobId,
+                        "message", "Importación iniciada exitosamente",
+                        "statusEndpoint", "/api/accountCatalogue/import/status/" + jobId
+                ));
     }
 
-    /**
-     * Mapea el estado de importación a código HTTP apropiado.
-     */
-    private HttpStatus mapImportStatusToHttpStatus(ImportStatus status) {
-        return switch (status) {
-            case COMPLETED -> HttpStatus.OK;
-            case COMPLETED_WITH_ERRORS -> HttpStatus.ACCEPTED;
-            case FAILED -> HttpStatus.BAD_REQUEST;
-            default -> HttpStatus.INTERNAL_SERVER_ERROR;
-        };
+    @GetMapping("/import/status/{jobId}")
+    public ResponseEntity<?> getImportStatus(@PathVariable String jobId) {
+
+        return accountCatalogueImportInputPort.getImportStatus(jobId)
+                .map(status -> {
+                    return ResponseEntity.ok(status);
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 
 }

@@ -6,7 +6,7 @@ import com.account_catalogue.commons.exceptions.bankAccounts.BankNotFoundForAcco
 import com.account_catalogue.commons.exceptions.bankAccounts.InvalidAccountNumberException;
 import com.account_catalogue.commons.exceptions.bankAccounts.InvalidAccountingAccountForBankAccountException;
 import com.account_catalogue.commons.utils.PaginationHelper;
-import com.account_catalogue.catalogue.application.services.AccountCatalogueValidationService;
+import com.account_catalogue.catalogue.application.services.validation.AccountCatalogueValidationService;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
 import com.account_catalogue.banks.domain.services.IBankService;
 import com.account_catalogue.banks.domain.model.Bank;

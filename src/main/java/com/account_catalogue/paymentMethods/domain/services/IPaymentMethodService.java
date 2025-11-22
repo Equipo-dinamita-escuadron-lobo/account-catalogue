@@ -75,4 +75,11 @@ public interface IPaymentMethodService {
      * @return el método de pago eliminado
      */
     PaymentMethod delete(Long id, String idEnterprise);
+
+    /**
+     * @brief Actualiza el contador de uso de un método de pago
+     * @param id el ID del método de pago
+     * @param usageCount el nuevo valor del contador de uso
+     */
+    void updateUsageCount(Long id, Integer usageCount);
 }

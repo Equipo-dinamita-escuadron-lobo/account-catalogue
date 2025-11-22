@@ -2,6 +2,7 @@ package com.account_catalogue.catalogue.application.services;
 
 import com.account_catalogue.catalogue.application.input.IAccountCatalogueUpdateInputPort;
 import com.account_catalogue.catalogue.application.output.IAccountCatalogueUpdateOutputPort;
+import com.account_catalogue.catalogue.application.services.validation.AccountCatalogueValidationService;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
 
 import lombok.AllArgsConstructor;
@@ -30,9 +31,6 @@ public class AccountCatalogueUpdateService implements IAccountCatalogueUpdateInp
     public AccountCatalogue updateAccountCatalogue(long id, AccountCatalogue accountCatalogue) {
         // Validar que la cuenta a actualizar existe
         AccountCatalogue existingAccount = validationService.validateAccountExistsByIdAndEnterprise(id, accountCatalogue.getIdEnterprise());
-
-        // Validar que la cuenta no esté asociada a movimientos contables (primera validación)
-        validationService.validateAccountNotAssociatedWithAccountingMovements(existingAccount, "editar");
 
         // Verificar que el idEnterprise esté establecido
         if (accountCatalogue.getIdEnterprise() == null || accountCatalogue.getIdEnterprise().trim().isEmpty()) {

@@ -11,7 +11,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 /**
  * @brief Adaptador JPA para operaciones de creación de cuentas contables
  *
@@ -61,6 +64,57 @@ public class AccountCatalogueCreateJpaAdapter implements IAccountCatalogueCreate
             accountCatalogueEntity=accountCatalogueRepository.findByCode(accountCatalogueEntity.getCode(),accountCatalogueEntity.getIdEnterprise());
         }
         return accountCatalogueCreateMapper.toModel(accountCatalogueEntity);
+    }
+
+    /**
+     * @brief Crea múltiples cuentas contables en batch
+     * @details Usa saveAll para reducir round-trips.
+     * @param accountCatalogues lista de cuentas ya validadas y sin duplicados
+     * @return lista de cuentas creadas con IDs asignados
+     */
+    @Override
+    @Transactional
+    public List<AccountCatalogue> createAllAccountCatalogues(List<AccountCatalogue> accountCatalogues) {
+        List<AccountCatalogueEntity> entitiesToSave = new ArrayList<>();
+        
+        // Pre-cargar todos los padres únicos en batch para evitar N+1
+        Set<String> parentCodes = accountCatalogues.stream()
+                .filter(acc -> acc.getParent() != null && acc.getParent().getCode() != null)
+                .map(acc -> acc.getParent().getCode())
+                .collect(java.util.stream.Collectors.toSet());
+        
+        Map<String, AccountCatalogueEntity> parentsMap = new HashMap<>();
+        if (!parentCodes.isEmpty()) {
+            List<AccountCatalogueEntity> parents = accountCatalogueRepository.findByCodesIn(
+                    new ArrayList<>(parentCodes), 
+                    accountCatalogues.get(0).getIdEnterprise());
+            for (AccountCatalogueEntity parent : parents) {
+                parentsMap.put(parent.getCode(), parent);
+            }
+        }
+        
+        for (AccountCatalogue accountCatalogue : accountCatalogues) {
+            AccountCatalogueEntity parent = null;
+            if (accountCatalogue.getParent() != null && accountCatalogue.getParent().getCode() != null) {
+                parent = parentsMap.get(accountCatalogue.getParent().getCode());
+            }
+            
+            AccountCatalogueEntity entity = accountCatalogueCreateMapper.toEntity(accountCatalogue, parent);
+            if (entity != null) {
+                entitiesToSave.add(entity);
+            }
+        }
+        
+        // Batch save - útil para importaciones sin dependencias jerárquicas en el mismo lote
+        List<AccountCatalogueEntity> savedEntities = accountCatalogueRepository.saveAll(entitiesToSave);
+        
+        // Convertir a dominio
+        List<AccountCatalogue> result = new ArrayList<>();
+        for (AccountCatalogueEntity entity : savedEntities) {
+            result.add(accountCatalogueCreateMapper.toModel(entity));
+        }
+        
+        return result;
     }
 
     /**

@@ -42,6 +42,7 @@ public interface IAccountSearchRestMapper {
                 .crossing(accountCatalogue.getCrossing())
                 .costCenter(accountCatalogue.getCostCenter())
                 .status(accountCatalogue.getStatus())
+                .usageCount(accountCatalogue.getUsageCount())
                 .children(children)
                 .parent(accountCatalogue.getParent() != null ? accountCatalogue.getParent().getCode() : null)
                 .build();

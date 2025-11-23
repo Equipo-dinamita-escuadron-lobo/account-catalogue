@@ -56,9 +56,9 @@ public class AccountBalanceUpdateService implements IAccountBalanceUpdateInputPo
 
             // LA LÓGICA CLAVE: Usamos .subtract() en lugar de .add()
             BigDecimal newBalance = currentAccount.getAmount().subtract(amountToUpdate);
-            currentAccount.setAmount(newBalance);
 
-            accountCatalogueUpdateOutputPort.updateAccountCatalogue(currentAccount.getId(), currentAccount);
+            // Actualizar el amount de la cuenta
+            accountCatalogueUpdateOutputPort.updateAmount(currentAccount.getId(), newBalance);
 
             log.debug("Nuevo saldo (revertido) para la cuenta {}: {}", currentAccount.getCode(), newBalance);
 
@@ -90,11 +90,9 @@ public class AccountBalanceUpdateService implements IAccountBalanceUpdateInputPo
 
             // 4. Actualizar el monto
             BigDecimal newBalance = currentAccount.getAmount().add(amountToUpdate);
-            currentAccount.setAmount(newBalance);
 
-            // 5. Persistir el cambio en la cuenta actual
-            // ASUNCIÓN: Tu IAccountCatalogueUpdateOutputPort tiene un método save o update.
-            accountCatalogueUpdateOutputPort.updateAccountCatalogue(currentAccount.getId(), currentAccount);
+            // 5. Persistir cambio del monto de la cuenta
+            accountCatalogueUpdateOutputPort.updateAmount(currentAccount.getId(), newBalance);
 
             log.debug("Nuevo saldo para la cuenta {}: {}", currentAccount.getCode(), newBalance);
 

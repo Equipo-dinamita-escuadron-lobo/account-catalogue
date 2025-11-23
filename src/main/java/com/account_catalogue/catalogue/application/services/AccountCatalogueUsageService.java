@@ -29,55 +29,49 @@ public class AccountCatalogueUsageService implements IAccountCatalogueUsagePort 
     private static final String ACCOUNT_TYPE_ID = "ID";
     private static final String ACCOUNT_TYPE_CODE = "CODE";
 
+    /**
+     * @brief Incrementa el contador de uso de una cuenta contable
+     * @details Busca la cuenta por ID o código según el tipo especificado en el evento,
+     * y luego incrementa su contador de uso de forma atómica en la base de datos.
+     * @param accountUsedEvent Evento con información de la cuenta usada
+     * @throws AccountCatalogueNotFoundException si la cuenta no existe
+     * @throws IllegalArgumentException si el tipo de cuenta es inválido
+     */
     @Override
     public void incrementUsageCount(AccountUsedEventDto accountUsedEvent) {
-
         String sourceAccountType = accountUsedEvent.getSourceAccountType();
         Long account = accountUsedEvent.getAccount();
         String enterpriseId = accountUsedEvent.getEnterpriseId();
 
-        log.info("=== INCREMENT USAGE COUNT START ===");
-        log.info("Event data - Account: {}, SourceAccountType: '{}', EnterpriseId: '{}'",
-                 account, sourceAccountType, enterpriseId);
-
-        log.info("Incrementing usage count for account: {} (type: {}) in enterprise: {}",
+        log.info("Processing usage event for account: {} (type: {}) in enterprise: {}",
                  account, sourceAccountType, enterpriseId);
 
         AccountCatalogue accountCatalogue;
 
-        // Determinar si buscar por ID o código
+        // Buscar la cuenta por ID o código según el tipo
         if (ACCOUNT_TYPE_ID.equalsIgnoreCase(sourceAccountType)) {
-            log.info("Searching account by ID: {} in enterprise: {}", account, enterpriseId);
             accountCatalogue = accountCatalogueSearchOutputPort.getAccountCatalogueById(account, enterpriseId);
-            log.info("Account found by ID: {}", accountCatalogue != null ? "YES (ID: " + accountCatalogue.getId() + ", Code: " + accountCatalogue.getCode() + ")" : "NO");
         } else if (ACCOUNT_TYPE_CODE.equalsIgnoreCase(sourceAccountType)) {
             String codeString = account.toString();
-            log.info("Searching account by CODE: '{}' in enterprise: {}", codeString, enterpriseId);
             accountCatalogue = accountCatalogueSearchOutputPort.getAccountCatalogueByCode(codeString, enterpriseId);
-            log.info("Account found by CODE: {}", accountCatalogue != null ? "YES (ID: " + accountCatalogue.getId() + ", Code: " + accountCatalogue.getCode() + ")" : "NO");
         } else {
-            log.error("Invalid sourceAccountType: '{}'. Must be '{}' or '{}'", sourceAccountType, ACCOUNT_TYPE_ID, ACCOUNT_TYPE_CODE);
-            throw new IllegalArgumentException("Tipo de fuente de cuenta inválido: " + sourceAccountType + ". Debe ser '" + ACCOUNT_TYPE_ID + "' o '" + ACCOUNT_TYPE_CODE + "'");
+            throw new IllegalArgumentException("Tipo de fuente de cuenta inválido: " + sourceAccountType + 
+                                             ". Debe ser '" + ACCOUNT_TYPE_ID + "' o '" + ACCOUNT_TYPE_CODE + "'");
         }
 
         if (accountCatalogue == null) {
-            log.warn("AccountCatalogue not found: {} (type: {}) in enterprise: {}", account, sourceAccountType, enterpriseId);
-            throw new AccountCatalogueNotFoundException("Cuenta contable no encontrada: " + account + " (tipo: " + sourceAccountType + ")");
+            throw new AccountCatalogueNotFoundException("Cuenta contable no encontrada: " + account + 
+                                                       " (tipo: " + sourceAccountType + ")");
         }
 
-        log.info("Before increment - Current usage count: {}", accountCatalogue.getUsageCount());
-        accountCatalogue.incrementUsageCount();
-        log.info("After increment - New usage count: {}", accountCatalogue.getUsageCount());
-
-        log.info("Updating account in database...");
-        AccountCatalogue updatedAccount = accountCatalogueUpdateOutputPort.updateAccountCatalogue(accountCatalogue.getId(), accountCatalogue);
+        // Incrementar el contador de uso de forma atómica
+        AccountCatalogue updatedAccount = accountCatalogueUpdateOutputPort.incrementUsageCount(accountCatalogue.getId());
 
         if (updatedAccount != null) {
-            log.info("=== INCREMENT USAGE COUNT SUCCESS ===");
-            log.info("Final usage count in updated account: {}", updatedAccount.getUsageCount());
+            log.info("Usage count incremented successfully for account ID: {}. New count: {}", 
+                     accountCatalogue.getId(), updatedAccount.getUsageCount());
         } else {
-            log.error("=== INCREMENT USAGE COUNT FAILED ===");
-            log.error("Update operation returned null");
+            log.error("Failed to increment usage count for account ID: {}", accountCatalogue.getId());
         }
     }
 }

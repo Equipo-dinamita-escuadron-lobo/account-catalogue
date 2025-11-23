@@ -79,7 +79,6 @@ public interface IAccountCatalogueRepository extends JpaRepository<AccountCatalo
     @Query("SELECT a FROM AccountCatalogueEntity a WHERE a.idEnterprise = ?1 AND a.status = false ORDER BY a.code ASC")
     Page<AccountCatalogueEntity> findAllInactiveByIdEnterpriseOrderByCode(String idEnterprise, Pageable pageable);
 
-    // Métodos optimizados para exportación con JOIN FETCH del parent
     @Query("SELECT DISTINCT a FROM AccountCatalogueEntity a LEFT JOIN FETCH a.parent WHERE a.idEnterprise = :idEnterprise ORDER BY a.code ASC")
     Page<AccountCatalogueEntity> findAllByIdEnterpriseForExport(@Param("idEnterprise") String idEnterprise, Pageable pageable);
 
@@ -153,4 +152,25 @@ public interface IAccountCatalogueRepository extends JpaRepository<AccountCatalo
      */
     @Query("SELECT a FROM AccountCatalogueEntity a WHERE UPPER(a.description) IN :descriptions AND a.idEnterprise = :idEnterprise")
     List<AccountCatalogueEntity> findByDescriptionsInIgnoreCase(@Param("descriptions") List<String> descriptions, @Param("idEnterprise") String idEnterprise);
+
+    /**
+     * @brief Incrementa el contador de uso de forma atómica
+     * @details Usa UPDATE nativo para evitar race conditions
+     * @param id ID de la cuenta
+     * @return número de filas actualizadas
+     */
+    @Modifying
+    @Query("UPDATE AccountCatalogueEntity a SET a.usageCount = COALESCE(a.usageCount, 0) + 1 WHERE a.id = :id")
+    int incrementUsageCount(@Param("id") Long id);
+
+    /**
+     * @brief Actualiza solo el amount de una cuenta sin tocar usageCount
+     * @details UPDATE selectivo para evitar race conditions con usageCount
+     * @param id ID de la cuenta
+     * @param amount Nuevo valor del amount
+     * @return número de filas actualizadas
+     */
+    @Modifying
+    @Query("UPDATE AccountCatalogueEntity a SET a.amount = :amount WHERE a.id = :id")
+    int updateAmount(@Param("id") Long id, @Param("amount") java.math.BigDecimal amount);
 }

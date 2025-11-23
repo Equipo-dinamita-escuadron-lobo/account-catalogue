@@ -49,13 +49,6 @@ public class AccountCatalogue {
     private Integer usageCount = 0;
 
     /**
-     * @brief Incrementa el contador de uso de la cuenta contable
-     */
-    public void incrementUsageCount() {
-        this.usageCount = this.usageCount == null ? 1 : this.usageCount + 1;
-    }
-
-    /**
      * @brief Verifica si la cuenta contable está siendo usada
      * @return true si la cuenta tiene uso registrado
      */

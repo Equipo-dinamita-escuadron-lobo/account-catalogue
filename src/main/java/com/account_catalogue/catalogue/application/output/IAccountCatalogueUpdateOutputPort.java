@@ -1,6 +1,7 @@
 package com.account_catalogue.catalogue.application.output;
 
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
+import java.math.BigDecimal;
 
 /**
  * @brief Puerto de salida para operaciones de actualización de cuentas contables
@@ -16,4 +17,19 @@ public interface IAccountCatalogueUpdateOutputPort {
      * @return cuenta actualizada
      */
     AccountCatalogue updateAccountCatalogue(long id,AccountCatalogue accountCatalogue);
+
+    /**
+     * @brief Incrementa el contador de uso de forma atómica
+     * @param id ID de la cuenta
+     * @return cuenta actualizada con el nuevo contador
+     */
+    AccountCatalogue incrementUsageCount(long id);
+
+    /**
+     * @brief Actualiza el monto de una cuenta
+     * @param id ID de la cuenta
+     * @param amount Nuevo valor del monto
+     * @return true si se actualizó correctamente
+     */
+    boolean updateAmount(long id, BigDecimal amount);
 }

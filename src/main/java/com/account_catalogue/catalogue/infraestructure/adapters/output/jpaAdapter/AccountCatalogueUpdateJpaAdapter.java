@@ -10,6 +10,7 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +38,7 @@ public class AccountCatalogueUpdateJpaAdapter implements IAccountCatalogueUpdate
     /**
      * @brief Actualiza cuenta con propagación automática de cambios de código jerárquico
      *
-     * Proceso complejo que incluye:
+     * Proceso que realiza:
      * - Validación de existencia de cuenta
      * - Actualización de campos principales
      * - Detección de cambios de código
@@ -59,6 +60,9 @@ public class AccountCatalogueUpdateJpaAdapter implements IAccountCatalogueUpdate
         String oldCode = accountCatalogueEntity.getCode();
         String newCode = accountCatalogue.getCode();
 
+        // Preservar el usageCount actual antes de actualizar
+        Integer currentUsageCount = accountCatalogueEntity.getUsageCount();
+
         // Actualizar los campos de la cuenta padre
         accountCatalogueEntity.setCode(newCode);
         accountCatalogueEntity.setDescription(accountCatalogue.getDescription());
@@ -68,24 +72,70 @@ public class AccountCatalogueUpdateJpaAdapter implements IAccountCatalogueUpdate
         accountCatalogueEntity.setCrossing(accountCatalogue.getCrossing());
         accountCatalogueEntity.setCostCenter(accountCatalogue.getCostCenter());
         accountCatalogueEntity.setAmount(accountCatalogue.getAmount());
-        accountCatalogueEntity.setUsageCount(accountCatalogue.getUsageCount());
 
-        log.info("=== JPA ADAPTER UPDATE ===");
-        log.info("Setting usageCount to: {}", accountCatalogue.getUsageCount());
-        log.info("Entity before save - usageCount: {}", accountCatalogueEntity.getUsageCount());
+        // Aquí se restaura para contoador de uso para evitar que otros servicios como BalanceUpdateService lo sobreescriban
+        accountCatalogueEntity.setUsageCount(currentUsageCount);
 
         accountCatalogueEntity = accountCatalogueRepository.save(accountCatalogueEntity);
-
-        log.info("Entity after save - usageCount: {}", accountCatalogueEntity.getUsageCount());
 
         // Si el código cambió, actualizar códigos de hijos en cascada
         if (!oldCode.equals(newCode)) {
             updateChildrenCodes(accountCatalogueEntity.getId(), oldCode, newCode, accountCatalogue.getIdEnterprise());
         }
 
-        AccountCatalogue result = accountCatalogueUpdateMapper.toAccountCatalogue(accountCatalogueEntity);
-        log.info("Mapped result - usageCount: {}", result.getUsageCount());
-        return result;
+        return accountCatalogueUpdateMapper.toAccountCatalogue(accountCatalogueEntity);
+    }
+
+    /**
+     * @brief Incrementa el contador de uso de forma atómica
+     * @details Utiliza una query optimizada para incrementar el usageCount sin cargar
+     * la entidad completa. Esto permite incrementar el contador de forma segura
+     * en entornos concurrentes sin race conditions.
+     * Usa REQUIRES_NEW para forzar commit inmediato y evitar que otras transacciones lean valores obsoletos.
+     * @param id ID de la cuenta cuyo contador se va a incrementar
+     * @return Cuenta actualizada con el nuevo valor de usageCount, o null si no existe
+     */
+    @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public AccountCatalogue incrementUsageCount(long id) {
+
+        // Ejecutar UPDATE atómico en la base de datos
+        int updatedRows = accountCatalogueRepository.incrementUsageCount(id);
+
+        if (updatedRows == 0) {
+            return null;
+        }
+
+        // Recuperar la cuenta actualizada
+        AccountCatalogueEntity updatedEntity = accountCatalogueRepository.findById(id).orElse(null);
+        if (updatedEntity != null) {            
+            return accountCatalogueUpdateMapper.toAccountCatalogue(updatedEntity);
+        }
+
+        return null;
+    }
+
+    /**
+     * @brief Actualiza solo el amount de una cuenta e indica que esa cuenta esta en uso
+     * @details Usa UPDATE selectivo para evitar race conditions con usageCount.
+     * Este método es especialmente útil para AccountBalanceUpdateService.
+     * @param id ID de la cuenta
+     * @param amount Nuevo valor del amount
+     * @return true si se actualizó correctamente
+     */
+    @Override
+    @Transactional
+    public boolean updateAmount(long id, java.math.BigDecimal amount) {
+        AccountCatalogueEntity accountCatalogueEntity = accountCatalogueRepository.findById(id).orElse(null);
+        if (accountCatalogueEntity == null) {
+            return false;
+        } else {
+            int usageCount = accountCatalogueEntity.getUsageCount();
+            accountCatalogueEntity.setAmount(amount);
+            accountCatalogueEntity.setUsageCount(usageCount + 1); //Incrementa el usageCount para indicar uso
+            accountCatalogueRepository.save(accountCatalogueEntity);
+        }
+        return true;
     }
 
     /**

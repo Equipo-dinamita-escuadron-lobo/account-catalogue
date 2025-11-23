@@ -12,6 +12,7 @@ import com.account_catalogue.catalogue.application.output.IAccountCatalogueUpdat
 import com.account_catalogue.catalogue.domain.enums.NatureEnum;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
 
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -26,6 +27,7 @@ public class AccountBalanceUpdateService implements IAccountBalanceUpdateInputPo
                                                                                       // guardar/actualizar cuentas
 
     @Override
+    @Transactional
     public void updateBalancesFromAccountingEntry(AccountingEntry accountingEntry) {
         log.info("Iniciando actualización de saldos para el asiento contable {}", accountingEntry.getCode());
         for (AccountingMovement movement : accountingEntry.getMovements()) {
@@ -33,7 +35,8 @@ public class AccountBalanceUpdateService implements IAccountBalanceUpdateInputPo
         }
     }
 
-     @Override
+    @Override
+    @Transactional
     public void reverseBalancesFromAccountingEntry(AccountingEntry accountingEntry) {
         log.info("Iniciando REVERSIÓN de saldos para el asiento contable {}", accountingEntry.getCode());
         for (AccountingMovement movement : accountingEntry.getMovements()) {
@@ -56,9 +59,11 @@ public class AccountBalanceUpdateService implements IAccountBalanceUpdateInputPo
 
             // LA LÓGICA CLAVE: Usamos .subtract() en lugar de .add()
             BigDecimal newBalance = currentAccount.getAmount().subtract(amountToUpdate);
-            currentAccount.setAmount(newBalance);
+            currentAccount.setAmount(newBalance); // Actualizar el objeto en memoria para reflejar el nuevo saldo
+            log.debug("Nuevo saldo (revertido) para la cuenta {}: {}", currentAccount.getCode(), newBalance);
 
-            accountCatalogueUpdateOutputPort.updateAccountCatalogue(currentAccount.getId(), currentAccount);
+            // Actualizar el amount de la cuenta
+            accountCatalogueUpdateOutputPort.updateAmount(currentAccount.getId(), currentAccount.getAmount());
 
             log.debug("Nuevo saldo (revertido) para la cuenta {}: {}", currentAccount.getCode(), newBalance);
 
@@ -70,6 +75,7 @@ public class AccountBalanceUpdateService implements IAccountBalanceUpdateInputPo
         }
     }
 
+    @Transactional
     public void updateSingleAccountHierarchy(Long accountId, BigDecimal debit, BigDecimal credit, String idEnterprise) {
         log.info("Actualizando saldos para la cuenta contable {}", idEnterprise);
         // 1. Obtener la cuenta auxiliar (la que recibe el movimiento directo)
@@ -90,13 +96,11 @@ public class AccountBalanceUpdateService implements IAccountBalanceUpdateInputPo
 
             // 4. Actualizar el monto
             BigDecimal newBalance = currentAccount.getAmount().add(amountToUpdate);
-            currentAccount.setAmount(newBalance);
-
-            // 5. Persistir el cambio en la cuenta actual
-            // ASUNCIÓN: Tu IAccountCatalogueUpdateOutputPort tiene un método save o update.
-            accountCatalogueUpdateOutputPort.updateAccountCatalogue(currentAccount.getId(), currentAccount);
-
+            currentAccount.setAmount(newBalance); // Actualizar el objeto en memoria para reflejar el nuevo saldo
             log.debug("Nuevo saldo para la cuenta {}: {}", currentAccount.getCode(), newBalance);
+
+            // 5. Persistir cambio del monto de la cuenta
+            accountCatalogueUpdateOutputPort.updateAmount(currentAccount.getId(), currentAccount.getAmount());
 
             // 6. Moverse al padre para la siguiente iteración
             // ASUNCIÓN: El padre ya está cargado en el objeto. Si no, necesitarás buscarlo

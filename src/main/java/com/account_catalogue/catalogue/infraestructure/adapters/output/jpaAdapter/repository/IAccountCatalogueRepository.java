@@ -162,15 +162,4 @@ public interface IAccountCatalogueRepository extends JpaRepository<AccountCatalo
     @Modifying
     @Query("UPDATE AccountCatalogueEntity a SET a.usageCount = COALESCE(a.usageCount, 0) + 1 WHERE a.id = :id")
     int incrementUsageCount(@Param("id") Long id);
-
-    /**
-     * @brief Actualiza solo el amount de una cuenta sin tocar usageCount
-     * @details UPDATE selectivo para evitar race conditions con usageCount
-     * @param id ID de la cuenta
-     * @param amount Nuevo valor del amount
-     * @return número de filas actualizadas
-     */
-    @Modifying
-    @Query("UPDATE AccountCatalogueEntity a SET a.amount = :amount WHERE a.id = :id")
-    int updateAmount(@Param("id") Long id, @Param("amount") java.math.BigDecimal amount);
 }

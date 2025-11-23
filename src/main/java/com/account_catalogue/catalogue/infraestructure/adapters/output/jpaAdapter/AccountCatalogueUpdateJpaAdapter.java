@@ -116,7 +116,7 @@ public class AccountCatalogueUpdateJpaAdapter implements IAccountCatalogueUpdate
     }
 
     /**
-     * @brief Actualiza solo el amount de una cuenta
+     * @brief Actualiza solo el amount de una cuenta e indica que esa cuenta esta en uso
      * @details Usa UPDATE selectivo para evitar race conditions con usageCount.
      * Este método es especialmente útil para AccountBalanceUpdateService.
      * @param id ID de la cuenta
@@ -126,9 +126,16 @@ public class AccountCatalogueUpdateJpaAdapter implements IAccountCatalogueUpdate
     @Override
     @Transactional
     public boolean updateAmount(long id, java.math.BigDecimal amount) {
-        int updatedRows = accountCatalogueRepository.updateAmount(id, amount);
-        boolean success = updatedRows > 0;
-        return success;
+        AccountCatalogueEntity accountCatalogueEntity = accountCatalogueRepository.findById(id).orElse(null);
+        if (accountCatalogueEntity == null) {
+            return false;
+        } else {
+            int usageCount = accountCatalogueEntity.getUsageCount();
+            accountCatalogueEntity.setAmount(amount);
+            accountCatalogueEntity.setUsageCount(usageCount + 1); //Incrementa el usageCount para indicar uso
+            accountCatalogueRepository.save(accountCatalogueEntity);
+        }
+        return true;
     }
 
     /**

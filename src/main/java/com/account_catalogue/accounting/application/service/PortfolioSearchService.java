@@ -24,6 +24,7 @@ import com.account_catalogue.accounting.infraestructure.output.jpaAdapter.entity
 import com.account_catalogue.accounting.infraestructure.output.jpaAdapter.repository.IReceiptDetailRepository;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
 
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 
 @Service
@@ -33,6 +34,7 @@ public class PortfolioSearchService implements IPortfolioSearchInputPort {
     private final IReceiptDetailRepository receiptDetailRepository;
 
     @Override
+    @Transactional
     public List<ClientPortfolioSummaryResponse> getClientPortfolioSummary(List<Long> clientIds) {
         if (clientIds == null || clientIds.isEmpty())
             return List.of();
@@ -82,6 +84,7 @@ public class PortfolioSearchService implements IPortfolioSearchInputPort {
     }
 
     @Override
+    @Transactional
     public List<ReceiptSummaryResponse> findReceiptsByInvoiceId(Long invoiceId) {
         return receiptDetailRepository.findByOriginalInvoiceId(invoiceId)
                 .stream()
@@ -97,6 +100,7 @@ public class PortfolioSearchService implements IPortfolioSearchInputPort {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     public List<InvoiceDetailResponse> getInvoiceDetailsByClientId(Long clientId) {
         // 1. Reutilizamos el método existente para obtener los modelos de dominio.
         List<InvoiceReplica> invoices = this.findPendingInvoicesByClientId(clientId);
@@ -133,6 +137,7 @@ public class PortfolioSearchService implements IPortfolioSearchInputPort {
     }
 
     @Override
+    @Transactional
     public List<PortfolioAgingAccountResponse> getPortfolioAgingReport(Long clientId, LocalDate cutoffDate,
             String enterpriseId, boolean includeDocuments) {
 

@@ -24,4 +24,14 @@ public class BankAccount {
     @Builder.Default
     private Boolean status = true;
     private String idEnterprise;
+    @Builder.Default
+    private Integer usageCount = 0;
+
+    /**
+     * @brief Verifica si la cuenta bancaria está siendo usada
+     * @return true si la cuenta bancaria tiene uso registrado
+     */
+    public boolean isInUse() {
+        return this.usageCount != null && this.usageCount > 0;
+    }
 }

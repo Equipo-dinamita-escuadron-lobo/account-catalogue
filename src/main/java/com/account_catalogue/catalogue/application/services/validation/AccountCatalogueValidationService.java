@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 
 import com.account_catalogue.bankAccounts.dataAccess.repository.BankAccountRepository;
 import com.account_catalogue.paymentMethods.dataAccess.repository.PaymentMethodRepository;
+import com.account_catalogue.taxes.infraestructure.adapters.output.jpaAdapters.repository.ITaxRepository;
 import com.account_catalogue.catalogue.application.output.IAccountCatalogueSearchOutputPort;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
 import com.account_catalogue.catalogue.domain.enums.FinancialStatusEnum;
@@ -31,6 +32,7 @@ public class AccountCatalogueValidationService {
     private final IAccountCatalogueSearchOutputPort accountCatalogueSearchOutputPort;
     private final BankAccountRepository bankAccountRepository;
     private final PaymentMethodRepository paymentMethodRepository;
+    private final ITaxRepository taxRepository;
 
     /**
      * @brief Valida código de cuenta según reglas de negocio (longitud específica)     *
@@ -136,14 +138,13 @@ public class AccountCatalogueValidationService {
      * @throws AccountCatalogueAssociatedWithTaxException si tiene asociaciones con impuestos
      */
     public void validateAccountNotAssociatedWithTaxes(AccountCatalogue account) {
-        boolean hasSalesTaxes = account.getSalesTaxes() != null && !account.getSalesTaxes().isEmpty();
-        boolean hasPurchaseTaxes = account.getPurchaseTaxes() != null && !account.getPurchaseTaxes().isEmpty();
+        // Consultar directamente la base de datos para verificar si hay impuestos asociados
+        boolean hasAssociatedTaxes = taxRepository.existsBySalesTaxCodeOrPurchaseTaxCode(account.getCode(), account.getIdEnterprise());
 
-        if (hasSalesTaxes || hasPurchaseTaxes) {
-
+        if (hasAssociatedTaxes) {
             throw new AccountCatalogueAssociatedWithTaxException(
-                    "No se puede eliminar la cuenta '" + account.getCode()
-                            + "' porque está asociada a uno o más impuestos.");
+                    "No se puede eliminar la cuenta " + account.getCode()
+                            + " porque está asociada a uno o más impuestos.");
         }
     }
 

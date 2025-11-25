@@ -23,4 +23,5 @@ public class BankAccountRes {
     private Long accountingAccountId;
     private Boolean status;
     private String idEnterprise;
+    private Integer usageCount;
 }

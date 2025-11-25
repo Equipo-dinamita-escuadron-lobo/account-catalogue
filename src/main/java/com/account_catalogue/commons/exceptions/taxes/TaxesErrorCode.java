@@ -17,7 +17,8 @@ public enum TaxesErrorCode implements ErrorCodeDefinition {
     INVALID_DEPOSIT_ACCOUNT("INVALID_DEPOSIT_ACCOUNT", "Cuenta inválida"),
     INVALID_REFUND_ACCOUNT("INVALID_REFUND_ACCOUNT", "Cuenta de devolución inválida"),
     INVALID_ACCOUNT_DIGITS("INVALID_ACCOUNT_DIGITS", "Las cuentas deben tener exactamente 8 dígitos"),
-    DUPLICATE_TAX_ACCOUNTS("DUPLICATE_TAX_ACCOUNTS", "Las cuentas de impuesto de venta e impuesto de compra deben ser diferentes");
+    DUPLICATE_TAX_ACCOUNTS("DUPLICATE_TAX_ACCOUNTS", "Las cuentas de impuesto de venta e impuesto de compra deben ser diferentes"),
+    TAX_IN_USE("TAX_IN_USE", "No se puede modificar o eliminar un impuesto que tiene movimientos registrados");
 
     private final String code;
     private final String message;

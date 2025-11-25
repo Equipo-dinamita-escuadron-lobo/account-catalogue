@@ -52,6 +52,7 @@ public interface ITaxUpdateRestMapper {
                 .purchaseTax(tax.getPurchaseTax() != null ? tax.getPurchaseTax().getId() : null)
                 .salesTax(tax.getSalesTax() != null ? tax.getSalesTax().getId() : null)
                 .status(tax.getStatus())
+                .usageCount(tax.getUsageCount())
                 .build();
     }
 }

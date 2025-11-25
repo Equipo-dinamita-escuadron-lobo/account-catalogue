@@ -13,6 +13,8 @@ import com.account_catalogue.taxes.infraestructure.adapters.output.jpaAdapters.r
 import lombok.Data;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+
 /**
  * @brief Adaptador JPA para operaciones de creación de impuestos
  *
@@ -63,11 +65,22 @@ public class TaxCreateJpaAdapter implements ITaxCreateOutputPort {
 
         TaxEntity taxEntity = taxCreateMapper.toEntity(taxAux);
 
-        // Solo agregar a las listas si las entidades no son null
+        // Asignar las entidades relacionadas obtenidas del repositorio
+        taxEntity.setSalesTax(salesTax);
+        taxEntity.setPurchaseTax(purchaseTax);
+
+        // Mantener la integridad de las relaciones bidireccionales
+        // Inicializar las colecciones lazy si no están cargadas
         if (salesTax != null) {
+            if (salesTax.getSalesTaxes() == null) {
+                salesTax.setSalesTaxes(new ArrayList<>());
+            }
             salesTax.getSalesTaxes().add(taxEntity);
         }
         if (purchaseTax != null) {
+            if (purchaseTax.getPurchaseTaxes() == null) {
+                purchaseTax.setPurchaseTaxes(new ArrayList<>());
+            }
             purchaseTax.getPurchaseTaxes().add(taxEntity);
         }
         taxEntity = taxRepository.save(taxEntity);

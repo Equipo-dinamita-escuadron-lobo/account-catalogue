@@ -18,5 +18,6 @@ public class TaxChangeStateRes {
     private String code;
     private String description;
     private Boolean status;
+    private Integer usageCount;
     private String message;
 }

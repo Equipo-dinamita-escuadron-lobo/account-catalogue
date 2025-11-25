@@ -22,4 +22,5 @@ public class TaxUpdateRes {
     private Long purchaseTax;
     private Long salesTax;
     private Boolean status;
+    private Integer usageCount;
 }

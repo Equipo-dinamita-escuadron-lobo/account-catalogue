@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 /**
  * @brief Adaptador JPA para operaciones de eliminación de impuestos
  *
- * Implementa la eliminación de impuestos con manejo de soft delete
+ * Implementa la eliminación de impuestos
  * y validación de existencia previa.
  */
 @Component

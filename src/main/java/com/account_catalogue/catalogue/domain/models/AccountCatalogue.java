@@ -1,6 +1,7 @@
 package com.account_catalogue.catalogue.domain.models;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.account_catalogue.catalogue.domain.enums.ClassificationEnum;
@@ -37,8 +38,10 @@ public class AccountCatalogue {
     private ClassificationEnum classification;
     private AccountCatalogue  parent;
     private List<AccountCatalogue> children;
-    private List<TaxEntity> salesTaxes;
-    private List<TaxEntity>  purchaseTaxes;
+    @Builder.Default
+    private List<TaxEntity> salesTaxes = new ArrayList<>();
+    @Builder.Default
+    private List<TaxEntity>  purchaseTaxes = new ArrayList<>();
     private Boolean crossing;
     private Boolean costCenter;
     private Boolean status;

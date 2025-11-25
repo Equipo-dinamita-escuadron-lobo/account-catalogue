@@ -23,4 +23,5 @@ public class TaxCreateRes {
     private Long purchaseTaxId;
     private Long salesTaxId;
     private Boolean status;
+    private Integer usageCount;
 }

@@ -28,6 +28,7 @@ public interface ITaxChangeStateRestMapper {
                 .code(tax.getCode())
                 .description(tax.getDescription())
                 .status(tax.getStatus())
+                .usageCount(tax.getUsageCount())
                 .message(statusMessage)
                 .build();
     }

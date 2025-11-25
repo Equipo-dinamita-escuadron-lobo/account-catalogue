@@ -1,6 +1,7 @@
 package com.account_catalogue.bankAccounts.domain.services;
 
 import com.account_catalogue.commons.exceptions.bankAccounts.BankAccountAlreadyExistsException;
+import com.account_catalogue.commons.exceptions.bankAccounts.BankAccountInUseException;
 import com.account_catalogue.commons.exceptions.bankAccounts.BankAccountNotFoundException;
 import com.account_catalogue.commons.exceptions.bankAccounts.BankNotFoundForAccountException;
 import com.account_catalogue.commons.exceptions.bankAccounts.InvalidAccountNumberException;
@@ -91,6 +92,12 @@ public class BankAccountServiceImpl implements IBankAccountService {
     public BankAccount update(BankAccountUpdateReq request) {
         BankAccountEntity current = repository.findByIdAndIdEnterprise(request.getId(), request.getIdEnterprise())
                 .orElseThrow(BankAccountNotFoundException::new);
+
+        // Validar que la cuenta bancaria no tenga movimientos contables registrados
+        BankAccount domain = dataMapper.toDomain(current);
+        if (domain.isInUse()) {
+            throw new BankAccountInUseException(current.getAccountNumber().toString(), true); // true indica operación de edición
+        }
 
         validateAccountNumber(request.getAccountNumber());
 
@@ -230,7 +237,12 @@ public class BankAccountServiceImpl implements IBankAccountService {
         BankAccountEntity current = repository.findByIdAndIdEnterprise(id, idEnterprise)
                 .orElseThrow(BankAccountNotFoundException::new);
 
+        // Validar que la cuenta bancaria no tenga movimientos contables registrados
         BankAccount domain = dataMapper.toDomain(current);
+        if (domain.isInUse()) {
+            throw new BankAccountInUseException(current.getAccountNumber().toString(), false); // false indica operación de eliminación
+        }
+
         repository.delete(current);
         return domain;
     }
@@ -317,5 +329,14 @@ public class BankAccountServiceImpl implements IBankAccountService {
             throw new InvalidAccountingAccountForBankAccountException(
                     "La cuenta contable con ID '" + accountingAccountId + "' no existe en el catálogo de cuentas.");
         }
+    }
+
+    @Override
+    public void updateUsageCount(Long id, String enterpriseId, Integer usageCount) {
+        BankAccountEntity entity = repository.findByIdAndIdEnterprise(id, enterpriseId)
+                .orElseThrow(() -> new BankAccountNotFoundException("Cuenta bancaria no encontrada con ID: " + id));
+
+        entity.setUsageCount(usageCount);
+        repository.save(entity);
     }
 }

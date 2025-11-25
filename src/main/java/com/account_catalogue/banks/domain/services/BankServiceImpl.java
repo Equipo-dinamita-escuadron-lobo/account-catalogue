@@ -2,6 +2,7 @@ package com.account_catalogue.banks.domain.services;
 
 import com.account_catalogue.commons.exceptions.banks.BankAlreadyExistsException;
 import com.account_catalogue.commons.exceptions.banks.BankHasAssociatedAccountsException;
+import com.account_catalogue.commons.exceptions.banks.BankInUseException;
 import com.account_catalogue.commons.exceptions.banks.BankNotFoundException;
 import com.account_catalogue.commons.exceptions.banks.InvalidBankCodeException;
 import com.account_catalogue.commons.utils.PaginationHelper;
@@ -73,6 +74,13 @@ public class BankServiceImpl implements IBankService {
     public Bank update(BankUpdateReq request) {
         BankEntity current = repository.findByIdAndIdEnterprise(request.getId(), request.getIdEnterprise())
                 .orElseThrow(BankNotFoundException::new);
+
+        // Validar que el banco no tenga cuentas bancarias con movimientos registrados
+        boolean hasAccountsWithMovements = bankAccountRepository
+                .existsByBankIdAndIdEnterpriseAndUsageCountGreaterThanZero(current.getId(), request.getIdEnterprise());
+        if (hasAccountsWithMovements) {
+            throw new BankInUseException(current.getName(), true); // true indica operación de edición
+        }
 
         // Validar formato del código
         validateBankCode(request.getCode());
@@ -200,7 +208,14 @@ public class BankServiceImpl implements IBankService {
         BankEntity current = repository.findByIdAndIdEnterprise(id, idEnterprise)
                 .orElseThrow(BankNotFoundException::new);
 
-        // Verificar si el banco tiene cuentas bancarias asociadas
+        // Verificar si el banco tiene cuentas bancarias con movimientos registrados
+        boolean hasAccountsWithMovements = bankAccountRepository
+                .existsByBankIdAndIdEnterpriseAndUsageCountGreaterThanZero(id, idEnterprise);
+        if (hasAccountsWithMovements) {
+            throw new BankInUseException(current.getName(), false); // false indica operación de eliminación
+        }
+
+        // Verificar si el banco tiene cuentas bancarias asociadas (sin movimientos)
         boolean hasAssociatedAccounts = bankAccountRepository
                 .findAllByIdEnterpriseAndBankId(idEnterprise, id, PageRequest.of(0, 1)).hasContent();
         if (hasAssociatedAccounts) {

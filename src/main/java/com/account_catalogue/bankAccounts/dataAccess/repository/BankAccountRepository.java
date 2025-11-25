@@ -55,4 +55,13 @@ public interface BankAccountRepository extends JpaRepository<BankAccountEntity, 
     boolean existsByAccountingAccountIdAndIdEnterprise(Long accountingAccountId, String idEnterprise);
 
     long countByAccountingAccountIdAndIdEnterprise(Long accountingAccountId, String idEnterprise);
+
+    /**
+     * @brief Verifica si existe alguna cuenta bancaria del banco especificado que tenga movimientos registrados
+     * @param bankId ID del banco
+     * @param idEnterprise ID de la empresa
+     * @return true si existe al menos una cuenta bancaria del banco con movimientos registrados
+     */
+    @Query("SELECT COUNT(ba) > 0 FROM BankAccountEntity ba WHERE ba.idEnterprise = ?2 AND ba.bank.id = ?1 AND ba.usageCount > 0")
+    boolean existsByBankIdAndIdEnterpriseAndUsageCountGreaterThanZero(Long bankId, String idEnterprise);
 }

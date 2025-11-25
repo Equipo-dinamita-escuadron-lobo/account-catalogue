@@ -208,14 +208,7 @@ public class BankServiceImpl implements IBankService {
         BankEntity current = repository.findByIdAndIdEnterprise(id, idEnterprise)
                 .orElseThrow(BankNotFoundException::new);
 
-        // Verificar si el banco tiene cuentas bancarias con movimientos registrados
-        boolean hasAccountsWithMovements = bankAccountRepository
-                .existsByBankIdAndIdEnterpriseAndUsageCountGreaterThanZero(id, idEnterprise);
-        if (hasAccountsWithMovements) {
-            throw new BankInUseException(current.getName(), false); // false indica operación de eliminación
-        }
-
-        // Verificar si el banco tiene cuentas bancarias asociadas (sin movimientos)
+        // Verificar si el banco tiene cuentas bancarias asociadas (sin importar movimientos)
         boolean hasAssociatedAccounts = bankAccountRepository
                 .findAllByIdEnterpriseAndBankId(idEnterprise, id, PageRequest.of(0, 1)).hasContent();
         if (hasAssociatedAccounts) {

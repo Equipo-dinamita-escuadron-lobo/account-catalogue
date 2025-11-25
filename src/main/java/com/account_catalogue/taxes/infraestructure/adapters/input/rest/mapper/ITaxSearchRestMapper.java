@@ -33,6 +33,7 @@ public interface ITaxSearchRestMapper {
                 .purchaseTax(tax.getPurchaseTax() != null ? tax.getPurchaseTax().getCode() : null)
                 .salesTax(tax.getSalesTax() != null ? tax.getSalesTax().getCode() : null)
                 .status(tax.getStatus())
+                .usageCount(tax.getUsageCount())
                 .build();
     }
 
@@ -56,6 +57,7 @@ public interface ITaxSearchRestMapper {
                             .salesTax(tax.getSalesTax() != null ? tax.getSalesTax().getCode() : null)
                             .purchaseTax(tax.getPurchaseTax() != null ? tax.getPurchaseTax().getCode() : null)
                             .status(tax.getStatus())
+                            .usageCount(tax.getUsageCount())
                             .build();
                     return taxSearchRes;
 

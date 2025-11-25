@@ -16,7 +16,7 @@ public class AccountCatalogueInUseException extends BaseBusinessException {
     public AccountCatalogueInUseException(String accountCode, boolean isEditOperation) {
         super(AccountCatalogueErrorCode.ACCOUNT_IN_USE,
               isEditOperation ?
-              String.format("No se puede editar la cuenta contable %s porque tiene movimientos contables", accountCode) :
-              String.format("No se puede eliminar la cuenta contable %s porque tiene movimientos contables", accountCode));
+              String.format("No se puede editar la cuenta contable %s porque tiene movimientos registrados", accountCode) :
+              String.format("No se puede eliminar la cuenta contable %s porque tiene movimientos registrados", accountCode));
     }
 }

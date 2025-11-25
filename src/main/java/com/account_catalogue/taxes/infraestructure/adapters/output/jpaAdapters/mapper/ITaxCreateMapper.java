@@ -30,9 +30,9 @@ public interface ITaxCreateMapper {
                 .code(tax.getCode())
                 .description(tax.getDescription())
                 .interest(tax.getInterest())
-                .salesTax(tax.getSalesTax())
-                .purchaseTax(tax.getPurchaseTax())
+                // Las entidades salesTax y purchaseTax deben ser asignadas por el servicio que use este mapper
                 .status(tax.getStatus() != null ? tax.getStatus() : true)
+                .usageCount(tax.getUsageCount())
                 .build();
     }
 
@@ -55,6 +55,7 @@ public interface ITaxCreateMapper {
                 .purchaseTax(taxEntity.getPurchaseTax())
                 .salesTax(taxEntity.getSalesTax())
                 .status(taxEntity.getStatus())
+                .usageCount(taxEntity.getUsageCount())
                 .build();
     }
 }

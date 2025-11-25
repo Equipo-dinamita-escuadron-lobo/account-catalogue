@@ -1,6 +1,7 @@
 package com.account_catalogue.taxes.domain.models;
 
 import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.entity.AccountCatalogueEntity;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import lombok.*;
 
@@ -20,7 +21,19 @@ public class Tax {
     private String code;
     private String description;
     private Double interest;
+    @JsonIgnore
     private AccountCatalogueEntity salesTax;
+    @JsonIgnore
     private AccountCatalogueEntity purchaseTax;
     private Boolean status;
+    @Builder.Default
+    private Integer usageCount = 0;
+
+    /**
+     * @brief Verifica si el impuesto está siendo usado
+     * @return true si el impuesto tiene uso registrado
+     */
+    public boolean isInUse() {
+        return this.usageCount != null && this.usageCount > 0;
+    }
 }

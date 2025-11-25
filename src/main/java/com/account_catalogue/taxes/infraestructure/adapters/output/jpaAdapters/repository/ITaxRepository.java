@@ -86,4 +86,21 @@ public interface ITaxRepository extends JpaRepository<TaxEntity, Long> {
      */
     @Query("SELECT COUNT(a) FROM TaxEntity a WHERE a.idEnterprise=?1 AND (LOWER(a.code) LIKE LOWER(CONCAT('%', ?2, '%')) OR LOWER(a.description) LIKE LOWER(CONCAT('%', ?2, '%')))")
     long countByIdEnterpriseAndDescriptionContainingIgnoreCase(String idEnterprise, String search);
+
+    /**
+     * @brief Incrementa el contador de uso de un impuesto
+     * @param taxId ID del impuesto
+     * @param enterpriseId ID de la empresa
+     */
+    @Query("UPDATE TaxEntity t SET t.usageCount = t.usageCount + 1 WHERE t.id = ?1 AND t.idEnterprise = ?2")
+    void incrementUsageCount(Long taxId, String enterpriseId);
+
+    /**
+     * @brief Verifica si existe algún impuesto que tenga la cuenta especificada como salesTax o purchaseTax
+     * @param accountCode código de la cuenta contable
+     * @param enterpriseId ID de la empresa
+     * @return true si existe al menos un impuesto asociado a la cuenta
+     */
+    @Query("SELECT COUNT(t) > 0 FROM TaxEntity t WHERE t.idEnterprise = ?2 AND (t.salesTax.code = ?1 OR t.purchaseTax.code = ?1)")
+    boolean existsBySalesTaxCodeOrPurchaseTaxCode(String accountCode, String enterpriseId);
 }

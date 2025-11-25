@@ -33,6 +33,7 @@ public interface ITaxSearchMapper {
                 .purchaseTax(taxEntity.getPurchaseTax())
                 .salesTax(taxEntity.getSalesTax())
                 .status(taxEntity.getStatus())
+                .usageCount(taxEntity.getUsageCount())
                 .build();
     }
 
@@ -56,6 +57,7 @@ public interface ITaxSearchMapper {
                             .salesTax(taxEntity.getSalesTax())
                             .purchaseTax(taxEntity.getPurchaseTax())
                             .status(taxEntity.getStatus())
+                            .usageCount(taxEntity.getUsageCount())
                             .build();
                     return tax;
 

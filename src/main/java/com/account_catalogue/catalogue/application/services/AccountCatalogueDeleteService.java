@@ -16,7 +16,7 @@ import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueNotFou
 /**
  * @brief Servicio para operaciones de eliminación de cuentas contables
  *
- * Maneja la eliminación de cuentas del catálogo mediante soft delete,
+ * Maneja la eliminación de cuentas del catálogo,
  * con validaciones para asegurar integridad referencial.
  */
 @Service

@@ -53,6 +53,7 @@ public interface ITaxCreateRestMapper {
                 .purchaseTaxId(tax.getPurchaseTax() != null ? tax.getPurchaseTax().getId() : null)
                 .salesTaxId(tax.getSalesTax() != null ? tax.getSalesTax().getId() : null)
                 .status(tax.getStatus())
+                .usageCount(tax.getUsageCount())
                 .build();
     }
 }

@@ -10,6 +10,7 @@ import com.account_catalogue.catalogue.application.output.IAccountCatalogueSearc
 import com.account_catalogue.catalogue.application.services.validation.AccountCatalogueValidationService;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
 import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueHasChildrenException;
+import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueInUseException;
 import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueNotFoundException;
 
 /**
@@ -43,7 +44,12 @@ public class AccountCatalogueDeleteService implements IAccountCatalogueDeleteInp
                 "No se encontró una cuenta con el ID '" + id + "'"
             );
         }
-        
+
+        // Validar que la cuenta no tenga movimientos contables registrados
+        if (accountTreeToDelete.isInUse()) {
+            throw new AccountCatalogueInUseException(accountTreeToDelete.getCode(), false); // false indica operación de eliminación
+        }
+
         if (accountTreeToDelete.getChildren() != null && !accountTreeToDelete.getChildren().isEmpty()) {
             throw new AccountCatalogueHasChildrenException(
                 "No se puede eliminar la cuenta '" + accountTreeToDelete.getCode() + "' porque tiene cuentas hijas asociadas."

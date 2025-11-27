@@ -6,13 +6,13 @@ import org.springframework.ui.ModelMap;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.context.request.WebRequestInterceptor;
 
-import com.account_catalogue.commons.config.aspect.JwtTokenService;
 import com.account_catalogue.commons.multitenancy.utils.TenantContext;
+import com.account_catalogue.commons.security.IJwtUtils;
 @Component
 public class TenantInterceptor implements WebRequestInterceptor {
 
     @Autowired
-    private JwtTokenService jwtTokenService;
+    private IJwtUtils jwtUtils;
 
     /**
      * Este método se llama antes de que se llame al controlador, y establece el
@@ -26,12 +26,15 @@ public class TenantInterceptor implements WebRequestInterceptor {
     @Override
     public void preHandle(WebRequest request) throws Exception {
         try {
-            String tenantId = jwtTokenService.getTenantId();
-            TenantContext.setTenantId(tenantId);
+            String tenantId = jwtUtils.getId();
+            
+            if (tenantId == null || tenantId.trim().isEmpty()) {
+                TenantContext.setTenantId("default");
+            } else {
+                TenantContext.setTenantId(tenantId);
+            }
         } catch (Exception e) {
-            // En caso de error, no establecer el tenant context
-            // Esto permitirá que la aplicación funcione sin contexto de tenant si es necesario
-            throw new Exception("No se pudo establecer el contexto del tenant desde el JWT", e);
+            TenantContext.setTenantId("default");
         }
     }
 

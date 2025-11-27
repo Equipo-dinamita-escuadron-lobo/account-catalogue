@@ -2,7 +2,6 @@ package com.account_catalogue.taxes.infraestructure.adapters.output.jpaAdapters;
 
 import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.entity.AccountCatalogueEntity;
 import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.repository.IAccountCatalogueRepository;
-import com.account_catalogue.commons.exceptions.taxes.TaxAlreadyExistsException;
 import com.account_catalogue.taxes.application.output.ITaxUpdateOutputPort;
 import com.account_catalogue.taxes.application.services.TaxValidationService;
 import com.account_catalogue.taxes.domain.DTO.TaxDTO;

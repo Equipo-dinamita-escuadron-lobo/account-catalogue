@@ -1,5 +1,7 @@
 package com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.mapper.Impl;
 
+import java.util.ArrayList;
+
 import org.springframework.stereotype.Component;
 
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
@@ -32,8 +34,8 @@ public class AccountCatalogueUpdateMapper implements IAccountCatalogueUpdateMapp
                 .crossing(accountCatalogueEntity.getCrossing())
                 .costCenter(accountCatalogueEntity.getCostCenter())
                 .status(accountCatalogueEntity.getStatus())
-                .salesTaxes(accountCatalogueEntity.getSalesTaxes())
-                .purchaseTaxes(accountCatalogueEntity.getPurchaseTaxes())
+                .salesTaxes(new ArrayList<>())
+                .purchaseTaxes(new ArrayList<>())
                 .amount(accountCatalogueEntity.getAmount())
                 .usageCount(accountCatalogueEntity.getUsageCount())
                 .parent(auxParent(accountCatalogueEntity.getParent() == null ? null : accountCatalogueEntity.getParent()))

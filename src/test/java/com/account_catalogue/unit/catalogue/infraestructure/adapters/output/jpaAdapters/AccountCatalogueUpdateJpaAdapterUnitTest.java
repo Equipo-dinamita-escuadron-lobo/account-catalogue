@@ -98,7 +98,7 @@ class AccountCatalogueUpdateJpaAdapterUnitTest {
     @DisplayName("Debe retornar null cuando la cuenta no existe")
     void testUpdateAccountCatalogueReturnsNullWhenNotFound() {
         // Arrange
-        when(accountCatalogueRepository.findById(ACCOUNT_ID)).thenReturn(Optional.empty());
+        when(accountCatalogueRepository.findByIdAndIdEnterprise(ACCOUNT_ID, ENTERPRISE_ID)).thenReturn(null);
 
         // Act
         AccountCatalogue result = adapter.updateAccountCatalogue(ACCOUNT_ID, accountCatalogue);
@@ -111,7 +111,7 @@ class AccountCatalogueUpdateJpaAdapterUnitTest {
     @DisplayName("No debe guardar cuando la cuenta no existe")
     void testUpdateAccountCatalogueDoesNotSaveWhenNotFound() {
         // Arrange
-        when(accountCatalogueRepository.findById(ACCOUNT_ID)).thenReturn(Optional.empty());
+        when(accountCatalogueRepository.findByIdAndIdEnterprise(ACCOUNT_ID, ENTERPRISE_ID)).thenReturn(null);
 
         // Act
         adapter.updateAccountCatalogue(ACCOUNT_ID, accountCatalogue);
@@ -126,7 +126,7 @@ class AccountCatalogueUpdateJpaAdapterUnitTest {
     @DisplayName("Debe actualizar cuenta correctamente")
     void testUpdateAccountCatalogueUpdatesSuccessfully() {
         // Arrange
-        when(accountCatalogueRepository.findById(ACCOUNT_ID)).thenReturn(Optional.of(accountEntity));
+        when(accountCatalogueRepository.findByIdAndIdEnterprise(ACCOUNT_ID, ENTERPRISE_ID)).thenReturn(accountEntity);
         when(accountCatalogueRepository.save(accountEntity)).thenReturn(accountEntity);
         when(accountCatalogueUpdateMapper.toAccountCatalogue(accountEntity)).thenReturn(accountCatalogue);
 
@@ -144,7 +144,7 @@ class AccountCatalogueUpdateJpaAdapterUnitTest {
         // Arrange
         String newDescription = "Nueva Descripción";
         accountCatalogue.setDescription(newDescription);
-        when(accountCatalogueRepository.findById(ACCOUNT_ID)).thenReturn(Optional.of(accountEntity));
+        when(accountCatalogueRepository.findByIdAndIdEnterprise(ACCOUNT_ID, ENTERPRISE_ID)).thenReturn(accountEntity);
         when(accountCatalogueRepository.save(accountEntity)).thenReturn(accountEntity);
         when(accountCatalogueUpdateMapper.toAccountCatalogue(accountEntity)).thenReturn(accountCatalogue);
 
@@ -160,7 +160,7 @@ class AccountCatalogueUpdateJpaAdapterUnitTest {
     void testUpdateAccountCatalogueUpdatesClassification() {
         // Arrange
         accountCatalogue.setClassification(ClassificationEnum.NONCURRENTASSETS);
-        when(accountCatalogueRepository.findById(ACCOUNT_ID)).thenReturn(Optional.of(accountEntity));
+        when(accountCatalogueRepository.findByIdAndIdEnterprise(ACCOUNT_ID, ENTERPRISE_ID)).thenReturn(accountEntity);
         when(accountCatalogueRepository.save(accountEntity)).thenReturn(accountEntity);
         when(accountCatalogueUpdateMapper.toAccountCatalogue(accountEntity)).thenReturn(accountCatalogue);
 
@@ -176,7 +176,7 @@ class AccountCatalogueUpdateJpaAdapterUnitTest {
     void testUpdateAccountCatalogueUpdatesFinancialStatus() {
         // Arrange
         accountCatalogue.setFinancialStatus(FinancialStatusEnum.INCOMESTATEMENT);
-        when(accountCatalogueRepository.findById(ACCOUNT_ID)).thenReturn(Optional.of(accountEntity));
+        when(accountCatalogueRepository.findByIdAndIdEnterprise(ACCOUNT_ID, ENTERPRISE_ID)).thenReturn(accountEntity);
         when(accountCatalogueRepository.save(accountEntity)).thenReturn(accountEntity);
         when(accountCatalogueUpdateMapper.toAccountCatalogue(accountEntity)).thenReturn(accountCatalogue);
 
@@ -192,7 +192,7 @@ class AccountCatalogueUpdateJpaAdapterUnitTest {
     void testUpdateAccountCatalogueUpdatesNature() {
         // Arrange
         accountCatalogue.setNature(NatureEnum.CREDIT);
-        when(accountCatalogueRepository.findById(ACCOUNT_ID)).thenReturn(Optional.of(accountEntity));
+        when(accountCatalogueRepository.findByIdAndIdEnterprise(ACCOUNT_ID, ENTERPRISE_ID)).thenReturn(accountEntity);
         when(accountCatalogueRepository.save(accountEntity)).thenReturn(accountEntity);
         when(accountCatalogueUpdateMapper.toAccountCatalogue(accountEntity)).thenReturn(accountCatalogue);
 
@@ -208,7 +208,7 @@ class AccountCatalogueUpdateJpaAdapterUnitTest {
     void testUpdateAccountCatalogueUpdatesCrossing() {
         // Arrange
         accountCatalogue.setCrossing(true);
-        when(accountCatalogueRepository.findById(ACCOUNT_ID)).thenReturn(Optional.of(accountEntity));
+        when(accountCatalogueRepository.findByIdAndIdEnterprise(ACCOUNT_ID, ENTERPRISE_ID)).thenReturn(accountEntity);
         when(accountCatalogueRepository.save(accountEntity)).thenReturn(accountEntity);
         when(accountCatalogueUpdateMapper.toAccountCatalogue(accountEntity)).thenReturn(accountCatalogue);
 
@@ -224,7 +224,7 @@ class AccountCatalogueUpdateJpaAdapterUnitTest {
     void testUpdateAccountCatalogueUpdatesCostCenter() {
         // Arrange
         accountCatalogue.setCostCenter(true);
-        when(accountCatalogueRepository.findById(ACCOUNT_ID)).thenReturn(Optional.of(accountEntity));
+        when(accountCatalogueRepository.findByIdAndIdEnterprise(ACCOUNT_ID, ENTERPRISE_ID)).thenReturn(accountEntity);
         when(accountCatalogueRepository.save(accountEntity)).thenReturn(accountEntity);
         when(accountCatalogueUpdateMapper.toAccountCatalogue(accountEntity)).thenReturn(accountCatalogue);
 
@@ -241,7 +241,7 @@ class AccountCatalogueUpdateJpaAdapterUnitTest {
         // Arrange
         BigDecimal newAmount = new BigDecimal("1000.50");
         accountCatalogue.setAmount(newAmount);
-        when(accountCatalogueRepository.findById(ACCOUNT_ID)).thenReturn(Optional.of(accountEntity));
+        when(accountCatalogueRepository.findByIdAndIdEnterprise(ACCOUNT_ID, ENTERPRISE_ID)).thenReturn(accountEntity);
         when(accountCatalogueRepository.save(accountEntity)).thenReturn(accountEntity);
         when(accountCatalogueUpdateMapper.toAccountCatalogue(accountEntity)).thenReturn(accountCatalogue);
 
@@ -260,7 +260,7 @@ class AccountCatalogueUpdateJpaAdapterUnitTest {
         // Arrange
         Integer originalUsageCount = 5;
         accountEntity.setUsageCount(originalUsageCount);
-        when(accountCatalogueRepository.findById(ACCOUNT_ID)).thenReturn(Optional.of(accountEntity));
+        when(accountCatalogueRepository.findByIdAndIdEnterprise(ACCOUNT_ID, ENTERPRISE_ID)).thenReturn(accountEntity);
         when(accountCatalogueRepository.save(accountEntity)).thenReturn(accountEntity);
         when(accountCatalogueUpdateMapper.toAccountCatalogue(accountEntity)).thenReturn(accountCatalogue);
 
@@ -276,7 +276,7 @@ class AccountCatalogueUpdateJpaAdapterUnitTest {
     void testUpdateAccountCataloguePreservesZeroUsageCount() {
         // Arrange
         accountEntity.setUsageCount(0);
-        when(accountCatalogueRepository.findById(ACCOUNT_ID)).thenReturn(Optional.of(accountEntity));
+        when(accountCatalogueRepository.findByIdAndIdEnterprise(ACCOUNT_ID, ENTERPRISE_ID)).thenReturn(accountEntity);
         when(accountCatalogueRepository.save(accountEntity)).thenReturn(accountEntity);
         when(accountCatalogueUpdateMapper.toAccountCatalogue(accountEntity)).thenReturn(accountCatalogue);
 
@@ -294,7 +294,7 @@ class AccountCatalogueUpdateJpaAdapterUnitTest {
     void testUpdateAccountCatalogueUpdatesCode() {
         // Arrange
         accountCatalogue.setCode(NEW_CODE);
-        when(accountCatalogueRepository.findById(ACCOUNT_ID)).thenReturn(Optional.of(accountEntity));
+        when(accountCatalogueRepository.findByIdAndIdEnterprise(ACCOUNT_ID, ENTERPRISE_ID)).thenReturn(accountEntity);
         when(accountCatalogueRepository.save(accountEntity)).thenReturn(accountEntity);
         when(accountCatalogueRepository.findByParentIdAndIdEnterprise(ACCOUNT_ID, ENTERPRISE_ID))
                 .thenReturn(Collections.emptyList());
@@ -311,7 +311,7 @@ class AccountCatalogueUpdateJpaAdapterUnitTest {
     @DisplayName("No debe buscar hijos cuando código no cambia")
     void testUpdateAccountCatalogueDoesNotSearchChildrenWhenCodeUnchanged() {
         // Arrange
-        when(accountCatalogueRepository.findById(ACCOUNT_ID)).thenReturn(Optional.of(accountEntity));
+        when(accountCatalogueRepository.findByIdAndIdEnterprise(ACCOUNT_ID, ENTERPRISE_ID)).thenReturn(accountEntity);
         when(accountCatalogueRepository.save(accountEntity)).thenReturn(accountEntity);
         when(accountCatalogueUpdateMapper.toAccountCatalogue(accountEntity)).thenReturn(accountCatalogue);
 
@@ -327,7 +327,7 @@ class AccountCatalogueUpdateJpaAdapterUnitTest {
     void testUpdateAccountCatalogueSearchesChildrenWhenCodeChanges() {
         // Arrange
         accountCatalogue.setCode(NEW_CODE);
-        when(accountCatalogueRepository.findById(ACCOUNT_ID)).thenReturn(Optional.of(accountEntity));
+        when(accountCatalogueRepository.findByIdAndIdEnterprise(ACCOUNT_ID, ENTERPRISE_ID)).thenReturn(accountEntity);
         when(accountCatalogueRepository.save(accountEntity)).thenReturn(accountEntity);
         when(accountCatalogueRepository.findByParentIdAndIdEnterprise(ACCOUNT_ID, ENTERPRISE_ID))
                 .thenReturn(Collections.emptyList());
@@ -348,7 +348,7 @@ class AccountCatalogueUpdateJpaAdapterUnitTest {
         // Arrange
         accountCatalogue.setCode(NEW_CODE);
         childEntity.setCode(CODE + "01");
-        when(accountCatalogueRepository.findById(ACCOUNT_ID)).thenReturn(Optional.of(accountEntity));
+        when(accountCatalogueRepository.findByIdAndIdEnterprise(ACCOUNT_ID, ENTERPRISE_ID)).thenReturn(accountEntity);
         when(accountCatalogueRepository.save(any(AccountCatalogueEntity.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
         when(accountCatalogueRepository.findByParentIdAndIdEnterprise(ACCOUNT_ID, ENTERPRISE_ID))
@@ -370,7 +370,7 @@ class AccountCatalogueUpdateJpaAdapterUnitTest {
         // Arrange
         accountCatalogue.setCode(NEW_CODE);
         childEntity.setCode(CODE + "01");
-        when(accountCatalogueRepository.findById(ACCOUNT_ID)).thenReturn(Optional.of(accountEntity));
+        when(accountCatalogueRepository.findByIdAndIdEnterprise(ACCOUNT_ID, ENTERPRISE_ID)).thenReturn(accountEntity);
         when(accountCatalogueRepository.save(any(AccountCatalogueEntity.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
         when(accountCatalogueRepository.findByParentIdAndIdEnterprise(ACCOUNT_ID, ENTERPRISE_ID))
@@ -398,7 +398,7 @@ class AccountCatalogueUpdateJpaAdapterUnitTest {
                 .build();
         childEntity.setCode(CODE + "01");
 
-        when(accountCatalogueRepository.findById(ACCOUNT_ID)).thenReturn(Optional.of(accountEntity));
+        when(accountCatalogueRepository.findByIdAndIdEnterprise(ACCOUNT_ID, ENTERPRISE_ID)).thenReturn(accountEntity);
         when(accountCatalogueRepository.save(any(AccountCatalogueEntity.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
         when(accountCatalogueRepository.findByParentIdAndIdEnterprise(ACCOUNT_ID, ENTERPRISE_ID))
@@ -431,7 +431,7 @@ class AccountCatalogueUpdateJpaAdapterUnitTest {
                 .idEnterprise(ENTERPRISE_ID)
                 .build();
 
-        when(accountCatalogueRepository.findById(ACCOUNT_ID)).thenReturn(Optional.of(accountEntity));
+        when(accountCatalogueRepository.findByIdAndIdEnterprise(ACCOUNT_ID, ENTERPRISE_ID)).thenReturn(accountEntity);
         when(accountCatalogueRepository.save(any(AccountCatalogueEntity.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
         when(accountCatalogueRepository.findByParentIdAndIdEnterprise(ACCOUNT_ID, ENTERPRISE_ID))
@@ -462,7 +462,7 @@ class AccountCatalogueUpdateJpaAdapterUnitTest {
                 .idEnterprise(ENTERPRISE_ID)
                 .build();
 
-        when(accountCatalogueRepository.findById(ACCOUNT_ID)).thenReturn(Optional.of(accountEntity));
+        when(accountCatalogueRepository.findByIdAndIdEnterprise(ACCOUNT_ID, ENTERPRISE_ID)).thenReturn(accountEntity);
         when(accountCatalogueRepository.save(any(AccountCatalogueEntity.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
         when(accountCatalogueRepository.findByParentIdAndIdEnterprise(ACCOUNT_ID, ENTERPRISE_ID))
@@ -490,7 +490,7 @@ class AccountCatalogueUpdateJpaAdapterUnitTest {
         childEntity.setCode("999901");
         String originalChildCode = childEntity.getCode();
 
-        when(accountCatalogueRepository.findById(ACCOUNT_ID)).thenReturn(Optional.of(accountEntity));
+        when(accountCatalogueRepository.findByIdAndIdEnterprise(ACCOUNT_ID, ENTERPRISE_ID)).thenReturn(accountEntity);
         when(accountCatalogueRepository.save(any(AccountCatalogueEntity.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
         when(accountCatalogueRepository.findByParentIdAndIdEnterprise(ACCOUNT_ID, ENTERPRISE_ID))
@@ -687,10 +687,10 @@ class AccountCatalogueUpdateJpaAdapterUnitTest {
     // ========== Tests de mapeo ==========
 
     @Test
-    @DisplayName("Debe llamar al mapper con entidad guardada")
+    @DisplayName("Debe llamar al mapper con entidad recargada")
     void testUpdateAccountCatalogueCallsMapperWithSavedEntity() {
         // Arrange
-        when(accountCatalogueRepository.findById(ACCOUNT_ID)).thenReturn(Optional.of(accountEntity));
+        when(accountCatalogueRepository.findByIdAndIdEnterprise(ACCOUNT_ID, ENTERPRISE_ID)).thenReturn(accountEntity);
         when(accountCatalogueRepository.save(accountEntity)).thenReturn(accountEntity);
         when(accountCatalogueUpdateMapper.toAccountCatalogue(accountEntity)).thenReturn(accountCatalogue);
 
@@ -709,7 +709,7 @@ class AccountCatalogueUpdateJpaAdapterUnitTest {
                 .id(99L)
                 .code("TEST")
                 .build();
-        when(accountCatalogueRepository.findById(ACCOUNT_ID)).thenReturn(Optional.of(accountEntity));
+        when(accountCatalogueRepository.findByIdAndIdEnterprise(ACCOUNT_ID, ENTERPRISE_ID)).thenReturn(accountEntity);
         when(accountCatalogueRepository.save(accountEntity)).thenReturn(accountEntity);
         when(accountCatalogueUpdateMapper.toAccountCatalogue(accountEntity)).thenReturn(expectedResult);
 
@@ -723,17 +723,17 @@ class AccountCatalogueUpdateJpaAdapterUnitTest {
     // ========== Tests de parámetros correctos ==========
 
     @Test
-    @DisplayName("Debe buscar por ID correcto")
+    @DisplayName("Debe buscar por ID y enterpriseId correctos")
     void testUpdateAccountCatalogueSearchesByCorrectId() {
         // Arrange
         Long specificId = 999L;
-        when(accountCatalogueRepository.findById(specificId)).thenReturn(Optional.empty());
+        when(accountCatalogueRepository.findByIdAndIdEnterprise(specificId, ENTERPRISE_ID)).thenReturn(null);
 
         // Act
         adapter.updateAccountCatalogue(specificId, accountCatalogue);
 
         // Assert
-        verify(accountCatalogueRepository).findById(specificId);
+        verify(accountCatalogueRepository).findByIdAndIdEnterprise(specificId, ENTERPRISE_ID);
     }
 
     @Test
@@ -743,7 +743,7 @@ class AccountCatalogueUpdateJpaAdapterUnitTest {
         String customEnterpriseId = "CUSTOM_ENT";
         accountCatalogue.setIdEnterprise(customEnterpriseId);
         accountCatalogue.setCode(NEW_CODE);
-        when(accountCatalogueRepository.findById(ACCOUNT_ID)).thenReturn(Optional.of(accountEntity));
+        when(accountCatalogueRepository.findByIdAndIdEnterprise(ACCOUNT_ID, customEnterpriseId)).thenReturn(accountEntity);
         when(accountCatalogueRepository.save(accountEntity)).thenReturn(accountEntity);
         when(accountCatalogueRepository.findByParentIdAndIdEnterprise(ACCOUNT_ID, customEnterpriseId))
                 .thenReturn(Collections.emptyList());

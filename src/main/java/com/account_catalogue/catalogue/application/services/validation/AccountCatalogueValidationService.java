@@ -44,15 +44,23 @@ public class AccountCatalogueValidationService {
             throw new InvalidAccountCodeException("El código de cuenta no puede estar vacío");
         }
 
+        String trimmedCode = code.trim();
+
         // Verificar que solo contenga dígitos
-        if (!Pattern.matches("^\\d+$", code.trim())) {
+        if (!Pattern.matches("^\\d+$", trimmedCode)) {
             throw new InvalidAccountCodeException("El código de cuenta debe contener solo dígitos");
         }
 
-        int length = code.trim().length();
+        int length = trimmedCode.length();
         if (length != 1 && length != 2 && length != 4 && length != 6 && length != 8) {
             throw new InvalidAccountCodeException(
                     "El código de cuenta debe tener exactamente 1, 2, 4, 6 u 8 dígitos. Longitud actual: " + length);
+        }
+
+        // Validar que códigos de 1 dígito no sean "0" (solo permitidos 1-9)
+        if (length == 1 && trimmedCode.equals("0")) {
+            throw new InvalidAccountCodeException(
+                    "El código de cuenta no puede ser 0. Los valores permitidos son del 1 al 9");
         }
     }
 

@@ -1,4 +1,4 @@
-package com.account_catalogue.unit.catalogue.services.importExport;
+package com.account_catalogue.unit.catalogue.application.services.importExport;
 
 import com.account_catalogue.catalogue.application.services.AccountCatalogueHierarchyProcessor;
 import com.account_catalogue.catalogue.application.services.importExport.AccountCatalogueAsyncImportProcessor;

@@ -1,4 +1,4 @@
-package com.account_catalogue.unit.catalogue.services.validation;
+package com.account_catalogue.unit.catalogue.application.services.validation;
 
 import com.account_catalogue.catalogue.application.services.validation.AccountCatalogueFileValidationService;
 import com.account_catalogue.catalogue.domain.utils.ImportConstants;

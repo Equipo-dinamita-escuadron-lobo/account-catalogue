@@ -1,4 +1,4 @@
-package com.account_catalogue.unit.catalogue.services;
+package com.account_catalogue.unit.catalogue.application.services;
 
 import com.account_catalogue.catalogue.application.output.IAccountCatalogueDeleteOutputPort;
 import com.account_catalogue.catalogue.application.output.IAccountCatalogueSearchOutputPort;

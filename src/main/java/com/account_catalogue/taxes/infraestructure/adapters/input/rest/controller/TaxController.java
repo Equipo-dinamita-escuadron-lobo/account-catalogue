@@ -57,14 +57,14 @@ public class TaxController {
     private final PaginationHelper paginationHelper;
 
     @PostMapping("/")
-    ResponseEntity<TaxCreateRes> createTax(@RequestBody @Valid TaxCreateReq taxCreateReq) {
+    public ResponseEntity<TaxCreateRes> createTax(@RequestBody @Valid TaxCreateReq taxCreateReq) {
         TaxDTO taxDTO = taxCreateRestMapper.toDomain(taxCreateReq);
         Tax tax = taxCreateInputPort.createTax(taxDTO);
         return ResponseEntity.ok(taxCreateRestMapper.toCreateResponse(tax));
     }
 
     @GetMapping("/{code}/{idEnterprise}")
-    ResponseEntity<TaxSearchRes> getTax(@PathVariable String code, @PathVariable String idEnterprise) {
+    public ResponseEntity<TaxSearchRes> getTax(@PathVariable String code, @PathVariable String idEnterprise) {
         Tax tax = taxSearchInputPort.getTax(code, idEnterprise);
         return ResponseEntity.ok(taxSearchRestMapper.toSearchResponse(tax));
     }
@@ -94,20 +94,20 @@ public class TaxController {
     }
 
     @GetMapping("/active/{idEnterprise}")
-    ResponseEntity<List<TaxSearchRes>> getActiveTaxes(@PathVariable String idEnterprise) {
+    public ResponseEntity<List<TaxSearchRes>> getActiveTaxes(@PathVariable String idEnterprise) {
         List<Tax> activeTaxes = taxSearchInputPort.getActiveTaxes(idEnterprise);
         return ResponseEntity.ok(taxSearchRestMapper.toSearchListResponse(activeTaxes));
     }
 
     @PutMapping("/{id}")
-    ResponseEntity<TaxUpdateRes> updateTax(@PathVariable long id, @RequestBody @Valid TaxUpdateReq taxUpdateReq) {
+    public ResponseEntity<TaxUpdateRes> updateTax(@PathVariable long id, @RequestBody @Valid TaxUpdateReq taxUpdateReq) {
         TaxDTO taxDTO = taxUpdateRestMapper.toDomain(taxUpdateReq);
         Tax tax = taxUpdateInputPort.update(taxDTO, id);
         return ResponseEntity.ok(taxUpdateRestMapper.toCreateResponse(tax));
     }
 
     @DeleteMapping("/{id}/{enterpriseId}")
-    ResponseEntity<String> deleteByCode(@PathVariable long id, @PathVariable String enterpriseId) {
+    public ResponseEntity<String> deleteByCode(@PathVariable long id, @PathVariable String enterpriseId) {
         if (taxDeleteInputPort.deleteByCode(id, enterpriseId)) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } else {
@@ -117,7 +117,7 @@ public class TaxController {
     }
 
     @PatchMapping("/changeState/{id}/{enterpriseId}")
-    ResponseEntity<TaxChangeStateRes> changeState(
+    public ResponseEntity<TaxChangeStateRes> changeState(
             @PathVariable Long id,
             @PathVariable String enterpriseId,
             @RequestParam Boolean status) {

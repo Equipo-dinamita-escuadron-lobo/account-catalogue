@@ -39,7 +39,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @RequiredArgsConstructor
-public class BankAccountServiceImpl implements IBankAccountService {
+public class BankAccountService implements IBankAccountService {
 
     private final BankAccountRepository repository;
     private final BankAccountDataMapper dataMapper;

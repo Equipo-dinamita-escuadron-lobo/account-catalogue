@@ -8,6 +8,7 @@ import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueInUseE
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @brief Servicio para operaciones de actualización de cuentas contables
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @AllArgsConstructor
+@Transactional
 public class AccountCatalogueUpdateService implements IAccountCatalogueUpdateInputPort {
 
     private final IAccountCatalogueUpdateOutputPort accountCatalogueUpdateOutputport;

@@ -53,7 +53,9 @@ import com.account_catalogue.catalogue.infraestructure.adapters.input.rest.mappe
 import com.account_catalogue.catalogue.infraestructure.utils.AccountCatalogueExcelFileNameGenerator;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
+import org.springframework.validation.annotation.Validated;
 
 /**
  * @brief Controlador REST para gestión completa del catálogo de cuentas
@@ -64,6 +66,7 @@ import lombok.AllArgsConstructor;
 @RequestMapping("/api/accountCatalogue")
 @RestController
 @AllArgsConstructor
+@Validated
 // @PreAuthorize("hasRole('admin_client')")
 public class AccountCatalogueController {
     private final IAccountCatalogueCreateInputPort accountCatalogueCreateInputPort;
@@ -202,7 +205,7 @@ public class AccountCatalogueController {
 
     @GetMapping("/export/excel")
     public ResponseEntity<Map<String, String>> exportAccountCatalogueAsync(
-            @RequestParam String entId,
+            @RequestParam @NotBlank(message = "El ID de empresa es requerido") String entId,
             @RequestParam(required = false) String companyName,
             @RequestParam(required = false) Boolean status) {
 
@@ -264,7 +267,7 @@ public class AccountCatalogueController {
     
     @PostMapping("/import/excel")
     public ResponseEntity<Map<String, String>> importFromExcel(
-            @RequestParam String entId,
+            @RequestParam @NotBlank(message = "El ID de empresa es requerido") String entId,
             @RequestParam MultipartFile file) {
 
 
@@ -285,7 +288,8 @@ public class AccountCatalogueController {
     }
 
     @GetMapping("/import/status/{jobId}")
-    public ResponseEntity<?> getImportStatus(@PathVariable String jobId) {
+    public ResponseEntity<?> getImportStatus(
+            @PathVariable @NotBlank(message = "El jobId es requerido") String jobId) {
 
         return accountCatalogueImportInputPort.getImportStatus(jobId)
                 .map(status -> {

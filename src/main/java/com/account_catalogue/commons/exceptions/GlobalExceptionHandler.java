@@ -3,6 +3,7 @@ package com.account_catalogue.commons.exceptions;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -18,6 +19,8 @@ import com.account_catalogue.commons.exceptions.catalogue.FileSizeExceededExcept
 import com.account_catalogue.commons.exceptions.catalogue.FileValidationException;
 
 import com.account_catalogue.catalogue.domain.utils.ImportConstants;
+
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 
 import org.springframework.data.mapping.PropertyReferenceException;
 
@@ -358,6 +361,43 @@ public class GlobalExceptionHandler {
 
         String propertyName = ex.getPropertyName();
         String message = String.format("El campo de ordenamiento '%s' no es válido", propertyName);
+
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.BAD_REQUEST.value())
+                .error("Bad Request")
+                .message(message)
+                .code(ErrorCode.GENERIC_ERROR.getCode())
+                .path(request.getDescription(false).replace("uri=", ""))
+                .build();
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    /**
+     * Maneja excepciones de deserialización JSON (valores inválidos para enums, tipos incorrectos).
+     */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(
+            HttpMessageNotReadableException ex, WebRequest request) {
+
+        String message = "Error en el formato del JSON enviado";
+        
+        Throwable cause = ex.getCause();
+        if (cause instanceof InvalidFormatException invalidFormatException) {
+            Class<?> targetType = invalidFormatException.getTargetType();
+            if (targetType != null && targetType.isEnum()) {
+                Object[] enumConstants = targetType.getEnumConstants();
+                String validValues = java.util.Arrays.stream(enumConstants)
+                        .map(Object::toString)
+                        .collect(java.util.stream.Collectors.joining(", "));
+                message = String.format("El valor '%s' no es válido. Valores permitidos: [%s]",
+                        invalidFormatException.getValue(), validValues);
+            } else {
+                message = String.format("El valor '%s' no es válido para el campo esperado",
+                        invalidFormatException.getValue());
+            }
+        }
 
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .timestamp(LocalDateTime.now())

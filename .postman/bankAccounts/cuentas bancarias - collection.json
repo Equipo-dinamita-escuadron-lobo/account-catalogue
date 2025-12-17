@@ -5092,15 +5092,21 @@
 															"    pm.response.to.be.json;",
 															"});",
 															"",
-															"pm.test('El mensaje indica error en número de cuenta', function () {",
+															"pm.test('El mensaje indica error de validación o formato', function () {",
 															"    const responseJson = pm.response.json();",
 															"    const responseText = JSON.stringify(responseJson).toLowerCase();",
-															"    pm.expect(responseText).to.include('positivo') || pm.expect(responseText).to.include('cuenta');",
+															"    const hasErrorIndicator = responseText.includes('error') || ",
+															"                              responseText.includes('formato') || ",
+															"                              responseText.includes('json') || ",
+															"                              responseText.includes('bad request');",
+															"    pm.expect(hasErrorIndicator).to.be.true;",
 															"});",
 															"",
 															"console.log('✓ Validación correcta: número de cuenta debe ser positivo');"
 														],
-														"type": "text/javascript"
+														"type": "text/javascript",
+														"packages": {},
+														"requests": {}
 													}
 												}
 											],

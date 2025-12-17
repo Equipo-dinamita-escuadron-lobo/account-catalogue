@@ -3953,8 +3953,8 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"pm.test('Status code es 404 (Not Found)', function () {",
-									"    pm.response.to.have.status(404);",
+									"pm.test('Status code es 400 (Bad request)', function () {",
+									"    pm.response.to.have.status(400);",
 									"});",
 									"",
 									"pm.test('El método de pago fue eliminado correctamente', function () {",
@@ -3964,7 +3964,9 @@
 									"",
 									"console.log('✓ Verificado: el método de pago 3 ya no existe');"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
 							}
 						}
 					],

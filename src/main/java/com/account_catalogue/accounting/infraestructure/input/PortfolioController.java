@@ -41,13 +41,14 @@ public class PortfolioController {
         return ResponseEntity.ok(portfolioSearchInputPort.findReceiptsByInvoiceId(invoiceId));
     }
 
-    @GetMapping("/aging-report/by-client/{clientId}")
+    @GetMapping("/aging-report")
     public ResponseEntity<List<PortfolioAgingAccountResponse>> getPortfolioAgingReport(
-            @PathVariable Long clientId,
+            @RequestParam(required = false) Long clientId, // Opcional para el modo consolidado
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate cutoffDate,
             @RequestParam String enterpriseId,
-            @RequestParam(required = false, defaultValue = "false") boolean includeDocuments){ 
+            @RequestParam(required = false, defaultValue = "false") boolean includeDocuments) {
 
-        return ResponseEntity.ok(portfolioSearchInputPort.getPortfolioAgingReport(clientId, cutoffDate, enterpriseId, includeDocuments));
+        return ResponseEntity.ok(
+                portfolioSearchInputPort.getPortfolioAgingReport(clientId, cutoffDate, enterpriseId, includeDocuments));
     }
 }

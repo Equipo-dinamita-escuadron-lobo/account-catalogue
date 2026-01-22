@@ -3,10 +3,13 @@ package com.account_catalogue.commons.exceptions;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueErrorCode;
@@ -16,6 +19,10 @@ import com.account_catalogue.commons.exceptions.catalogue.FileSizeExceededExcept
 import com.account_catalogue.commons.exceptions.catalogue.FileValidationException;
 
 import com.account_catalogue.catalogue.domain.utils.ImportConstants;
+
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+
+import org.springframework.data.mapping.PropertyReferenceException;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
@@ -111,6 +118,54 @@ public class GlobalExceptionHandler {
                 "error", errorResponse,
                 "violations", violations
         ), status);
+    }
+
+    /**
+     * Maneja excepciones cuando falta un parámetro de solicitud requerido.
+     */
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<ErrorResponse> handleMissingServletRequestParameterException(
+            MissingServletRequestParameterException ex, WebRequest request) {
+
+        String message = String.format("El parámetro '%s' es requerido", ex.getParameterName());
+
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.BAD_REQUEST.value())
+                .error("Bad Request")
+                .message(message)
+                .code(ErrorCode.GENERIC_ERROR.getCode())
+                .path(request.getDescription(false).replace("uri=", ""))
+                .build();
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    /**
+     * Maneja excepciones cuando un argumento de método no puede ser convertido al tipo esperado.
+     */
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleMethodArgumentTypeMismatchException(
+            MethodArgumentTypeMismatchException ex, WebRequest request) {
+
+        String paramName = ex.getName();
+        String value = ex.getValue() != null ? ex.getValue().toString() : "null";
+        Class<?> requiredType = ex.getRequiredType();
+        String typeName = requiredType != null ? requiredType.getSimpleName() : "desconocido";
+
+        String message = String.format("El valor '%s' no es válido para el parámetro '%s'. Se esperaba un valor de tipo %s",
+                value, paramName, typeName);
+
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.BAD_REQUEST.value())
+                .error("Bad Request")
+                .message(message)
+                .code(ErrorCode.GENERIC_ERROR.getCode())
+                .path(request.getDescription(false).replace("uri=", ""))
+                .build();
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
     /**
@@ -267,6 +322,93 @@ public class GlobalExceptionHandler {
                 .build();
 
         return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+    }
+
+    /**
+     * Maneja excepciones de argumentos ilegales (parámetros de paginación inválidos).
+     */
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(
+            IllegalArgumentException ex, WebRequest request) {
+
+        String message = ex.getMessage();
+        
+        // Mensajes específicos para errores de paginación
+        if (message != null && message.contains("Page index must not be less than zero")) {
+            message = "El índice de página no puede ser menor a cero";
+        } else if (message != null && message.contains("Page size must not be less than one")) {
+            message = "El tamaño de página debe ser mayor a cero";
+        }
+
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.BAD_REQUEST.value())
+                .error("Bad Request")
+                .message(message)
+                .code(ErrorCode.GENERIC_ERROR.getCode())
+                .path(request.getDescription(false).replace("uri=", ""))
+                .build();
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    /**
+     * Maneja excepciones de referencia de propiedad inválida (campos de ordenamiento inexistentes).
+     */
+    @ExceptionHandler(PropertyReferenceException.class)
+    public ResponseEntity<ErrorResponse> handlePropertyReferenceException(
+            PropertyReferenceException ex, WebRequest request) {
+
+        String propertyName = ex.getPropertyName();
+        String message = String.format("El campo de ordenamiento '%s' no es válido", propertyName);
+
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.BAD_REQUEST.value())
+                .error("Bad Request")
+                .message(message)
+                .code(ErrorCode.GENERIC_ERROR.getCode())
+                .path(request.getDescription(false).replace("uri=", ""))
+                .build();
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    /**
+     * Maneja excepciones de deserialización JSON (valores inválidos para enums, tipos incorrectos).
+     */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(
+            HttpMessageNotReadableException ex, WebRequest request) {
+
+        String message = "Error en el formato del JSON enviado";
+        
+        Throwable cause = ex.getCause();
+        if (cause instanceof InvalidFormatException invalidFormatException) {
+            Class<?> targetType = invalidFormatException.getTargetType();
+            if (targetType != null && targetType.isEnum()) {
+                Object[] enumConstants = targetType.getEnumConstants();
+                String validValues = java.util.Arrays.stream(enumConstants)
+                        .map(Object::toString)
+                        .collect(java.util.stream.Collectors.joining(", "));
+                message = String.format("El valor '%s' no es válido. Valores permitidos: [%s]",
+                        invalidFormatException.getValue(), validValues);
+            } else {
+                message = String.format("El valor '%s' no es válido para el campo esperado",
+                        invalidFormatException.getValue());
+            }
+        }
+
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.BAD_REQUEST.value())
+                .error("Bad Request")
+                .message(message)
+                .code(ErrorCode.GENERIC_ERROR.getCode())
+                .path(request.getDescription(false).replace("uri=", ""))
+                .build();
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
     /**

@@ -41,8 +41,9 @@ public interface IItemAccountCatalogueSearchMapper {
                 .crossing(accountCatalogueEntity.getCrossing())
                 .costCenter(accountCatalogueEntity.getCostCenter())
                 .status(accountCatalogueEntity.getStatus())
-                .salesTaxes(accountCatalogueEntity.getSalesTaxes())
-                .purchaseTaxes(accountCatalogueEntity.getPurchaseTaxes())
+                // Inicializar colecciones vacías para evitar null pointer exceptions
+                .salesTaxes(new ArrayList<>())
+                .purchaseTaxes(new ArrayList<>())
                 .amount(accountCatalogueEntity.getAmount())
                 .usageCount(accountCatalogueEntity.getUsageCount())
                 .parent(auxParent(
@@ -85,8 +86,9 @@ public interface IItemAccountCatalogueSearchMapper {
                 .crossing(accountCatalogueEntity.getCrossing())
                 .costCenter(accountCatalogueEntity.getCostCenter())
                 .status(accountCatalogueEntity.getStatus())
-                .salesTaxes(accountCatalogueEntity.getSalesTaxes())
-                .purchaseTaxes(accountCatalogueEntity.getPurchaseTaxes())
+                // Inicializar colecciones vacías para evitar null pointer exceptions
+                .salesTaxes(new ArrayList<>())
+                .purchaseTaxes(new ArrayList<>())
                 .usageCount(accountCatalogueEntity.getUsageCount())
                 .parent(auxParent(
                         accountCatalogueEntity.getParent() == null ? null : accountCatalogueEntity.getParent()))

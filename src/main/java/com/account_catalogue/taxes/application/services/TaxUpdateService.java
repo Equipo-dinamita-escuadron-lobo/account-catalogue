@@ -2,8 +2,12 @@ package com.account_catalogue.taxes.application.services;
 
 import com.account_catalogue.taxes.application.input.ITaxUpdateInputPort;
 import com.account_catalogue.taxes.application.output.ITaxUpdateOutputPort;
+import com.account_catalogue.taxes.application.output.ITaxSearchOutputPort;
 import com.account_catalogue.taxes.domain.DTO.TaxDTO;
 import com.account_catalogue.taxes.domain.models.Tax;
+import com.account_catalogue.commons.exceptions.taxes.TaxInUseException;
+
+import org.springframework.transaction.annotation.Transactional;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -20,6 +24,7 @@ import org.springframework.stereotype.Service;
 @Data
 public class TaxUpdateService implements ITaxUpdateInputPort {
     private final ITaxUpdateOutputPort taxUpdateOutputPort;
+    private final ITaxSearchOutputPort taxSearchOutputPort;
     private final TaxValidationService taxValidationService;
 
     /**
@@ -29,9 +34,18 @@ public class TaxUpdateService implements ITaxUpdateInputPort {
      * @return impuesto actualizado
      */
     @Override
+    @Transactional
     public Tax update(TaxDTO taxDTO, long id) {
         // Validar que el impuesto existe
         taxValidationService.validateTaxExists(id, taxDTO.getIdEnterprise());
+
+        // Obtener el impuesto para validar uso
+        Tax existingTax = taxSearchOutputPort.getTaxByIdAndEnterprise(id, taxDTO.getIdEnterprise());
+
+        // Validar que el impuesto no tenga movimientos contables registrados
+        if (existingTax.isInUse()) {
+            throw new TaxInUseException(existingTax.getCode(), true); // true indica operación de edición
+        }
 
         // Validar unicidad del código usando normalización, excluyendo el registro actual
         taxValidationService.validateTaxCodeNotExistsExcludingId(taxDTO.getCode(), taxDTO.getIdEnterprise(), id);

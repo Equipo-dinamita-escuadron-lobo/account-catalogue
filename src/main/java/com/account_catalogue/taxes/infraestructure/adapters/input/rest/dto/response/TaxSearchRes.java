@@ -23,4 +23,5 @@ public class TaxSearchRes {
     private String purchaseTax;
     private String salesTax;
     private Boolean status;
+    private Integer usageCount;
 }

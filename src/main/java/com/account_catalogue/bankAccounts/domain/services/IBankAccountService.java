@@ -74,4 +74,12 @@ public interface IBankAccountService {
      * @return Cuenta bancaria eliminada
      */
     BankAccount delete(Long id, String idEnterprise);
+
+    /**
+     * @brief Incrementa el contador de uso de una cuenta bancaria
+     * @param id ID de la cuenta bancaria
+     * @param enterpriseId ID de la empresa
+     * @param usageCount Nuevo valor del contador de uso
+     */
+    void updateUsageCount(Long id, String enterpriseId, Integer usageCount);
 }

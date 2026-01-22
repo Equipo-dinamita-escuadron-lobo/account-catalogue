@@ -3,6 +3,7 @@ package com.account_catalogue.paymentMethods.domain.services;
 import com.account_catalogue.commons.exceptions.paymentMethods.PaymentMethodsAlreadyExistsException;
 import com.account_catalogue.commons.exceptions.paymentMethods.PaymentMethodsNotFoundException;
 import com.account_catalogue.commons.exceptions.paymentMethods.InvalidAccountingAccountException;
+import com.account_catalogue.commons.exceptions.paymentMethods.PaymentMethodInUseException;
 import com.account_catalogue.catalogue.application.services.validation.AccountCatalogueValidationService;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
 import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.entity.AccountCatalogueEntity;
@@ -91,6 +92,12 @@ public class PaymentMethodServiceImpl implements IPaymentMethodService {
         // Implementa validaciones de unicidad excluyendo el registro actual
         PaymentMethodEntity current = repository.findByIdAndIdEnterprise(request.getId(), request.getIdEnterprise())
                 .orElseThrow(PaymentMethodsNotFoundException::new);
+
+        // Validar que el método de pago no tenga movimientos contables registrados
+        PaymentMethod domain = dataMapper.toDomain(current);
+        if (domain.isInUse()) {
+            throw new PaymentMethodInUseException(current.getName(), true); // true indica operación de edición
+        }
 
         // Validar que la nueva cuenta contable existe y es auxiliar (si se está cambiando)
         AccountCatalogue newAccount = accountCatalogueValidationService.validateAccountExistsByIdAndEnterprise(
@@ -200,7 +207,12 @@ public class PaymentMethodServiceImpl implements IPaymentMethodService {
         PaymentMethodEntity current = repository.findByIdAndIdEnterprise(id, idEnterprise)
                 .orElseThrow(PaymentMethodsNotFoundException::new);
 
+        // Validar que el método de pago no tenga movimientos contables registrados
         PaymentMethod domain = dataMapper.toDomain(current);
+        if (domain.isInUse()) {
+            throw new PaymentMethodInUseException(current.getName(), false); // false indica operación de eliminación
+        }
+
         repository.delete(current);
         return domain;
     }

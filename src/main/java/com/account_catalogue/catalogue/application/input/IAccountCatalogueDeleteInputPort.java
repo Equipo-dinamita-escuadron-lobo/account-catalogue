@@ -3,7 +3,7 @@ package com.account_catalogue.catalogue.application.input;
 /**
  * @brief Puerto de entrada para operaciones de eliminación de cuentas contables
  *
- * Define el contrato para eliminar cuentas del catálogo mediante soft delete.
+ * Define el contrato para eliminar cuentas del catálogo.
  */
 public interface IAccountCatalogueDeleteInputPort {
     /**

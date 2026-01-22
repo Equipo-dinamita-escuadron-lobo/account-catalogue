@@ -8,6 +8,7 @@ import com.account_catalogue.taxes.domain.models.Tax;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @brief Servicio de aplicación para creación de impuestos
@@ -28,6 +29,7 @@ public class TaxCreateService implements ITaxCreateInputPort {
      * @return impuesto creado
      */
     @Override
+    @Transactional
     public Tax createTax(TaxDTO tax) {
         // Validar unicidad del código usando normalización
         taxValidationService.validateTaxCodeNotExists(tax.getCode(), tax.getIdEnterprise());

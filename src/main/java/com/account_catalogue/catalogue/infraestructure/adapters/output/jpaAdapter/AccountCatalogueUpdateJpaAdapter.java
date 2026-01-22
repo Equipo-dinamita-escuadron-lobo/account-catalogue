@@ -50,7 +50,7 @@ public class AccountCatalogueUpdateJpaAdapter implements IAccountCatalogueUpdate
     @Override
     @Transactional
     public AccountCatalogue updateAccountCatalogue(long id, AccountCatalogue accountCatalogue) {
-        AccountCatalogueEntity accountCatalogueEntity = accountCatalogueRepository.findById(Long.valueOf(id)).orElse(null);
+        AccountCatalogueEntity accountCatalogueEntity = accountCatalogueRepository.findByIdAndIdEnterprise(id, accountCatalogue.getIdEnterprise());
 
         if(accountCatalogueEntity == null){
             return null;
@@ -83,7 +83,13 @@ public class AccountCatalogueUpdateJpaAdapter implements IAccountCatalogueUpdate
             updateChildrenCodes(accountCatalogueEntity.getId(), oldCode, newCode, accountCatalogue.getIdEnterprise());
         }
 
-        return accountCatalogueUpdateMapper.toAccountCatalogue(accountCatalogueEntity);
+        // Recargar la entidad con JOIN FETCH para evitar LazyInitializationException en el mapper
+        AccountCatalogueEntity savedEntity = accountCatalogueRepository.findByIdAndIdEnterprise(
+            accountCatalogueEntity.getId(), 
+            accountCatalogue.getIdEnterprise()
+        );
+
+        return accountCatalogueUpdateMapper.toAccountCatalogue(savedEntity);
     }
 
     /**

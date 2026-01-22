@@ -57,6 +57,10 @@ public class TaxEntity {
     @Builder.Default
     private Boolean status = true;
 
+    @Column(name = "usage_count", nullable = false)
+    @Builder.Default
+    private Integer usageCount = 0;
+
     @TenantId
     String tenantId;
 }

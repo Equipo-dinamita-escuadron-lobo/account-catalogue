@@ -15,6 +15,7 @@ public enum AccountCatalogueErrorCode implements ErrorCodeDefinition {
     ACCOUNT_DESCRIPTION_ALREADY_EXISTS("ACCOUNT_DESCRIPTION_ALREADY_EXISTS", "Ya existe una cuenta con esta descripción"),
     INVALID_ACCOUNT_CODE("INVALID_ACCOUNT_CODE", "Código de cuenta inválido"),
     ACCOUNT_HAS_CHILDREN("ACCOUNT_HAS_CHILDREN", "La cuenta tiene subcuentas asociadas"),
+    ACCOUNT_IN_USE("ACCOUNT_IN_USE", "No se puede modificar o eliminar una cuenta contable que tiene movimientos registrados"),
     PARENT_ACCOUNT_NOT_FOUND("PARENT_ACCOUNT_NOT_FOUND", "Cuenta padre no encontrada"),
     ACCOUNT_ASSOCIATED_WITH_TAX("ACCOUNT_ASSOCIATED_WITH_TAX", "La cuenta está asociada a uno o más impuestos"),
     ACCOUNT_ASSOCIATED_WITH_BANK_ACCOUNT("ACCOUNT_ASSOCIATED_WITH_BANK_ACCOUNT", "La cuenta está asociada a una o más cuentas bancarias"),

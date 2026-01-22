@@ -1,6 +1,7 @@
 package com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.entity;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import org.hibernate.annotations.Formula;
 import org.hibernate.annotations.TenantId;
@@ -54,13 +55,16 @@ public class AccountCatalogueEntity {
     private AccountCatalogueEntity parent;
 
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<AccountCatalogueEntity> children;
+    @Builder.Default
+    private List<AccountCatalogueEntity> children = new ArrayList<>();
 
    @OneToMany(mappedBy = "salesTax", fetch = FetchType.LAZY)
-   private List<TaxEntity> salesTaxes;
+   @Builder.Default
+   private List<TaxEntity> salesTaxes = new ArrayList<>();
 
    @OneToMany(mappedBy = "purchaseTax", fetch = FetchType.LAZY)
-   private List<TaxEntity>  purchaseTaxes;
+   @Builder.Default
+   private List<TaxEntity> purchaseTaxes = new ArrayList<>();
 
     private String idEnterprise;
 

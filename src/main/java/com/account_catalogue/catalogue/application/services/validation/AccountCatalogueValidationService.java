@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 
 import com.account_catalogue.bankAccounts.dataAccess.repository.BankAccountRepository;
 import com.account_catalogue.paymentMethods.dataAccess.repository.PaymentMethodRepository;
+import com.account_catalogue.taxes.infraestructure.adapters.output.jpaAdapters.repository.ITaxRepository;
 import com.account_catalogue.catalogue.application.output.IAccountCatalogueSearchOutputPort;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
 import com.account_catalogue.catalogue.domain.enums.FinancialStatusEnum;
@@ -31,6 +32,7 @@ public class AccountCatalogueValidationService {
     private final IAccountCatalogueSearchOutputPort accountCatalogueSearchOutputPort;
     private final BankAccountRepository bankAccountRepository;
     private final PaymentMethodRepository paymentMethodRepository;
+    private final ITaxRepository taxRepository;
 
     /**
      * @brief Valida código de cuenta según reglas de negocio (longitud específica)     *
@@ -42,15 +44,23 @@ public class AccountCatalogueValidationService {
             throw new InvalidAccountCodeException("El código de cuenta no puede estar vacío");
         }
 
+        String trimmedCode = code.trim();
+
         // Verificar que solo contenga dígitos
-        if (!Pattern.matches("^\\d+$", code.trim())) {
+        if (!Pattern.matches("^\\d+$", trimmedCode)) {
             throw new InvalidAccountCodeException("El código de cuenta debe contener solo dígitos");
         }
 
-        int length = code.trim().length();
+        int length = trimmedCode.length();
         if (length != 1 && length != 2 && length != 4 && length != 6 && length != 8) {
             throw new InvalidAccountCodeException(
                     "El código de cuenta debe tener exactamente 1, 2, 4, 6 u 8 dígitos. Longitud actual: " + length);
+        }
+
+        // Validar que códigos de 1 dígito no sean "0" (solo permitidos 1-9)
+        if (length == 1 && trimmedCode.equals("0")) {
+            throw new InvalidAccountCodeException(
+                    "El código de cuenta no puede ser 0. Los valores permitidos son del 1 al 9");
         }
     }
 
@@ -136,14 +146,13 @@ public class AccountCatalogueValidationService {
      * @throws AccountCatalogueAssociatedWithTaxException si tiene asociaciones con impuestos
      */
     public void validateAccountNotAssociatedWithTaxes(AccountCatalogue account) {
-        boolean hasSalesTaxes = account.getSalesTaxes() != null && !account.getSalesTaxes().isEmpty();
-        boolean hasPurchaseTaxes = account.getPurchaseTaxes() != null && !account.getPurchaseTaxes().isEmpty();
+        // Consultar directamente la base de datos para verificar si hay impuestos asociados
+        boolean hasAssociatedTaxes = taxRepository.existsBySalesTaxCodeOrPurchaseTaxCode(account.getCode(), account.getIdEnterprise());
 
-        if (hasSalesTaxes || hasPurchaseTaxes) {
-
+        if (hasAssociatedTaxes) {
             throw new AccountCatalogueAssociatedWithTaxException(
-                    "No se puede eliminar la cuenta '" + account.getCode()
-                            + "' porque está asociada a uno o más impuestos.");
+                    "No se puede eliminar la cuenta " + account.getCode()
+                            + " porque está asociada a uno o más impuestos.");
         }
     }
 

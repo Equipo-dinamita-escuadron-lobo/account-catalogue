@@ -4,9 +4,11 @@ import com.account_catalogue.catalogue.application.input.IAccountCatalogueUpdate
 import com.account_catalogue.catalogue.application.output.IAccountCatalogueUpdateOutputPort;
 import com.account_catalogue.catalogue.application.services.validation.AccountCatalogueValidationService;
 import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
+import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueInUseException;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @brief Servicio para operaciones de actualización de cuentas contables
@@ -16,6 +18,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @AllArgsConstructor
+@Transactional
 public class AccountCatalogueUpdateService implements IAccountCatalogueUpdateInputPort {
 
     private final IAccountCatalogueUpdateOutputPort accountCatalogueUpdateOutputport;
@@ -31,6 +34,11 @@ public class AccountCatalogueUpdateService implements IAccountCatalogueUpdateInp
     public AccountCatalogue updateAccountCatalogue(long id, AccountCatalogue accountCatalogue) {
         // Validar que la cuenta a actualizar existe
         AccountCatalogue existingAccount = validationService.validateAccountExistsByIdAndEnterprise(id, accountCatalogue.getIdEnterprise());
+
+        // Validar que la cuenta no tenga movimientos contables registrados
+        if (existingAccount.isInUse()) {
+            throw new AccountCatalogueInUseException(existingAccount.getCode(), true); // true indica operación de edición
+        }
 
         // Verificar que el idEnterprise esté establecido
         if (accountCatalogue.getIdEnterprise() == null || accountCatalogue.getIdEnterprise().trim().isEmpty()) {

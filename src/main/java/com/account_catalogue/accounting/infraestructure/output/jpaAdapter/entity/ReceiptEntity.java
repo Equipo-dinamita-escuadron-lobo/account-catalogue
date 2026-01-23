@@ -72,6 +72,9 @@ public class ReceiptEntity {
     @Column(length = 20, nullable = false)
     private ProcessingStatus processingStatus; // <-- CAMPO AÑADIDO
 
+    @Column(name = "center_cost_id") 
+    private Long centerCostId;
+
     @OneToMany(mappedBy = "receipt", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<ReceiptDetailEntity> details;
 

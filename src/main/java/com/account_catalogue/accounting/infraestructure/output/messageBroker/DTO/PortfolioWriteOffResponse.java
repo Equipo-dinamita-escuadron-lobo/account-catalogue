@@ -23,5 +23,6 @@ public class PortfolioWriteOffResponse {
     private Long thirdId;
     private WriteOffStatus status;
     private String enterpriseId;
+    private Long centerCostId;
     private List<WriteOffDetailResponse> details; // Lista de detalles enriquecidos
 }

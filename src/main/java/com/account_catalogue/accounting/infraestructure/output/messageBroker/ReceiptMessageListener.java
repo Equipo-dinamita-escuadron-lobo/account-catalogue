@@ -1,56 +1,73 @@
 package com.account_catalogue.accounting.infraestructure.output.messageBroker;
 
+import org.apache.commons.math3.analysis.function.Abs;
 import org.springframework.amqp.AmqpRejectAndDontRequeueException;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.support.AmqpHeaders;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
 
 import com.account_catalogue.accounting.application.input.IReceiptProcessInputPort;
+import com.account_catalogue.accounting.domain.exception.ValidationException;
 import com.account_catalogue.accounting.domain.models.Receipt;
+import com.account_catalogue.accounting.domain.ports.IMessageErrorHandlingPort;
 import com.account_catalogue.accounting.infraestructure.output.messageBroker.DTO.EventDTO;
 import com.account_catalogue.accounting.infraestructure.output.messageBroker.DTO.ReceiptEventDTO;
+import com.account_catalogue.accounting.infraestructure.output.messageBroker.base.AbstractMessageListener;
 import com.account_catalogue.accounting.infraestructure.output.messageBroker.mapper.IReceiptEventMapper;
+import com.account_catalogue.accounting.infraestructure.output.messageBroker.utils.JsonUtils;
 import com.account_catalogue.accounting.infraestructure.config.ReceiptRabbitConfig;
 import com.rabbitmq.client.Channel;
 
+import jakarta.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Component
 @AllArgsConstructor
 @Slf4j
-public class ReceiptMessageListener {
+public class ReceiptMessageListener extends AbstractMessageListener<EventDTO<ReceiptEventDTO>> {
     private final IReceiptProcessInputPort receiptProcessInputPort;
     private final IReceiptEventMapper receiptEventMapper;
+    
+    @Qualifier("messageErrorHandlingAdapter")
+    private final IMessageErrorHandlingPort messageErrorHandlingPortImpl;
 
-    /**
-     * Escucha en la cola de recibos. Spring AMQP, gracias al Jackson2JsonMessageConverter,
-     * deserializará automáticamente el cuerpo del mensaje JSON al objeto EventDTO<ReceiptEventDTO>.
-     * ¡No necesitamos usar ObjectMapper manualmente!
-     */
+    @PostConstruct
+    private void init() {
+        this.messageErrorHandlingPort = messageErrorHandlingPortImpl;
+    }
+
     @RabbitListener(queues = ReceiptRabbitConfig.RECEIPT_ACCOUNTING_QUEUE)
-    public void processReceiptEvent(EventDTO<ReceiptEventDTO> event, 
-        Message message, Channel channel,
-        @Header(AmqpHeaders.DELIVERY_TAG) long deliveryTag) {
-        String eventType = event.getType();
-        ReceiptEventDTO receiptDTO = event.getData();
-        
-        // Validamos que la data no sea nulo para evitar NullPointerException
-        if (receiptDTO == null) {
-            log.error("Evento recibido con data nula. Tipo de evento: {}. El mensaje será descartado.", eventType);
-            // No hacemos requeue porque el mensaje está malformado.
-            throw new AmqpRejectAndDontRequeueException("Data del evento es nula");
-        }
-        
-        log.info("Evento recibido: '{}' para el recibo: {}", eventType, receiptDTO.getReceiptCode());
+    public void processReceiptEvent(EventDTO<ReceiptEventDTO> event, Channel channel, @Header(AmqpHeaders.DELIVERY_TAG) long deliveryTag) {
+        log.info("Evento recibido: '{}' para el recibo: {}",
+                event.getType(),
+                event.getData() != null ? event.getData().getReceiptCode() : "N/A");
+        handleMessage(event, channel, deliveryTag);
+    }
 
+    @Override
+    protected void validateEvent(EventDTO<ReceiptEventDTO> event) throws ValidationException {
+        if (event == null) throw new ValidationException("Validation failed: Event is null");
+        if (event.getData() == null) throw new ValidationException("Validation failed: Event data is null");
+        if (event.getType() == null) throw new ValidationException("Validation failed: Event type is null");
+        
+        ReceiptEventDTO data = event.getData();
+        if (data.getReceiptCode() == null || data.getReceiptCode().isBlank()) throw new ValidationException("Validation failed: ReceiptCode is null or blank");
+        if (data.getThirdPartyId() == null) throw new ValidationException("Validation failed: ThirdPartyId is null");
+        if (data.getEnterpriseId() == null) throw new ValidationException("Validation failed: EnterpriseId is null");
+        if (data.getStatus() == null) throw new ValidationException("Validation failed: Status is null");
+        if (data.getDetails() == null || data.getDetails().isEmpty()) throw new ValidationException("Validation failed: Details list is null or empty");
+    }
+
+    @Override
+    protected void processEvent(EventDTO<ReceiptEventDTO> event) {
+        ReceiptEventDTO receiptDTO = event.getData();
         try {
             Receipt receipt = receiptEventMapper.toDomain(receiptDTO);
-
-            // 2. Invocar el caso de uso apropiado de la aplicación basado en el tipo de evento
-            switch (eventType) {
+            switch (event.getType()) {
                 case "RECEIPT_CREATED":
                     receiptProcessInputPort.processReceiptCreation(receipt);
                     break;
@@ -58,17 +75,29 @@ public class ReceiptMessageListener {
                     receiptProcessInputPort.processReceiptVoid(receipt);
                     break; 
                 default:
-                    log.warn("Tipo de evento no soportado: '{}'. El mensaje será ignorado.", eventType);
+                    log.warn("Tipo de evento no soportado: '{}'. El mensaje será ignorado.", event.getType());
                     break;
             }
-
             log.info("Recibo {} procesado exitosamente.", receiptDTO.getReceiptCode());
-            channel.basicAck(deliveryTag, false);
-
         } catch (Exception e) {
-            log.error("Error al procesar el evento para el recibo {}. Mensaje será enviado a DLQ.", receiptDTO.getReceiptCode(), e);
-            // Lanzamos esta excepción para que RabbitMQ mueva el mensaje a la DLQ
-            throw new AmqpRejectAndDontRequeueException("Error de procesamiento de negocio", e);
+            log.error("Error al procesar el evento para el recibo {}.", receiptDTO.getReceiptCode(), e);
+            throw e;
         }
+    }
+
+    @Override
+    protected String getEntityType() { return "Receipt"; }
+
+    @Override
+    protected String extractEventType(EventDTO<ReceiptEventDTO> event) {
+        return event != null ? event.getType() : "unknown";
+    }
+
+    @Override
+    protected String convertEventToJson(EventDTO<ReceiptEventDTO> event) {
+        if (event == null || event.getData() == null) {
+            return "{\"error\": \"Event or event data is null\"}";
+        }
+        return JsonUtils.receiptDtoToJsonWithNullHandling(event.getData());
     }
 }

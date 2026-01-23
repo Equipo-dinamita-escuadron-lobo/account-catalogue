@@ -33,6 +33,7 @@ public class Receipt {
     private BigDecimal totalAmount;
     private String observations;
     private Long ledgerAccountId; //se recibe codigo
+    private Long centerCostId;
     private List<ReceiptDetail> details;
     private ProcessingStatus processingStatus;
 
@@ -93,6 +94,7 @@ public class Receipt {
                 .sourceDocumentId(this.id) // Importante: usamos el ID del recibo ya guardado
                 .type(SourceDocumentType.RECEIPT.name())
                 .idEnterprise(this.enterpriseId)
+                .centerCostId(this.centerCostId) // Aquí podríamos asignar un centro de costo si es necesario
                 .movements(movements)
                 .build();
     }

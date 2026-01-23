@@ -52,6 +52,9 @@ public class AccountingEntryEntity {
 
     @Column(name = "type", nullable = false, length = 50)
     private String type; 
+
+    @Column(name = "center_cost_id")
+    private Long centerCostId;
     
     @OneToMany(mappedBy = "accountingEntry", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<AccountingMovementEntity> movements;

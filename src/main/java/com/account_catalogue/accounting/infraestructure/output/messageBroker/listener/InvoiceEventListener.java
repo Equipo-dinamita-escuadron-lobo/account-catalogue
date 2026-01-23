@@ -1,11 +1,12 @@
 package com.account_catalogue.accounting.infraestructure.output.messageBroker.listener;
 
 import com.account_catalogue.accounting.application.input.IInvoiceProcessInputPort;
+import com.account_catalogue.accounting.domain.exception.ValidationException;
 import com.account_catalogue.accounting.domain.models.InvoiceReplica;
 import com.account_catalogue.accounting.domain.ports.IEventRecoveryActionPort;
 import com.account_catalogue.accounting.domain.ports.IMessageErrorHandlingPort;
 import com.account_catalogue.accounting.infraestructure.output.messageBroker.adapter.InvoicePersistenceAdapter;
-import com.account_catalogue.commons.config.base.AbstractMessageListener;
+import com.account_catalogue.accounting.infraestructure.output.messageBroker.base.AbstractMessageListener;
 import com.account_catalogue.accounting.infraestructure.output.messageBroker.mapper.IInvoiceEventMapper;
 import com.account_catalogue.accounting.infraestructure.output.messageBroker.utils.JsonUtils;
 import com.account_catalogue.accounting.infraestructure.config.RabbitConfig;
@@ -101,71 +102,23 @@ public class InvoiceEventListener extends AbstractMessageListener<EventDTO<Invoi
     /**
      * @brief Validates invoice event data integrity
      * @param event Invoice event to validate
-     * @return True if event is valid, false otherwise
      */
     @Override
-    protected boolean isValidEvent(EventDTO<InvoiceSyncDto> event) {
-        if (event == null) {
-            log.warn("Event is null");
-            return false;
-        }
-        if (event.getData() == null) {
-            log.warn("Event data is null");
-            return false;
-        }
-        if (event.getType() == null) {
-            log.warn("Event type is null");
-            return false;
-        }
-
-        // Validar campos obligatorios
+    protected void validateEvent(EventDTO<InvoiceSyncDto> event) throws ValidationException {
+        if (event == null) throw new ValidationException("Validation failed: Event is null");
+        if (event.getData() == null) throw new ValidationException("Validation failed: Event data is null");
+        if (event.getType() == null) throw new ValidationException("Validation failed: Event type is null");
+        
         InvoiceSyncDto data = event.getData();
-        if (data.getFactCode() == null) {
-            log.warn("FactCode is null");
-            return false;
-        }
-
-        if (data.getAccountingAccount() == null) {
-            log.warn("AccountingAccount is null");
-            return false;
-        }
-
-        if (data.getEntId() == null) {
-            log.warn("EnterpriseId is null");
-            return false;
-        }
-
-        if (data.getExpirationDate() == null) {
-            log.warn("ExpirationDate is null");
-            return false;
-        }
-
-        if (data.getPendingValue() == null) {
-            log.warn("PendingValue is null");
-            return false;
-        }
-
-        if (data.getThirdId() == null) {
-            log.warn("ThirdId is null");
-            return false;
-        }
-
-        if (data.getTotalPay() == null) {
-            log.warn("TotalPay is null");
-            return false;
-        }
-
-        if (data.getTotalValue() == null) {
-            log.warn("TotalValue is null");
-            return false;
-        }
-
-        if (data.getCreationDate() == null) {
-            log.warn("CreationDate is null");
-            return false;
-        }
-
-        return true;
+        if (data.getFactCode() == null) throw new ValidationException("Validation failed: FactCode is null");
+        if (data.getAccountingAccount() == null) throw new ValidationException("Validation failed: AccountingAccount is null");
+        if (data.getEntId() == null) throw new ValidationException("Validation failed: EntId is null");
+        if (data.getExpirationDate() == null) throw new ValidationException("Validation failed: ExpirationDate is null");
+        if (data.getPendingValue() == null) throw new ValidationException("Validation failed: PendingValue is null");
+        if (data.getThirdId() == null) throw new ValidationException("Validation failed: ThirdId is null");
+        if (data.getTotalPay() == null) throw new ValidationException("Validation failed: TotalPay is null");
+        if (data.getTotalValue() == null) throw new ValidationException("Validation failed: TotalValue is null");
+        if (data.getCreationDate() == null) throw new ValidationException("Validation failed: CreationDate is null");
     }
 
     @Override
@@ -193,6 +146,6 @@ public class InvoiceEventListener extends AbstractMessageListener<EventDTO<Invoi
                     (event.getType() != null ? event.getType() : "null") + "\"}";
         }
 
-        return JsonUtils.toJsonWithNullHandling(event.getData());
+        return JsonUtils.invoiceDtoToJsonWithNullHandling(event.getData());
     }
 }

@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
  * Persists error information when message processing fails,
  * providing audit trail and debugging capabilities.
  */
+
 @Repository
 @RequiredArgsConstructor
 @Slf4j

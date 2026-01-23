@@ -1,12 +1,15 @@
 package com.account_catalogue.commons.security;
 
+import org.springframework.stereotype.Component;
+
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.lang.NonNull;
@@ -17,9 +20,17 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtClaimNames;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
-import org.springframework.stereotype.Component;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.lang.NonNull;
 
+/**
+ * Clase que implementa la conversión de un JWT en un token de autenticación.
+ * También proporciona métodos utilitarios relacionados con JWT.
+ */
 @Component
+@Slf4j
 public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationToken>, IJwtUtils {
 
     private final JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
@@ -27,10 +38,7 @@ public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationTo
     @Value("${jwt.auth.converter.principle-attribute}")
     private String principleAtrribute;
 
-    @Value("${jwt.auth.converter.resource-id}")
-    private String resourceId;
-
-    Jwt jwtToken;
+    private Jwt jwtToken;
 
     /**
      * Convierte un JWT en un token de autenticación.
@@ -94,20 +102,19 @@ public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationTo
         return authorities;
     }
 
-    /**
+     /**
      * Devuelve el valor del claim "sub" del JWT, que se
      * utiliza como identificador del usuario autenticado.
      * 
      * @return el identificador del usuario autenticado
      */
-    @Override
-    public String getId() {
-        return (String) jwtToken.getClaims().get("sub");
-    }
-
-    @Override
-    public String getToken() {
-        return jwtToken.getTokenValue();
-    }
-    
+     @Override
+     public String getId() {
+         return (String) jwtToken.getClaims().get("sub");
+     }
+ 
+     @Override
+     public String getToken() {
+         return jwtToken.getTokenValue();
+     }
 }

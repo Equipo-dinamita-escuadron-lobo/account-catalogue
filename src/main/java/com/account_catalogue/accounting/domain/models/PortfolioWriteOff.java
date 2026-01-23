@@ -30,6 +30,7 @@ public class PortfolioWriteOff {
     private Long thirdId;
     private WriteOffStatus status;
     private String enterpriseId;
+    private Long centerCostId;
     private List<WriteOffDetail> details;
     private ProcessingStatus processingStatus;
 
@@ -75,6 +76,7 @@ public AccountingEntry generateAccountingEntry(Function<Long, AccountCatalogue> 
             .sourceDocumentId(this.originalWriteOffId)
             .type(SourceDocumentType.PORTFOLIO_WRITEOFF.name())
             .idEnterprise(this.enterpriseId)
+            .centerCostId(this.centerCostId)
             .movements(movements)
             .build();
 }

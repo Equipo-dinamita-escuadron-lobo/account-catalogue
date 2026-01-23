@@ -1,8 +1,5 @@
 package com.account_catalogue.accounting.application.service;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -13,11 +10,9 @@ import com.account_catalogue.accounting.application.output.IAccountingEntryPersi
 import com.account_catalogue.accounting.application.output.IAccountingSearchOutputPort;
 import com.account_catalogue.accounting.application.output.IInvoiceProviderPort;
 import com.account_catalogue.accounting.application.output.IReceiptPersistenceOutputPort;
-import com.account_catalogue.accounting.domain.enums.AccountingEntryStatus;
 import com.account_catalogue.accounting.domain.enums.ProcessingStatus;
 import com.account_catalogue.accounting.domain.enums.SourceDocumentType;
 import com.account_catalogue.accounting.domain.models.AccountingEntry;
-import com.account_catalogue.accounting.domain.models.AccountingMovement;
 import com.account_catalogue.accounting.domain.models.InvoiceReplica;
 import com.account_catalogue.accounting.domain.models.Receipt;
 import com.account_catalogue.accounting.domain.models.ReceiptDetail;

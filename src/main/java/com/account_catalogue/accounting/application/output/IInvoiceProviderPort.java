@@ -50,4 +50,10 @@ public interface IInvoiceProviderPort {
      * @return Una lista de objetos de dominio InvoiceReplica que pertenecen a la empresa especificada.
      */
     List<InvoiceReplica> findInvoicesByEnterpriseId(String enterpriseId);
+
+    /**
+     * Obtiene todas las facturas con saldo pendiente de una empresa (para reporte consolidado).
+     */
+    List<InvoiceReplica> findPendingInvoicesByEnterpriseId(String enterpriseId);
+
 }

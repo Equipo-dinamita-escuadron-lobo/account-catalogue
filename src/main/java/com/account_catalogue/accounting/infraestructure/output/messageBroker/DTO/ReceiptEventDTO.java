@@ -27,5 +27,6 @@ public class ReceiptEventDTO {
     private BigDecimal totalAmount;
     private String observations;
     private Long ledgerAccountId;
+    private Long centerCostId;
     private List<ReceiptDetailEventDTO> details;
 }

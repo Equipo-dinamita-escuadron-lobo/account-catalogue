@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import com.account_catalogue.accounting.application.input.IPortfolioSearchInputPort;
 import com.account_catalogue.accounting.application.output.IAccountingSearchOutputPort;
+import com.account_catalogue.accounting.application.output.IInvoiceProviderPort;
 import com.account_catalogue.accounting.domain.models.InvoiceReplica;
 import com.account_catalogue.accounting.infraestructure.input.data.response.ClientPortfolioSummaryResponse;
 import com.account_catalogue.accounting.infraestructure.input.data.response.InvoiceDetailResponse;
@@ -32,6 +33,7 @@ import lombok.AllArgsConstructor;
 public class PortfolioSearchService implements IPortfolioSearchInputPort {
     private final IAccountingSearchOutputPort accountingSearchOutputPort;
     private final IReceiptDetailRepository receiptDetailRepository;
+    private final IInvoiceProviderPort invoiceProviderPort;
 
     @Override
     @Transactional
@@ -142,10 +144,20 @@ public class PortfolioSearchService implements IPortfolioSearchInputPort {
             String enterpriseId, boolean includeDocuments) {
 
         // --- PASO 1: OBTENER LOS DATOS BASE ---
+        //HCELE DEJA DE SER PERESOZA OME, QUE ASI NO SE PUEDE NO
         List<AccountCatalogue> allAccounts = accountingSearchOutputPort.findAllAccountsByEnterprise(enterpriseId);
+
+        List<InvoiceReplica> pendingInvoices;
+        if (clientId != null) {
+            // Reporte para un cliente específico
+            pendingInvoices = invoiceProviderPort.findPendingInvoicesByClientId(clientId);
+        } else {
+            // Reporte Consolidado (Todos los clientes)
+            pendingInvoices = invoiceProviderPort.findPendingInvoicesByEnterpriseId(enterpriseId);
+        }
+
         Map<String, AccountCatalogue> accountsByCode = allAccounts.stream()
                 .collect(Collectors.toMap(AccountCatalogue::getCode, Function.identity()));
-        List<InvoiceReplica> pendingInvoices = accountingSearchOutputPort.findPendingInvoicesByClientId(clientId);
 
         // Mapa que contendrá el reporte completo. Lo inicializamos con CADA cuenta.
         Map<Long, PortfolioAgingAccountResponse> reportMap = new LinkedHashMap<>();

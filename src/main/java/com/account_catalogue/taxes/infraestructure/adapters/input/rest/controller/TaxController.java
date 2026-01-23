@@ -26,6 +26,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import com.account_catalogue.commons.utils.PaginationHelper;
@@ -56,6 +57,7 @@ public class TaxController {
     private final ITaxChangeStateRestMapper taxChangeStateRestMapper;
     private final PaginationHelper paginationHelper;
 
+    @PreAuthorize("hasAuthority('Create_Tax')")
     @PostMapping("/")
     public ResponseEntity<TaxCreateRes> createTax(@RequestBody @Valid TaxCreateReq taxCreateReq) {
         TaxDTO taxDTO = taxCreateRestMapper.toDomain(taxCreateReq);
@@ -99,6 +101,7 @@ public class TaxController {
         return ResponseEntity.ok(taxSearchRestMapper.toSearchListResponse(activeTaxes));
     }
 
+    @PreAuthorize("hasAuthority('Update_Tax')")
     @PutMapping("/{id}")
     public ResponseEntity<TaxUpdateRes> updateTax(@PathVariable long id, @RequestBody @Valid TaxUpdateReq taxUpdateReq) {
         TaxDTO taxDTO = taxUpdateRestMapper.toDomain(taxUpdateReq);
@@ -106,6 +109,7 @@ public class TaxController {
         return ResponseEntity.ok(taxUpdateRestMapper.toCreateResponse(tax));
     }
 
+    @PreAuthorize("hasAuthority('Delete_Tax')")
     @DeleteMapping("/{id}/{enterpriseId}")
     public ResponseEntity<String> deleteByCode(@PathVariable long id, @PathVariable String enterpriseId) {
         if (taxDeleteInputPort.deleteByCode(id, enterpriseId)) {
@@ -116,6 +120,7 @@ public class TaxController {
         }
     }
 
+    @PreAuthorize("hasAuthority('Change_State_Tax')")
     @PatchMapping("/changeState/{id}/{enterpriseId}")
     public ResponseEntity<TaxChangeStateRes> changeState(
             @PathVariable Long id,

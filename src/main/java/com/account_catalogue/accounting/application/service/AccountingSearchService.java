@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import com.account_catalogue.accounting.application.input.IAccountingSearchInputPort;
 import com.account_catalogue.accounting.application.output.IAccountingSearchOutputPort;
+import com.account_catalogue.accounting.domain.exception.AccountingEntryNotFoundException;
 import com.account_catalogue.accounting.domain.models.AccountingEntry;
 import com.account_catalogue.accounting.domain.models.AccountingMovement;
 
@@ -22,13 +23,13 @@ public class AccountingSearchService implements IAccountingSearchInputPort {
     @Override
     public AccountingEntry findAccountingEntryById(Long id) {
         return accountingSearchOutputPort.findById(id)
-                .orElseThrow();
+                .orElseThrow(() -> new AccountingEntryNotFoundException("Asiento contable con ID " + id + " no encontrado."));
     }
 
     @Override
     public AccountingEntry findAccountingEntryByReceiptId(Long receiptId) {
         return accountingSearchOutputPort.findByReceiptId(receiptId)
-                .orElseThrow();
+                .orElseThrow(() -> new AccountingEntryNotFoundException("Asiento contable con ID " + receiptId + " no encontrado."));
     }
 
     @Override
@@ -44,6 +45,6 @@ public class AccountingSearchService implements IAccountingSearchInputPort {
     @Override
     public AccountingEntry findAccountingEntryBySourceDocumentIdAndType(Long sourceDocumentId, String type) {
         return accountingSearchOutputPort.findBySourceDocumentIdAndType(sourceDocumentId, type)
-                .orElseThrow();
+                .orElseThrow(() -> new AccountingEntryNotFoundException("Asiento contable con documento fuente ID " + sourceDocumentId + " y tipo " + type + " no encontrado."));
     }
 }

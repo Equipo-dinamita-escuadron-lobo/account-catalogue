@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.account_catalogue.accounting.application.input.IPortfolioSearchInputPort;
+import com.account_catalogue.accounting.infraestructure.input.data.response.ApiResponse;
 import com.account_catalogue.accounting.infraestructure.input.data.response.ClientPortfolioSummaryResponse;
 import com.account_catalogue.accounting.infraestructure.input.data.response.InvoiceDetailResponse;
 import com.account_catalogue.accounting.infraestructure.input.data.response.PortfolioAgingAccountResponse;
@@ -26,29 +27,59 @@ public class PortfolioController {
     private final IPortfolioSearchInputPort portfolioSearchInputPort;
 
     @GetMapping("/clients-summary")
-    public ResponseEntity<List<ClientPortfolioSummaryResponse>> getClientsSummary(@RequestParam List<Long> clientIds) {
-        return ResponseEntity.ok(portfolioSearchInputPort.getClientPortfolioSummary(clientIds));
+    public ResponseEntity<ApiResponse<List<ClientPortfolioSummaryResponse>>> getClientsSummary(
+            @RequestParam List<Long> clientIds) {
+        List<ClientPortfolioSummaryResponse> summary = portfolioSearchInputPort.getClientPortfolioSummary(clientIds);
+
+        if (summary.isEmpty()) {
+            return ResponseEntity.ok(ApiResponse
+                    .successEmpty("No se encontró resumen de cartera para los clientes proporcionados.", "NO_CONTENT"));
+        }
+
+        return ResponseEntity.ok(ApiResponse.success(summary));
     }
 
     @GetMapping("/invoices/by-client/{clientId}")
-    public ResponseEntity<List<InvoiceDetailResponse>> getInvoicesByClient(@PathVariable Long clientId) {
+
+    public ResponseEntity<ApiResponse<List<InvoiceDetailResponse>>> getInvoicesByClient(@PathVariable Long clientId) {
         List<InvoiceDetailResponse> invoices = portfolioSearchInputPort.getInvoiceDetailsByClientId(clientId);
-        return ResponseEntity.ok(invoices);
+
+        if (invoices.isEmpty()) {
+            return ResponseEntity
+                    .ok(ApiResponse.successEmpty("No se encontraron facturas para el cliente.", "NO_CONTENT"));
+        }
+
+        return ResponseEntity.ok(ApiResponse.success(invoices));
     }
 
     @GetMapping("/receipts/by-invoice/{invoiceId}")
-    public ResponseEntity<List<ReceiptSummaryResponse>> getReceiptsByInvoice(@PathVariable Long invoiceId) {
-        return ResponseEntity.ok(portfolioSearchInputPort.findReceiptsByInvoiceId(invoiceId));
+    public ResponseEntity<ApiResponse<List<ReceiptSummaryResponse>>> getReceiptsByInvoice(
+            @PathVariable Long invoiceId) {
+        List<ReceiptSummaryResponse> receipts = portfolioSearchInputPort.findReceiptsByInvoiceId(invoiceId);
+
+        if (receipts.isEmpty()) {
+            return ResponseEntity
+                    .ok(ApiResponse.successEmpty("No se encontraron recibos asociados a la factura.", "NO_CONTENT"));
+        }
+
+        return ResponseEntity.ok(ApiResponse.success(receipts));
     }
 
     @GetMapping("/aging-report")
-    public ResponseEntity<List<PortfolioAgingAccountResponse>> getPortfolioAgingReport(
-            @RequestParam(required = false) Long clientId, // Opcional para el modo consolidado
+    public ResponseEntity<ApiResponse<List<PortfolioAgingAccountResponse>>> getPortfolioAgingReport(
+            @RequestParam(required = false) Long clientId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate cutoffDate,
             @RequestParam String enterpriseId,
             @RequestParam(required = false, defaultValue = "false") boolean includeDocuments) {
 
-        return ResponseEntity.ok(
-                portfolioSearchInputPort.getPortfolioAgingReport(clientId, cutoffDate, enterpriseId, includeDocuments));
+        List<PortfolioAgingAccountResponse> report = portfolioSearchInputPort.getPortfolioAgingReport(clientId,
+                cutoffDate, enterpriseId, includeDocuments);
+
+        if (report.isEmpty()) {
+            return ResponseEntity.ok(ApiResponse.successEmpty(
+                    "No se generaron datos para el reporte de edades con los filtros proporcionados.", "NO_CONTENT"));
+        }
+
+        return ResponseEntity.ok(ApiResponse.success(report));
     }
 }

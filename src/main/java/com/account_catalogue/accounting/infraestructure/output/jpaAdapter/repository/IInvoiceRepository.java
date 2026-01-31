@@ -2,6 +2,7 @@ package com.account_catalogue.accounting.infraestructure.output.jpaAdapter.repos
 
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -28,6 +29,8 @@ public interface IInvoiceRepository extends JpaRepository<InvoiceReplicaEntity, 
      * Busca todas las entidades de factura cuyos IDs están en la lista proporcionada.
      */
     List<InvoiceReplicaEntity> findByIdIn(List<Long> ids);
+
+    Optional<InvoiceReplicaEntity> findByFactCode(Long factCode);
 
     /**
      * Actualiza el estado de una lista de facturas a WRITTEN_OFF de forma masiva.

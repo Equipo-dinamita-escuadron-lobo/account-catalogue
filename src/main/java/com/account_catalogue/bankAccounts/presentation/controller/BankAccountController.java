@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -26,12 +27,14 @@ public class BankAccountController {
     private final IBankAccountService service;
     private final BankAccountDomainMapper mapper;
 
+    @PreAuthorize("hasAuthority('Create_Bank_Account')")
     @PostMapping("/create")
     public ResponseEntity<BankAccountRes> create(@Valid @RequestBody BankAccountCreateReq request) {
         BankAccount created = service.create(request);
         return ResponseEntity.ok(mapper.toRes(created));
     }
 
+    @PreAuthorize("hasAuthority('Update_Bank_Account')")
     @PutMapping("/update")
     public ResponseEntity<BankAccountRes> update(@Valid @RequestBody BankAccountUpdateReq request) {
         BankAccount updated = service.update(request);
@@ -65,6 +68,7 @@ public class BankAccountController {
     }
 
 
+    @PreAuthorize("hasAuthority('Change_State_Bank_Account')")
     @PatchMapping("/changeState/{id}/{enterpriseId}")
     public ResponseEntity<BankAccountRes> changeState(
             @PathVariable Long id, 
@@ -74,6 +78,7 @@ public class BankAccountController {
         return ResponseEntity.ok(mapper.toRes(updated));
     }
 
+    @PreAuthorize("hasAuthority('Delete_Bank_Account')")
     @DeleteMapping("/delete/{id}/{enterpriseId}")
     public ResponseEntity<BankAccountRes> delete(
             @PathVariable Long id, 

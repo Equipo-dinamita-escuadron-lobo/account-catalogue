@@ -31,7 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ReceiptMessageListener extends AbstractMessageListener<EventDTO<ReceiptEventDTO>> {
     private final IReceiptProcessInputPort receiptProcessInputPort;
     private final IReceiptEventMapper receiptEventMapper;
-    
+
     @Qualifier("messageErrorHandlingAdapter")
     private final IMessageErrorHandlingPort messageErrorHandlingPortImpl;
 
@@ -41,7 +41,8 @@ public class ReceiptMessageListener extends AbstractMessageListener<EventDTO<Rec
     }
 
     @RabbitListener(queues = ReceiptRabbitConfig.RECEIPT_ACCOUNTING_QUEUE)
-    public void processReceiptEvent(EventDTO<ReceiptEventDTO> event, Channel channel, @Header(AmqpHeaders.DELIVERY_TAG) long deliveryTag) {
+    public void processReceiptEvent(EventDTO<ReceiptEventDTO> event, Message message, Channel channel,
+            @Header(AmqpHeaders.DELIVERY_TAG) long deliveryTag) {
         log.info("Evento recibido: '{}' para el recibo: {}",
                 event.getType(),
                 event.getData() != null ? event.getData().getReceiptCode() : "N/A");
@@ -50,16 +51,59 @@ public class ReceiptMessageListener extends AbstractMessageListener<EventDTO<Rec
 
     @Override
     protected void validateEvent(EventDTO<ReceiptEventDTO> event) throws ValidationException {
-        if (event == null) throw new ValidationException("Validation failed: Event is null");
-        if (event.getData() == null) throw new ValidationException("Validation failed: Event data is null");
-        if (event.getType() == null) throw new ValidationException("Validation failed: Event type is null");
-        
+        if (event == null)
+            throw new ValidationException("Validation failed: Event is null");
+        if (event.getData() == null)
+            throw new ValidationException("Validation failed: Event data is null");
+        if (event.getType() == null)
+            throw new ValidationException("Validation failed: Event type is null");
+
         ReceiptEventDTO data = event.getData();
-        if (data.getReceiptCode() == null || data.getReceiptCode().isBlank()) throw new ValidationException("Validation failed: ReceiptCode is null or blank");
-        if (data.getThirdPartyId() == null) throw new ValidationException("Validation failed: ThirdPartyId is null");
-        if (data.getEnterpriseId() == null) throw new ValidationException("Validation failed: EnterpriseId is null");
-        if (data.getStatus() == null) throw new ValidationException("Validation failed: Status is null");
-        if (data.getDetails() == null || data.getDetails().isEmpty()) throw new ValidationException("Validation failed: Details list is null or empty");
+        if (data.getReceiptCode() == null || data.getReceiptCode().isBlank())
+            throw new ValidationException("Validation failed: ReceiptCode is null or blank");
+        if (data.getThirdPartyId() == null)
+            throw new ValidationException("Validation failed: ThirdPartyId is null");
+        if (data.getEnterpriseId() == null)
+            throw new ValidationException("Validation failed: EnterpriseId is null");
+        if (data.getStatus() == null)
+            throw new ValidationException("Validation failed: Status is null");
+        if (data.getReceiptTypeId() == null)
+            throw new ValidationException("Validation failed: ReceiptTypeId is null");
+
+        if (data.getReceiptTypeId() != null) {
+            if (data.getReceiptTypeId() == 1) {
+                if (data.getDetails() == null || data.getDetails().isEmpty())
+                    throw new ValidationException("Validation failed: Details list is null or empty");
+                for (var detail : data.getDetails()) {
+                    if (detail.getAccountingAccount() == null)
+                        throw new ValidationException("Validation failed: Detail AccountCode is null");
+                    if (detail.getAmountPaid() == null)
+                        throw new ValidationException("Validation failed: Detail AmountPaid is null");
+                    if (detail.getInvoiceId() == null)
+                        throw new ValidationException("Validation failed: Detail InvoiceId is null");
+                    if (detail.getInvoiceCode() == null || detail.getInvoiceCode().isBlank())
+                        throw new ValidationException("Validation failed: Detail InvoiceCode is null or blank");
+                }
+            } else if (data.getReceiptTypeId() == 2) {
+                if (data.getLedgerAccountId() == null)
+                    throw new ValidationException("Validation failed: LedgerAccountId is null for ReceiptTypeId 2");
+
+            } else {
+                throw new ValidationException("Validation failed: Unsupported ReceiptTypeId");
+            }
+        }
+
+        if (data.getTotalAmount() == null)
+            throw new ValidationException("Validation failed: TotalAmount is null");
+        if (data.getPaymentMethodId() == null)
+            throw new ValidationException("Validation failed: PaymentMethodId is null");
+        if (data.getPaymentMethodAccount() == null)
+            throw new ValidationException("Validation failed: PaymentMethodAccount is null");
+        if (data.getIssueDate() == null)
+            throw new ValidationException("Validation failed: IssueDate is null");
+        if (data.getTotalAmount().compareTo(new java.math.BigDecimal("0")) < 0)
+            throw new ValidationException("Validation failed: TotalAmount is negative");
+
     }
 
     @Override
@@ -73,7 +117,7 @@ public class ReceiptMessageListener extends AbstractMessageListener<EventDTO<Rec
                     break;
                 case "RECEIPT_VOIDED":
                     receiptProcessInputPort.processReceiptVoid(receipt);
-                    break; 
+                    break;
                 default:
                     log.warn("Tipo de evento no soportado: '{}'. El mensaje será ignorado.", event.getType());
                     break;
@@ -86,7 +130,9 @@ public class ReceiptMessageListener extends AbstractMessageListener<EventDTO<Rec
     }
 
     @Override
-    protected String getEntityType() { return "Receipt"; }
+    protected String getEntityType() {
+        return "Receipt";
+    }
 
     @Override
     protected String extractEventType(EventDTO<ReceiptEventDTO> event) {

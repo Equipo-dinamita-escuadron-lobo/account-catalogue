@@ -106,7 +106,7 @@ public class AccountBalanceUpdateService implements IAccountBalanceUpdateInputPo
             // ASUNCIÓN: El padre ya está cargado en el objeto. Si no, necesitarás buscarlo
             // por `parent.getId()`.
             //currentAccount = currentAccount.getParent();
-            if (currentAccount.getParent().getId() == null) {
+            if (currentAccount.getParent() == null || currentAccount.getParent().getId() == null) {
                 break; // Salir si no hay padre
             }
 

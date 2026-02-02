@@ -17,7 +17,12 @@ import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueHierar
 import com.account_catalogue.commons.exceptions.catalogue.AccountCatalogueImportException;
 import com.account_catalogue.commons.exceptions.catalogue.FileSizeExceededException;
 import com.account_catalogue.commons.exceptions.catalogue.FileValidationException;
-
+import com.account_catalogue.accounting.domain.exception.AccountingEntryNotFoundException;
+import com.account_catalogue.accounting.domain.exception.InvoiceNotFoundException;
+import com.account_catalogue.accounting.domain.exception.MessageProcessingErrorNotFoundException;
+import com.account_catalogue.accounting.domain.exception.ReceiptNotFoundException;
+import com.account_catalogue.accounting.domain.exception.ValidationException;
+import com.account_catalogue.accounting.infraestructure.input.data.response.ApiResponse;
 import com.account_catalogue.catalogue.domain.utils.ImportConstants;
 
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
@@ -31,402 +36,466 @@ import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import javax.security.auth.login.AccountNotFoundException;
+
 /**
  * Manejador global de excepciones para toda la aplicación.
- * Proporciona respuestas consistentes y descriptivas para diferentes tipos de errores.
+ * Proporciona respuestas consistentes y descriptivas para diferentes tipos de
+ * errores.
  */
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-    /**
-     * Maneja excepciones de negocio y resuelve el estado HTTP según el código de error.
-     */
-    @ExceptionHandler(BaseBusinessException.class)
-    public ResponseEntity<ErrorResponse> handleBusinessExceptions(
-            BaseBusinessException ex, WebRequest request) {
+        /**
+         * Maneja excepciones de negocio y resuelve el estado HTTP según el código de
+         * error.
+         */
+        @ExceptionHandler(BaseBusinessException.class)
+        public ResponseEntity<ErrorResponse> handleBusinessExceptions(
+                        BaseBusinessException ex, WebRequest request) {
 
-        String errorCode = ex.getErrorCode().getCode();
-        HttpStatus status = mapStatusFromErrorCode(errorCode);
+                String errorCode = ex.getErrorCode().getCode();
+                HttpStatus status = mapStatusFromErrorCode(errorCode);
 
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(status.value())
-                .error(status.getReasonPhrase())
-                .message(ex.getMessage())
-                .code(errorCode)
-                .path(request.getDescription(false).replace("uri=", ""))
-                .build();
+                ErrorResponse errorResponse = ErrorResponse.builder()
+                                .timestamp(LocalDateTime.now())
+                                .status(status.value())
+                                .error(status.getReasonPhrase())
+                                .message(ex.getMessage())
+                                .code(errorCode)
+                                .path(request.getDescription(false).replace("uri=", ""))
+                                .build();
 
-        return new ResponseEntity<>(errorResponse, status);
-    }
-
-    /**
-     * Maneja errores de validación de payload (Bean Validation en @RequestBody con @Valid).
-     */
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Object> handleMethodArgumentNotValid(
-            MethodArgumentNotValidException ex, WebRequest request) {
-
-        HttpStatus status = HttpStatus.BAD_REQUEST;
-        Map<String, String> fieldErrors = ex.getBindingResult().getFieldErrors().stream()
-                .collect(Collectors.toMap(
-                        fe -> fe.getField(),
-                        fe -> fe.getDefaultMessage(),
-                        (msg1, msg2) -> msg1
-                ));
-
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(status.value())
-                .error(status.getReasonPhrase())
-                .message("Error de validación de campos")
-                .code(ErrorCode.GENERIC_ERROR.getCode())
-                .path(request.getDescription(false).replace("uri=", ""))
-                .build();
-
-        return new ResponseEntity<>(Map.of(
-                "error", errorResponse,
-                "fieldErrors", fieldErrors
-        ), status);
-    }
-
-    /**
-     * Maneja errores de validación a nivel de parámetros (e.g., @RequestParam, @PathVariable).
-     */
-    @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<Object> handleConstraintViolation(
-            ConstraintViolationException ex, WebRequest request) {
-
-        HttpStatus status = HttpStatus.BAD_REQUEST;
-        Map<String, String> violations = ex.getConstraintViolations().stream()
-                .collect(Collectors.toMap(
-                        v -> v.getPropertyPath().toString(),
-                        ConstraintViolation::getMessage,
-                        (msg1, msg2) -> msg1
-                ));
-
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(status.value())
-                .error(status.getReasonPhrase())
-                .message("Error de validación")
-                .code(ErrorCode.GENERIC_ERROR.getCode())
-                .path(request.getDescription(false).replace("uri=", ""))
-                .build();
-
-        return new ResponseEntity<>(Map.of(
-                "error", errorResponse,
-                "violations", violations
-        ), status);
-    }
-
-    /**
-     * Maneja excepciones cuando falta un parámetro de solicitud requerido.
-     */
-    @ExceptionHandler(MissingServletRequestParameterException.class)
-    public ResponseEntity<ErrorResponse> handleMissingServletRequestParameterException(
-            MissingServletRequestParameterException ex, WebRequest request) {
-
-        String message = String.format("El parámetro '%s' es requerido", ex.getParameterName());
-
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.BAD_REQUEST.value())
-                .error("Bad Request")
-                .message(message)
-                .code(ErrorCode.GENERIC_ERROR.getCode())
-                .path(request.getDescription(false).replace("uri=", ""))
-                .build();
-
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
-    }
-
-    /**
-     * Maneja excepciones cuando un argumento de método no puede ser convertido al tipo esperado.
-     */
-    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public ResponseEntity<ErrorResponse> handleMethodArgumentTypeMismatchException(
-            MethodArgumentTypeMismatchException ex, WebRequest request) {
-
-        String paramName = ex.getName();
-        String value = ex.getValue() != null ? ex.getValue().toString() : "null";
-        Class<?> requiredType = ex.getRequiredType();
-        String typeName = requiredType != null ? requiredType.getSimpleName() : "desconocido";
-
-        String message = String.format("El valor '%s' no es válido para el parámetro '%s'. Se esperaba un valor de tipo %s",
-                value, paramName, typeName);
-
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.BAD_REQUEST.value())
-                .error("Bad Request")
-                .message(message)
-                .code(ErrorCode.GENERIC_ERROR.getCode())
-                .path(request.getDescription(false).replace("uri=", ""))
-                .build();
-
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
-    }
-
-    /**
-     * Maneja excepciones de tamaño de archivo excedido por Spring Boot.
-     * Esta excepción es lanzada por Spring antes de que llegue al controlador.
-     * Delega a FileSizeExceededException para reutilizar la lógica de formateo.
-     */
-    @ExceptionHandler(MaxUploadSizeExceededException.class)
-    public ResponseEntity<ErrorResponse> handleMaxUploadSizeExceededException(
-            MaxUploadSizeExceededException ex, WebRequest request) {
-
-        // Crear una instancia de FileSizeExceededException para reutilizar su mensaje formateado
-        long maxSize = ImportConstants.MAX_FILE_SIZE;
-        FileSizeExceededException fileSizeException = new FileSizeExceededException(maxSize);
-        
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.PAYLOAD_TOO_LARGE.value())
-                .error("Payload Too Large")
-                .message(fileSizeException.getMessage())
-                .code(fileSizeException.getErrorCode().getCode())
-                .path(request.getDescription(false).replace("uri=", ""))
-                .build();
-
-        return new ResponseEntity<>(errorResponse, HttpStatus.PAYLOAD_TOO_LARGE);
-    }
-
-    /**
-     * Maneja excepciones específicas de importación de catálogo de cuentas.
-     */
-    @ExceptionHandler(AccountCatalogueImportException.class)
-    public ResponseEntity<ErrorResponse> handleAccountCatalogueImportException(
-            AccountCatalogueImportException ex, WebRequest request) {
-
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.BAD_REQUEST.value())
-                .error("Import Error")
-                .message(ex.getMessage())
-                .code(ex.getErrorCode().getCode())
-                .path(request.getDescription(false).replace("uri=", ""))
-                .build();
-
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
-    }
-
-    /**
-     * Maneja excepciones de validación de archivos.
-     */
-    @ExceptionHandler(FileValidationException.class)
-    public ResponseEntity<ErrorResponse> handleFileValidationException(
-            FileValidationException ex, WebRequest request) {
-
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.BAD_REQUEST.value())
-                .error("File Validation Error")
-                .message(ex.getMessage())
-                .code(ex.getErrorCode().getCode())
-                .path(request.getDescription(false).replace("uri=", ""))
-                .build();
-
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
-    }
-
-    /**
-     * Maneja excepciones de jerarquía de cuentas.
-     */
-    @ExceptionHandler(AccountCatalogueHierarchyException.class)
-    public ResponseEntity<ErrorResponse> handleAccountCatalogueHierarchyException(
-            AccountCatalogueHierarchyException ex, WebRequest request) {
-
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.BAD_REQUEST.value())
-                .error("Hierarchy Error")
-                .message(ex.getMessage())
-                .code(ex.getErrorCode().getCode())
-                .path(request.getDescription(false).replace("uri=", ""))
-                .build();
-
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
-    }
-
-    /**
-     * Maneja excepciones de tamaño de archivo excedido (custom).
-     */
-    @ExceptionHandler(FileSizeExceededException.class)
-    public ResponseEntity<ErrorResponse> handleFileSizeExceededException(
-            FileSizeExceededException ex, WebRequest request) {
-
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.PAYLOAD_TOO_LARGE.value())
-                .error("File Too Large")
-                .message(ex.getMessage())
-                .code(ex.getErrorCode().getCode())
-                .path(request.getDescription(false).replace("uri=", ""))
-                .build();
-
-        return new ResponseEntity<>(errorResponse, HttpStatus.PAYLOAD_TOO_LARGE);
-    }
-
-    private HttpStatus mapStatusFromErrorCode(String code) {
-        if (code == null) {
-            return HttpStatus.BAD_REQUEST;
-        }
-        String upper = code.toUpperCase();
-        if (upper.endsWith("_NOT_FOUND") || upper.contains("NOT_FOUND")) {
-            return HttpStatus.NOT_FOUND;
-        }
-        if (upper.endsWith("_ALREADY_EXISTS") || upper.contains("DUPLICATE") || upper.contains("ASSOCIATED")) {
-            return HttpStatus.CONFLICT;
-        }
-        if (upper.contains("IMPORT") || upper.contains("HIERARCHY") || upper.contains("FILE")) {
-            return HttpStatus.BAD_REQUEST;
-        }
-        return HttpStatus.BAD_REQUEST;
-    }
-
-    /**
-     * Maneja excepciones de violación de integridad de datos (claves foráneas).
-     */
-    @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<ErrorResponse> handleDataIntegrityViolationException(
-            DataIntegrityViolationException ex, WebRequest request) {
-
-        String errorMessage = ex.getMessage();
-        
-        // Verificar si es una violación de clave foránea relacionada con Tax
-        if (errorMessage != null && errorMessage.contains("fkkndntrea9snpaq594re8whhmk") 
-            && errorMessage.contains("table \"tax\"")) {
-            
-            ErrorResponse errorResponse = ErrorResponse.builder()
-                    .timestamp(LocalDateTime.now())
-                    .status(HttpStatus.CONFLICT.value())
-                    .error("Data Integrity Violation")
-                    .message(AccountCatalogueErrorCode.ACCOUNT_ASSOCIATED_WITH_TAX.getMessage())
-                    .code(AccountCatalogueErrorCode.ACCOUNT_ASSOCIATED_WITH_TAX.getCode())
-                    .path(request.getDescription(false).replace("uri=", ""))
-                    .build();
-
-            return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
-        }
-        
-        // Para otras violaciones de integridad, devolver error genérico
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.CONFLICT.value())
-                .error("Data Integrity Violation")
-                .message("No se puede completar la operación debido a restricciones de integridad de datos")
-                .code(ErrorCode.GENERIC_ERROR.getCode())
-                .path(request.getDescription(false).replace("uri=", ""))
-                .build();
-
-        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
-    }
-
-    /**
-     * Maneja excepciones de argumentos ilegales (parámetros de paginación inválidos).
-     */
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(
-            IllegalArgumentException ex, WebRequest request) {
-
-        String message = ex.getMessage();
-        
-        // Mensajes específicos para errores de paginación
-        if (message != null && message.contains("Page index must not be less than zero")) {
-            message = "El índice de página no puede ser menor a cero";
-        } else if (message != null && message.contains("Page size must not be less than one")) {
-            message = "El tamaño de página debe ser mayor a cero";
+                return new ResponseEntity<>(errorResponse, status);
         }
 
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.BAD_REQUEST.value())
-                .error("Bad Request")
-                .message(message)
-                .code(ErrorCode.GENERIC_ERROR.getCode())
-                .path(request.getDescription(false).replace("uri=", ""))
-                .build();
+        /**
+         * Maneja errores de validación de payload (Bean Validation en @RequestBody
+         * con @Valid).
+         */
+        @ExceptionHandler(MethodArgumentNotValidException.class)
+        public ResponseEntity<Object> handleMethodArgumentNotValid(
+                        MethodArgumentNotValidException ex, WebRequest request) {
 
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
-    }
+                HttpStatus status = HttpStatus.BAD_REQUEST;
+                Map<String, String> fieldErrors = ex.getBindingResult().getFieldErrors().stream()
+                                .collect(Collectors.toMap(
+                                                fe -> fe.getField(),
+                                                fe -> fe.getDefaultMessage(),
+                                                (msg1, msg2) -> msg1));
 
-    /**
-     * Maneja excepciones de referencia de propiedad inválida (campos de ordenamiento inexistentes).
-     */
-    @ExceptionHandler(PropertyReferenceException.class)
-    public ResponseEntity<ErrorResponse> handlePropertyReferenceException(
-            PropertyReferenceException ex, WebRequest request) {
+                ErrorResponse errorResponse = ErrorResponse.builder()
+                                .timestamp(LocalDateTime.now())
+                                .status(status.value())
+                                .error(status.getReasonPhrase())
+                                .message("Error de validación de campos")
+                                .code(ErrorCode.GENERIC_ERROR.getCode())
+                                .path(request.getDescription(false).replace("uri=", ""))
+                                .build();
 
-        String propertyName = ex.getPropertyName();
-        String message = String.format("El campo de ordenamiento '%s' no es válido", propertyName);
-
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.BAD_REQUEST.value())
-                .error("Bad Request")
-                .message(message)
-                .code(ErrorCode.GENERIC_ERROR.getCode())
-                .path(request.getDescription(false).replace("uri=", ""))
-                .build();
-
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
-    }
-
-    /**
-     * Maneja excepciones de deserialización JSON (valores inválidos para enums, tipos incorrectos).
-     */
-    @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(
-            HttpMessageNotReadableException ex, WebRequest request) {
-
-        String message = "Error en el formato del JSON enviado";
-        
-        Throwable cause = ex.getCause();
-        if (cause instanceof InvalidFormatException invalidFormatException) {
-            Class<?> targetType = invalidFormatException.getTargetType();
-            if (targetType != null && targetType.isEnum()) {
-                Object[] enumConstants = targetType.getEnumConstants();
-                String validValues = java.util.Arrays.stream(enumConstants)
-                        .map(Object::toString)
-                        .collect(java.util.stream.Collectors.joining(", "));
-                message = String.format("El valor '%s' no es válido. Valores permitidos: [%s]",
-                        invalidFormatException.getValue(), validValues);
-            } else {
-                message = String.format("El valor '%s' no es válido para el campo esperado",
-                        invalidFormatException.getValue());
-            }
+                return new ResponseEntity<>(Map.of(
+                                "error", errorResponse,
+                                "fieldErrors", fieldErrors), status);
         }
 
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.BAD_REQUEST.value())
-                .error("Bad Request")
-                .message(message)
-                .code(ErrorCode.GENERIC_ERROR.getCode())
-                .path(request.getDescription(false).replace("uri=", ""))
-                .build();
+        /**
+         * Maneja errores de validación a nivel de parámetros
+         * (e.g., @RequestParam, @PathVariable).
+         */
+        @ExceptionHandler(ConstraintViolationException.class)
+        public ResponseEntity<Object> handleConstraintViolation(
+                        ConstraintViolationException ex, WebRequest request) {
 
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
-    }
+                HttpStatus status = HttpStatus.BAD_REQUEST;
+                Map<String, String> violations = ex.getConstraintViolations().stream()
+                                .collect(Collectors.toMap(
+                                                v -> v.getPropertyPath().toString(),
+                                                ConstraintViolation::getMessage,
+                                                (msg1, msg2) -> msg1));
 
-    /**
-     * Maneja excepciones generales no específicas.
-     */
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGenericException(
-            Exception ex, WebRequest request) {
+                ErrorResponse errorResponse = ErrorResponse.builder()
+                                .timestamp(LocalDateTime.now())
+                                .status(status.value())
+                                .error(status.getReasonPhrase())
+                                .message("Error de validación")
+                                .code(ErrorCode.GENERIC_ERROR.getCode())
+                                .path(request.getDescription(false).replace("uri=", ""))
+                                .build();
 
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                .error("Internal Server Error")
-                .message("Ha ocurrido un error interno del servidor")
-                .code(ErrorCode.GENERIC_ERROR.getCode())
-                .path(request.getDescription(false).replace("uri=", ""))
-                .build();
+                return new ResponseEntity<>(Map.of(
+                                "error", errorResponse,
+                                "violations", violations), status);
+        }
 
-        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+        /**
+         * Maneja excepciones cuando falta un parámetro de solicitud requerido.
+         */
+        @ExceptionHandler(MissingServletRequestParameterException.class)
+        public ResponseEntity<ErrorResponse> handleMissingServletRequestParameterException(
+                        MissingServletRequestParameterException ex, WebRequest request) {
+
+                String message = String.format("El parámetro '%s' es requerido", ex.getParameterName());
+
+                ErrorResponse errorResponse = ErrorResponse.builder()
+                                .timestamp(LocalDateTime.now())
+                                .status(HttpStatus.BAD_REQUEST.value())
+                                .error("Bad Request")
+                                .message(message)
+                                .code(ErrorCode.GENERIC_ERROR.getCode())
+                                .path(request.getDescription(false).replace("uri=", ""))
+                                .build();
+
+                return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        }
+
+        /**
+         * Maneja excepciones cuando un argumento de método no puede ser convertido al
+         * tipo esperado.
+         */
+        @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+        public ResponseEntity<ErrorResponse> handleMethodArgumentTypeMismatchException(
+                        MethodArgumentTypeMismatchException ex, WebRequest request) {
+
+                String paramName = ex.getName();
+                String value = ex.getValue() != null ? ex.getValue().toString() : "null";
+                Class<?> requiredType = ex.getRequiredType();
+                String typeName = requiredType != null ? requiredType.getSimpleName() : "desconocido";
+
+                String message = String.format(
+                                "El valor '%s' no es válido para el parámetro '%s'. Se esperaba un valor de tipo %s",
+                                value, paramName, typeName);
+
+                ErrorResponse errorResponse = ErrorResponse.builder()
+                                .timestamp(LocalDateTime.now())
+                                .status(HttpStatus.BAD_REQUEST.value())
+                                .error("Bad Request")
+                                .message(message)
+                                .code(ErrorCode.GENERIC_ERROR.getCode())
+                                .path(request.getDescription(false).replace("uri=", ""))
+                                .build();
+
+                return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        }
+
+        /**
+         * Maneja excepciones de tamaño de archivo excedido por Spring Boot.
+         * Esta excepción es lanzada por Spring antes de que llegue al controlador.
+         * Delega a FileSizeExceededException para reutilizar la lógica de formateo.
+         */
+        @ExceptionHandler(MaxUploadSizeExceededException.class)
+        public ResponseEntity<ErrorResponse> handleMaxUploadSizeExceededException(
+                        MaxUploadSizeExceededException ex, WebRequest request) {
+
+                // Crear una instancia de FileSizeExceededException para reutilizar su mensaje
+                // formateado
+                long maxSize = ImportConstants.MAX_FILE_SIZE;
+                FileSizeExceededException fileSizeException = new FileSizeExceededException(maxSize);
+
+                ErrorResponse errorResponse = ErrorResponse.builder()
+                                .timestamp(LocalDateTime.now())
+                                .status(HttpStatus.PAYLOAD_TOO_LARGE.value())
+                                .error("Payload Too Large")
+                                .message(fileSizeException.getMessage())
+                                .code(fileSizeException.getErrorCode().getCode())
+                                .path(request.getDescription(false).replace("uri=", ""))
+                                .build();
+
+                return new ResponseEntity<>(errorResponse, HttpStatus.PAYLOAD_TOO_LARGE);
+        }
+
+        /**
+         * Maneja excepciones específicas de importación de catálogo de cuentas.
+         */
+        @ExceptionHandler(AccountCatalogueImportException.class)
+        public ResponseEntity<ErrorResponse> handleAccountCatalogueImportException(
+                        AccountCatalogueImportException ex, WebRequest request) {
+
+                ErrorResponse errorResponse = ErrorResponse.builder()
+                                .timestamp(LocalDateTime.now())
+                                .status(HttpStatus.BAD_REQUEST.value())
+                                .error("Import Error")
+                                .message(ex.getMessage())
+                                .code(ex.getErrorCode().getCode())
+                                .path(request.getDescription(false).replace("uri=", ""))
+                                .build();
+
+                return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        }
+
+        /**
+         * Maneja excepciones de validación de archivos.
+         */
+        @ExceptionHandler(FileValidationException.class)
+        public ResponseEntity<ErrorResponse> handleFileValidationException(
+                        FileValidationException ex, WebRequest request) {
+
+                ErrorResponse errorResponse = ErrorResponse.builder()
+                                .timestamp(LocalDateTime.now())
+                                .status(HttpStatus.BAD_REQUEST.value())
+                                .error("File Validation Error")
+                                .message(ex.getMessage())
+                                .code(ex.getErrorCode().getCode())
+                                .path(request.getDescription(false).replace("uri=", ""))
+                                .build();
+
+                return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        }
+
+        /**
+         * Maneja excepciones de jerarquía de cuentas.
+         */
+        @ExceptionHandler(AccountCatalogueHierarchyException.class)
+        public ResponseEntity<ErrorResponse> handleAccountCatalogueHierarchyException(
+                        AccountCatalogueHierarchyException ex, WebRequest request) {
+
+                ErrorResponse errorResponse = ErrorResponse.builder()
+                                .timestamp(LocalDateTime.now())
+                                .status(HttpStatus.BAD_REQUEST.value())
+                                .error("Hierarchy Error")
+                                .message(ex.getMessage())
+                                .code(ex.getErrorCode().getCode())
+                                .path(request.getDescription(false).replace("uri=", ""))
+                                .build();
+
+                return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        }
+
+        /**
+         * Maneja excepciones de tamaño de archivo excedido (custom).
+         */
+        @ExceptionHandler(FileSizeExceededException.class)
+        public ResponseEntity<ErrorResponse> handleFileSizeExceededException(
+                        FileSizeExceededException ex, WebRequest request) {
+
+                ErrorResponse errorResponse = ErrorResponse.builder()
+                                .timestamp(LocalDateTime.now())
+                                .status(HttpStatus.PAYLOAD_TOO_LARGE.value())
+                                .error("File Too Large")
+                                .message(ex.getMessage())
+                                .code(ex.getErrorCode().getCode())
+                                .path(request.getDescription(false).replace("uri=", ""))
+                                .build();
+
+                return new ResponseEntity<>(errorResponse, HttpStatus.PAYLOAD_TOO_LARGE);
+        }
+
+        private HttpStatus mapStatusFromErrorCode(String code) {
+                if (code == null) {
+                        return HttpStatus.BAD_REQUEST;
+                }
+                String upper = code.toUpperCase();
+                if (upper.endsWith("_NOT_FOUND") || upper.contains("NOT_FOUND")) {
+                        return HttpStatus.NOT_FOUND;
+                }
+                if (upper.endsWith("_ALREADY_EXISTS") || upper.contains("DUPLICATE") || upper.contains("ASSOCIATED")) {
+                        return HttpStatus.CONFLICT;
+                }
+                if (upper.contains("IMPORT") || upper.contains("HIERARCHY") || upper.contains("FILE")) {
+                        return HttpStatus.BAD_REQUEST;
+                }
+                return HttpStatus.BAD_REQUEST;
+        }
+
+        /**
+         * Maneja excepciones de violación de integridad de datos (claves foráneas).
+         */
+        @ExceptionHandler(DataIntegrityViolationException.class)
+        public ResponseEntity<ErrorResponse> handleDataIntegrityViolationException(
+                        DataIntegrityViolationException ex, WebRequest request) {
+
+                String errorMessage = ex.getMessage();
+
+                // Verificar si es una violación de clave foránea relacionada con Tax
+                if (errorMessage != null && errorMessage.contains("fkkndntrea9snpaq594re8whhmk")
+                                && errorMessage.contains("table \"tax\"")) {
+
+                        ErrorResponse errorResponse = ErrorResponse.builder()
+                                        .timestamp(LocalDateTime.now())
+                                        .status(HttpStatus.CONFLICT.value())
+                                        .error("Data Integrity Violation")
+                                        .message(AccountCatalogueErrorCode.ACCOUNT_ASSOCIATED_WITH_TAX.getMessage())
+                                        .code(AccountCatalogueErrorCode.ACCOUNT_ASSOCIATED_WITH_TAX.getCode())
+                                        .path(request.getDescription(false).replace("uri=", ""))
+                                        .build();
+
+                        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+                }
+
+                // Para otras violaciones de integridad, devolver error genérico
+                ErrorResponse errorResponse = ErrorResponse.builder()
+                                .timestamp(LocalDateTime.now())
+                                .status(HttpStatus.CONFLICT.value())
+                                .error("Data Integrity Violation")
+                                .message("No se puede completar la operación debido a restricciones de integridad de datos")
+                                .code(ErrorCode.GENERIC_ERROR.getCode())
+                                .path(request.getDescription(false).replace("uri=", ""))
+                                .build();
+
+                return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+        }
+
+        /**
+         * Maneja excepciones de argumentos ilegales (parámetros de paginación
+         * inválidos).
+         */
+        @ExceptionHandler(IllegalArgumentException.class)
+        public ResponseEntity<ErrorResponse> handleIllegalArgumentException(
+                        IllegalArgumentException ex, WebRequest request) {
+
+                String message = ex.getMessage();
+
+                // Mensajes específicos para errores de paginación
+                if (message != null && message.contains("Page index must not be less than zero")) {
+                        message = "El índice de página no puede ser menor a cero";
+                } else if (message != null && message.contains("Page size must not be less than one")) {
+                        message = "El tamaño de página debe ser mayor a cero";
+                }
+
+                ErrorResponse errorResponse = ErrorResponse.builder()
+                                .timestamp(LocalDateTime.now())
+                                .status(HttpStatus.BAD_REQUEST.value())
+                                .error("Bad Request")
+                                .message(message)
+                                .code(ErrorCode.GENERIC_ERROR.getCode())
+                                .path(request.getDescription(false).replace("uri=", ""))
+                                .build();
+
+                return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        }
+
+        /**
+         * Maneja excepciones de referencia de propiedad inválida (campos de
+         * ordenamiento inexistentes).
+         */
+        @ExceptionHandler(PropertyReferenceException.class)
+        public ResponseEntity<ErrorResponse> handlePropertyReferenceException(
+                        PropertyReferenceException ex, WebRequest request) {
+
+                String propertyName = ex.getPropertyName();
+                String message = String.format("El campo de ordenamiento '%s' no es válido", propertyName);
+
+                ErrorResponse errorResponse = ErrorResponse.builder()
+                                .timestamp(LocalDateTime.now())
+                                .status(HttpStatus.BAD_REQUEST.value())
+                                .error("Bad Request")
+                                .message(message)
+                                .code(ErrorCode.GENERIC_ERROR.getCode())
+                                .path(request.getDescription(false).replace("uri=", ""))
+                                .build();
+
+                return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        }
+
+        /**
+         * Maneja excepciones de deserialización JSON (valores inválidos para enums,
+         * tipos incorrectos).
+         */
+        @ExceptionHandler(HttpMessageNotReadableException.class)
+        public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(
+                        HttpMessageNotReadableException ex, WebRequest request) {
+
+                String message = "Error en el formato del JSON enviado";
+
+                Throwable cause = ex.getCause();
+                if (cause instanceof InvalidFormatException invalidFormatException) {
+                        Class<?> targetType = invalidFormatException.getTargetType();
+                        if (targetType != null && targetType.isEnum()) {
+                                Object[] enumConstants = targetType.getEnumConstants();
+                                String validValues = java.util.Arrays.stream(enumConstants)
+                                                .map(Object::toString)
+                                                .collect(java.util.stream.Collectors.joining(", "));
+                                message = String.format("El valor '%s' no es válido. Valores permitidos: [%s]",
+                                                invalidFormatException.getValue(), validValues);
+                        } else {
+                                message = String.format("El valor '%s' no es válido para el campo esperado",
+                                                invalidFormatException.getValue());
+                        }
+                }
+
+                ErrorResponse errorResponse = ErrorResponse.builder()
+                                .timestamp(LocalDateTime.now())
+                                .status(HttpStatus.BAD_REQUEST.value())
+                                .error("Bad Request")
+                                .message(message)
+                                .code(ErrorCode.GENERIC_ERROR.getCode())
+                                .path(request.getDescription(false).replace("uri=", ""))
+                                .build();
+
+                return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        }
+
+        /**
+         * Maneja excepciones generales no específicas.
+         */
+        @ExceptionHandler(Exception.class)
+        public ResponseEntity<ErrorResponse> handleGenericException(
+                        Exception ex, WebRequest request) {
+
+                ErrorResponse errorResponse = ErrorResponse.builder()
+                                .timestamp(LocalDateTime.now())
+                                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                                .error("Internal Server Error")
+                                .message("Ha ocurrido un error interno del servidor")
+                                .code(ErrorCode.GENERIC_ERROR.getCode())
+                                .path(request.getDescription(false).replace("uri=", ""))
+                                .build();
+
+                return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        // --- NUEVOS MANEJADORES PARA EL MÓDULO CONTABLE-CARTERA---
+
+        @ExceptionHandler({
+                        InvoiceNotFoundException.class,
+                        ReceiptNotFoundException.class,
+                        AccountingEntryNotFoundException.class,
+                        AccountNotFoundException.class
+        })
+        public ResponseEntity<ApiResponse<Object>> handleAccountingNotFoundExceptions(RuntimeException ex,
+                        WebRequest request) {
+                HttpStatus status = HttpStatus.NOT_FOUND;
+                String errorCode = ex.getClass().getSimpleName().replaceAll("Exception", "").toUpperCase();
+                String path = request.getDescription(false).replace("uri=", "");
+
+                ApiResponse<Object> apiResponse = ApiResponse.error(ex.getMessage(), errorCode, status, path);
+                return new ResponseEntity<>(apiResponse, status);
+        }
+
+        @ExceptionHandler(ValidationException.class)
+        public ResponseEntity<ApiResponse<Object>> handleAccountingValidationException(ValidationException ex,
+                        WebRequest request) {
+                HttpStatus status = HttpStatus.BAD_REQUEST;
+                String path = request.getDescription(false).replace("uri=", "");
+
+                ApiResponse<Object> apiResponse = ApiResponse.error(ex.getMessage(), "VALIDATION_ERROR", status, path);
+                return new ResponseEntity<>(apiResponse, status);
+        }
+
+        @ExceptionHandler(IllegalStateException.class)
+        public ResponseEntity<ApiResponse<Object>> handleIllegalStateException(IllegalStateException ex,
+                        WebRequest request) {
+                HttpStatus status = HttpStatus.CONFLICT;
+                String path = request.getDescription(false).replace("uri=", "");
+
+                ApiResponse<Object> apiResponse = ApiResponse.error(ex.getMessage(), "INVALID_STATE_OPERATION", status,
+                                path);
+                return new ResponseEntity<>(apiResponse, status);
+        }
+
+        @ExceptionHandler(MessageProcessingErrorNotFoundException.class)
+        public ResponseEntity<ApiResponse<Object>> handleMessageProcessingErrorNotFoundException(
+                        MessageProcessingErrorNotFoundException ex, WebRequest request) {
+
+                HttpStatus status = HttpStatus.NOT_FOUND;
+                ApiResponse<Object> apiResponse = ApiResponse.error(ex.getMessage(), "MESSAGE_ERROR_NOT_FOUND", status,
+                                getRequestPath(request));
+
+                return new ResponseEntity<>(apiResponse, status);
+        }
+
+        private String getRequestPath(WebRequest request) {
+                return ((org.springframework.web.context.request.ServletWebRequest) request).getRequest()
+                                .getRequestURI();
+        }
+
 }

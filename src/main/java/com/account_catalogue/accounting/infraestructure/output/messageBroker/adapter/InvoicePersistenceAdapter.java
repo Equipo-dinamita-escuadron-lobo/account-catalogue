@@ -66,7 +66,7 @@ public class InvoicePersistenceAdapter implements IInvoiceProviderPort {
      * @return Un Optional que contiene el objeto de dominio InvoiceReplica si se encuentra,
      *         o un Optional vacío si no.
      */
-    //@Transactional(readOnly = true) // Es una operación de solo lectura
+    @Transactional(readOnly = true) // Es una operación de solo lectura
     @Override
     public Optional<InvoiceReplica> findInvoiceById(Long invoiceId) {
         Optional<InvoiceReplicaEntity> entityOptional = invoiceRepository.findById(invoiceId);
@@ -109,6 +109,12 @@ public class InvoicePersistenceAdapter implements IInvoiceProviderPort {
     public List<InvoiceReplica> findPendingInvoicesByEnterpriseId(String enterpriseId) {
         var invoiceEntityList = invoiceRepository.findByEntIdAndStatus(enterpriseId, InvoiceStatus.PENDING);
         return invoiceMapper.toInvoiceReplicaList(invoiceEntityList);
+    }
+
+    @Override
+    public Optional<InvoiceReplica> findInvoiceByFactCode(Long factCode) {
+        Optional<InvoiceReplicaEntity> entityOptional = invoiceRepository.findByFactCode(factCode);
+        return entityOptional.map(invoiceMapper::toDomain);
     }
 
 }

@@ -1,6 +1,5 @@
 package com.account_catalogue.accounting.infraestructure.output.messageBroker.listener;
 
-import org.springframework.amqp.AmqpRejectAndDontRequeueException;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.support.AmqpHeaders;
@@ -24,12 +23,11 @@ import jakarta.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-
 @Component
 @AllArgsConstructor
 @Slf4j
-public class WriteOffMessageListener extends AbstractMessageListener <EventDTO<PortfolioWriteOffResponse>> {
-     private final IWriteOffProcessInputPort writeOffProcessInputPort;
+public class WriteOffMessageListener extends AbstractMessageListener<EventDTO<PortfolioWriteOffResponse>> {
+    private final IWriteOffProcessInputPort writeOffProcessInputPort;
     private final IPortfolioWriteOffEventMapper writeOffEventMapper;
 
     @Qualifier("messageErrorHandlingAdapter")
@@ -41,7 +39,8 @@ public class WriteOffMessageListener extends AbstractMessageListener <EventDTO<P
     }
 
     @RabbitListener(queues = WriteOffRabbitConfig.WRITEOFF_ACCOUNTING_QUEUE)
-    public void processWriteOffEvent(EventDTO<PortfolioWriteOffResponse> event, Channel channel, @Header(AmqpHeaders.DELIVERY_TAG) long deliveryTag) {
+    public void processWriteOffEvent(EventDTO<PortfolioWriteOffResponse> event, Message message, Channel channel,
+            @Header(AmqpHeaders.DELIVERY_TAG) long deliveryTag) {
         log.info("Evento de Castigo recibido: '{}' para el código: {}",
                 event.getType(),
                 event.getData() != null ? event.getData().getCode() : "N/A");
@@ -50,15 +49,58 @@ public class WriteOffMessageListener extends AbstractMessageListener <EventDTO<P
 
     @Override
     protected void validateEvent(EventDTO<PortfolioWriteOffResponse> event) throws ValidationException {
-        if (event == null) throw new ValidationException("Validation failed: Event is null");
-        if (event.getData() == null) throw new ValidationException("Validation failed: Event data is null");
-        if (event.getType() == null) throw new ValidationException("Validation failed: Event type is null");
+        if (event == null)
+            throw new ValidationException("Validation failed: Event is null");
+        if (event.getData() == null)
+            throw new ValidationException("Validation failed: Event data is null");
+        if (event.getType() == null)
+            throw new ValidationException("Validation failed: Event type is null");
 
         PortfolioWriteOffResponse data = event.getData();
-        if (data.getCode() == null || data.getCode().isBlank()) throw new ValidationException("Validation failed: Code is null or blank");
-        if (data.getThirdId() == null) throw new ValidationException("Validation failed: ThirdId is null");
-        if (data.getEnterpriseId() == null) throw new ValidationException("Validation failed: EnterpriseId is null");
-        if (data.getStatus() == null) throw new ValidationException("Validation failed: Status is null");
+        if (data.getId() == null)
+            throw new ValidationException("Validation failed: Id is null");
+        if (data.getTotalAmount() == null)
+            throw new ValidationException("Validation failed: TotalAmount is null");
+        if (data.getWriteOffDate() == null)
+            throw new ValidationException("Validation failed: WriteOffDate is null");
+        if (data.getDebitAuxiliaryAccount() == null)
+            throw new ValidationException("Validation failed: DebitAuxiliaryAccount is null or blank");
+        if (data.getDebitAuxiliaryAccountId() == null)
+            throw new ValidationException("Validation failed: DebitAuxiliaryAccountId is null");
+
+        if (data.getDetails() != null) {
+            for (var detail : data.getDetails()) {
+                if (detail.getAmountWrittenOff() == null)
+                    throw new ValidationException("Validation failed: Detail AmountWrittenOff is null");
+                if (detail.getInvoice() == null) {
+                    throw new ValidationException("Validation failed: Detail Invoice is null");
+                } else {
+                    if (detail.getInvoice().getId() == null)
+                        throw new ValidationException("Validation failed: Detail Invoice Id is null");
+                    if (detail.getInvoice().getFactCode() == null || detail.getInvoice().getFactCode().isBlank())
+                        throw new ValidationException("Validation failed: Detail Invoice Code is null or blank");
+                    if (detail.getInvoice().getTotalValue() == null)
+                        throw new ValidationException("Validation failed: Detail Invoice TotalValue is null");
+                    if (detail.getInvoice().getPendingValue() == null)
+                        throw new ValidationException("Validation failed: Detail Invoice PendingValue is null");
+                    if (detail.getInvoice().getExpirationDate() == null)
+                        throw new ValidationException("Validation failed: Detail Invoice ExpirationDate is null");
+                    if (detail.getInvoice().getAccountingAccount() == null)
+                        throw new ValidationException("Validation failed: Detail Invoice AccountingAccount is null");
+                }
+            }
+        } else {
+            throw new ValidationException("Validation failed: Details is null");
+        }
+
+        if (data.getCode() == null || data.getCode().isBlank())
+            throw new ValidationException("Validation failed: Code is null or blank");
+        if (data.getThirdId() == null)
+            throw new ValidationException("Validation failed: ThirdId is null");
+        if (data.getEnterpriseId() == null)
+            throw new ValidationException("Validation failed: EnterpriseId is null");
+        if (data.getStatus() == null)
+            throw new ValidationException("Validation failed: Status is null");
     }
 
     @Override
@@ -68,7 +110,7 @@ public class WriteOffMessageListener extends AbstractMessageListener <EventDTO<P
             PortfolioWriteOff writeOff = writeOffEventMapper.toDomain(writeOffDTO);
 
             switch (event.getType()) {
-                case "WRITEOFF_CONFIRMED":  
+                case "WRITEOFF_CONFIRMED":
                     writeOffProcessInputPort.processWriteOffConfirmation(writeOff);
                     break;
                 case "WRITEOFF_VOIDED":
@@ -86,7 +128,9 @@ public class WriteOffMessageListener extends AbstractMessageListener <EventDTO<P
     }
 
     @Override
-    protected String getEntityType() { return "PortfolioWriteOff"; }
+    protected String getEntityType() {
+        return "PortfolioWriteOff";
+    }
 
     @Override
     protected String extractEventType(EventDTO<PortfolioWriteOffResponse> event) {

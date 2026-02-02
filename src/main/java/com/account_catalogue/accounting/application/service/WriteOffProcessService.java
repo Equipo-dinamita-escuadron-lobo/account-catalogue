@@ -12,6 +12,8 @@ import com.account_catalogue.accounting.application.output.IAccountingSearchOutp
 import com.account_catalogue.accounting.application.output.IInvoiceProviderPort;
 import com.account_catalogue.accounting.domain.enums.AccountingEntryStatus;
 import com.account_catalogue.accounting.domain.enums.SourceDocumentType;
+import com.account_catalogue.accounting.domain.exception.AccountingEntryNotFoundException;
+import com.account_catalogue.accounting.domain.exception.InvoiceNotFoundException;
 import com.account_catalogue.accounting.domain.models.AccountingEntry;
 import com.account_catalogue.accounting.domain.models.InvoiceReplica;
 import com.account_catalogue.accounting.domain.models.PortfolioWriteOff;
@@ -51,7 +53,7 @@ public class WriteOffProcessService implements IWriteOffProcessInputPort {
             log.info("Castigo de cartera {} confirmado. Actualizando estado de facturas...", writeOff.getCode());
             for (WriteOffDetail detail : writeOff.getDetails()) {
                 InvoiceReplica invoice = invoiceProviderPort.findInvoiceById(detail.getInvoiceId())
-                        .orElseThrow(() -> new IllegalStateException("No se encontró la factura con ID " + detail.getInvoiceId()));
+                        .orElseThrow(() -> new InvoiceNotFoundException("No se encontró la factura ID " + detail.getInvoiceId()));
 
                 // La lógica de negocio está ahora en el modelo de dominio InvoiceReplica
                 invoice.writeOff();
@@ -87,7 +89,7 @@ public class WriteOffProcessService implements IWriteOffProcessInputPort {
 
         AccountingEntry originalEntry = accountingSearchOutputPort
                 .findBySourceDocumentIdAndType(writeOffEventData.getOriginalWriteOffId(), SourceDocumentType.PORTFOLIO_WRITEOFF.name())
-                .orElseThrow(() -> new IllegalStateException("No se puede anular un castigo sin asiento contable procesado: " + writeOffEventData.getCode()));
+                .orElseThrow(() -> new AccountingEntryNotFoundException("No existe asiento contable para el castigo: " + writeOffEventData.getCode()));
 
         if (originalEntry.getStatus() == AccountingEntryStatus.VOIDED) {
             log.warn("El asiento contable {} para el castigo {} ya ha sido anulado. Omitiendo mensaje duplicado.", originalEntry.getCode(), writeOffEventData.getCode());
@@ -98,7 +100,7 @@ public class WriteOffProcessService implements IWriteOffProcessInputPort {
         log.info("Anulando castigo {}. Reversando estado de facturas...", writeOffEventData.getCode());
         for(WriteOffDetail detail : writeOffEventData.getDetails()) {
             InvoiceReplica invoice = invoiceProviderPort.findInvoiceById(detail.getInvoiceId())
-                    .orElseThrow(() -> new IllegalStateException("Inconsistencia: No se encontró la factura con ID " + detail.getInvoiceId()));
+                    .orElseThrow(() -> new InvoiceNotFoundException("Inconsistencia: No se encontró la factura con ID " + detail.getInvoiceId()));
 
             // La lógica para revertir el castigo debe estar en el modelo de dominio.
             invoice.reverseWriteOff(detail.getAmountWrittenOff());

@@ -12,6 +12,9 @@ import com.account_catalogue.accounting.application.output.IInvoiceProviderPort;
 import com.account_catalogue.accounting.application.output.IReceiptPersistenceOutputPort;
 import com.account_catalogue.accounting.domain.enums.ProcessingStatus;
 import com.account_catalogue.accounting.domain.enums.SourceDocumentType;
+import com.account_catalogue.accounting.domain.exception.AccountingEntryNotFoundException;
+import com.account_catalogue.accounting.domain.exception.InvoiceNotFoundException;
+import com.account_catalogue.accounting.domain.exception.ReceiptNotFoundException;
 import com.account_catalogue.accounting.domain.models.AccountingEntry;
 import com.account_catalogue.accounting.domain.models.InvoiceReplica;
 import com.account_catalogue.accounting.domain.models.Receipt;
@@ -60,7 +63,7 @@ public class ReceiptProcessService implements IReceiptProcessInputPort {
                                 for (ReceiptDetail detail : savedReceipt.getDetails()) {
                                         InvoiceReplica invoice = invoiceProviderPort
                                                         .findInvoiceById(detail.getOriginalInvoiceId())
-                                                        .orElseThrow(() -> new IllegalStateException(
+                                                        .orElseThrow(() -> new InvoiceNotFoundException(
                                                                         "No se encontró la factura con ID " + detail
                                                                                         .getOriginalInvoiceId()));
 
@@ -110,8 +113,8 @@ public class ReceiptProcessService implements IReceiptProcessInputPort {
                                 receiptEventData.getReceiptCode());
 
                 Receipt localReceipt = receiptPersistenceOutputPort.findByReceiptCode(receiptEventData.getReceiptCode())
-                                .orElseThrow(() -> new IllegalStateException(
-                                                "No se puede anular un recibo que no fue procesado previamente: "
+                                .orElseThrow(() -> new ReceiptNotFoundException(
+                                                "No se puede anular un recibo inexistente: "
                                                                 + receiptEventData.getReceiptCode()));
 
                 if (localReceipt.getProcessingStatus() == ProcessingStatus.VOIDED) {
@@ -123,10 +126,10 @@ public class ReceiptProcessService implements IReceiptProcessInputPort {
                 AccountingEntry originalEntry = accountingSearchOutputPort
                                 .findBySourceDocumentIdAndType(localReceipt.getOriginalReceiptId(),
                                                 SourceDocumentType.RECEIPT.name()) // Asumiendo un método en
-                                                                                        // Receipt que devuelve el
-                                                                                        // SourceDocumentType
-                                .orElseThrow(() -> new IllegalStateException(
-                                                "No se encontró el asiento contable original para el recibo "
+                                                                                   // Receipt que devuelve el
+                                                                                   // SourceDocumentType
+                                .orElseThrow(() -> new AccountingEntryNotFoundException(
+                                                "No se encontró el asiento contable para el recibo "
                                                                 + localReceipt.getReceiptCode()));
 
                 // 1. ORDENAR la reversión de saldos en las facturas afectadas
@@ -136,8 +139,8 @@ public class ReceiptProcessService implements IReceiptProcessInputPort {
                         for (ReceiptDetail detail : localReceipt.getDetails()) {
                                 InvoiceReplica invoice = invoiceProviderPort
                                                 .findInvoiceById(detail.getOriginalInvoiceId())
-                                                .orElseThrow(() -> new IllegalStateException(
-                                                                "Inconsistencia: No se encontró la factura con ID "
+                                                .orElseThrow(() -> new InvoiceNotFoundException(
+                                                                "Inconsistencia: No se encontró la factura ID "
                                                                                 + detail.getOriginalInvoiceId()));
 
                                 // La lógica de negocio está en el modelo de dominio.

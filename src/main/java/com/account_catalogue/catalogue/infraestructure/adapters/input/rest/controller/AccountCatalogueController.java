@@ -85,7 +85,7 @@ public class AccountCatalogueController {
     private final IAccountCatalogueImportInputPort accountCatalogueImportInputPort;
     private final AccountCatalogueExcelFileNameGenerator fileNameGenerator;
 
-    @PreAuthorize("hasAuthority('Create_Account_Catalogue')")
+    //@PreAuthorize("hasAuthority('Create_Account_Catalogue')")
     @PostMapping("/")
     public ResponseEntity<AccountCatalogueCreateRes> createAccountCatalogue(
             @Valid @RequestBody AccountCatalogueCreateReq accountCatalogueCreateReq) {
@@ -98,7 +98,7 @@ public class AccountCatalogueController {
         return ResponseEntity.ok(accountCreateRestMapper.toCreateResponse(account));
     }
 
-    @PreAuthorize("hasAuthority('Update_Account_Catalogue')")
+    //@PreAuthorize("hasAuthority('Update_Account_Catalogue')")
     @PutMapping("/{id}")
     public ResponseEntity<AccountCatalogueUpdateRes> updateAccountCatalogue(@PathVariable("id") int id,
             @Valid @RequestBody AccountCatalogueUpdateReq accountCatalogueUpdateReq) {
@@ -117,7 +117,7 @@ public class AccountCatalogueController {
         return ResponseEntity.ok(itemAccountSearchRestMapper.toItemAccountCatalogueSearch(accountCatalogue));
     }
 
-    @PreAuthorize("hasAuthority('Delete_Account_Catalogue')")
+    //@PreAuthorize("hasAuthority('Delete_Account_Catalogue')")
     @DeleteMapping("/{id}/{idEnterprise}")
     public ResponseEntity<Void> deleteByCode(@PathVariable Long id, @PathVariable String idEnterprise) {
         accountCatalogueDeleteInputPort.deleteById(id, idEnterprise);
@@ -157,7 +157,7 @@ public class AccountCatalogueController {
         return ResponseEntity.ok(response);
     }
 
-    @PreAuthorize("hasAuthority('Change_State_Account_Catalogue')")
+    //@PreAuthorize("hasAuthority('Change_State_Account_Catalogue')")
     @PatchMapping("/changeState/{id}/{enterpriseId}")
     public ResponseEntity<AccountCatalogueChangeStateRes> changeState(
             @PathVariable Long id,
@@ -193,7 +193,7 @@ public class AccountCatalogueController {
         return ResponseEntity.ok(response);
     }
 
-    @PreAuthorize("hasAuthority('Export_Template_Account_Catalogue')")
+    //@PreAuthorize("hasAuthority('Export_Template_Account_Catalogue')")
     @GetMapping("/template/excel")
     public ResponseEntity<Resource> exportAccountCatalogueTemplate(
             @RequestParam String entId) {
@@ -242,7 +242,7 @@ public class AccountCatalogueController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PreAuthorize("hasAuthority('Export_Account_Catalogue')")
+    //@PreAuthorize("hasAuthority('Export_Account_Catalogue')")
     @GetMapping("/export/download/{jobId}")
     public ResponseEntity<Resource> downloadExportedFile(@PathVariable String jobId) {
 
@@ -271,7 +271,7 @@ public class AccountCatalogueController {
     }
 
   
-    @PreAuthorize("hasAuthority('Import_Account_Catalogue')")
+    //@PreAuthorize("hasAuthority('Import_Account_Catalogue')")
     @PostMapping("/import/excel")
     public ResponseEntity<Map<String, String>> importFromExcel(
             @RequestParam @NotBlank(message = "El ID de empresa es requerido") String entId,

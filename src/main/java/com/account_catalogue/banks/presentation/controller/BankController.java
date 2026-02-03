@@ -27,14 +27,14 @@ public class BankController {
     private final IBankService service;
     private final BankDomainMapper mapper;
 
-    @PreAuthorize("hasAuthority('Create_Bank')")
+    //@PreAuthorize("hasAuthority('Create_Bank')")
     @PostMapping("/create")
     public ResponseEntity<BankRes> create(@Valid @RequestBody BankCreateReq request) {
         Bank created = service.create(request);
         return ResponseEntity.ok(mapper.toRes(created));
     }
 
-    @PreAuthorize("hasAuthority('Update_Bank')")
+    //@PreAuthorize("hasAuthority('Update_Bank')")
     @PutMapping("/update")
     public ResponseEntity<BankRes> update(@Valid @RequestBody BankUpdateReq request) {
         Bank updated = service.update(request);
@@ -67,7 +67,7 @@ public class BankController {
                 .map(mapper::toRes));
     }
 
-    @PreAuthorize("hasAuthority('Change_State_Bank')")
+    //@PreAuthorize("hasAuthority('Change_State_Bank')")
     @PatchMapping("/changeState/{id}/{enterpriseId}")
     public ResponseEntity<BankRes> changeState(
             @PathVariable Long id, 
@@ -77,7 +77,7 @@ public class BankController {
         return ResponseEntity.ok(mapper.toRes(updated));
     }
 
-    @PreAuthorize("hasAuthority('Delete_Bank')")
+    //@PreAuthorize("hasAuthority('Delete_Bank')")
     @DeleteMapping("/delete/{id}/{enterpriseId}")
     public ResponseEntity<BankRes> delete(
             @PathVariable Long id, 

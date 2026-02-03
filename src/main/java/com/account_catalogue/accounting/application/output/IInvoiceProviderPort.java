@@ -21,6 +21,12 @@ public interface IInvoiceProviderPort {
     Optional<InvoiceReplica> findInvoiceById(Long invoiceId);
 
     /**
+     * Busca factura por codigo de factura.
+     * @param factCode El código de la factura a buscar.
+     */
+    Optional<InvoiceReplica> findInvoiceByFactCode(Long factCode);
+
+    /**
      * Actualiza una factura en la base de datos.
      * @param invoice El objeto de dominio InvoiceReplica con los datos actualizados.
      */

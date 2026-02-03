@@ -187,6 +187,11 @@
 						<goals>
 							<goal>report</goal>
 						</goals>
+						<configuration>
+							<includes>
+								<include>com/account_catalogue/accounting/**</include>
+							</includes>
+						</configuration>
 					</execution>
 					<execution>
 						<id>jacoco-check</id>

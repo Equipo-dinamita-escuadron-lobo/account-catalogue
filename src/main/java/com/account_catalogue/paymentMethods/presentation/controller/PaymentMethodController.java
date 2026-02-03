@@ -30,14 +30,14 @@ public class PaymentMethodController {
     private final IPaymentMethodService service;
     private final PaymentMethodDomainMapper mapper;
 
-    @PreAuthorize("hasAuthority('Create_Payment_Method')")
+    @PreAuthorize("hasAuthority('PM#C')")
     @PostMapping("/create")
     public ResponseEntity<PaymentMethodRes> create(@Valid @RequestBody PaymentMethodCreateReq request) {
         PaymentMethod created = service.create(request);
         return ResponseEntity.ok(mapper.toRes(created));
     }
 
-    @PreAuthorize("hasAuthority('Update_Payment_Method')")
+    @PreAuthorize("hasAuthority('PM#U')")
     @PutMapping("/update")
     public ResponseEntity<PaymentMethodRes> update(@Valid @RequestBody PaymentMethodUpdateReq request) {
         PaymentMethod updated = service.update(request);
@@ -70,7 +70,7 @@ public class PaymentMethodController {
                 .map(mapper::toRes));
     }
 
-    @PreAuthorize("hasAuthority('Change_State_Payment_Method')")
+    @PreAuthorize("hasAuthority('PM#CS')")
     @PatchMapping("/changeState/{id}/{enterpriseId}")
     public ResponseEntity<PaymentMethodRes> changeState(
             @PathVariable Long id, 
@@ -80,7 +80,7 @@ public class PaymentMethodController {
         return ResponseEntity.ok(mapper.toRes(updated));
     }
 
-    @PreAuthorize("hasAuthority('Delete_Payment_Method')")
+    @PreAuthorize("hasAuthority('PM#D')")
     @DeleteMapping("/delete/{id}/{enterpriseId}")
     public ResponseEntity<PaymentMethodRes> delete(
             @PathVariable Long id, 

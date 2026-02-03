@@ -57,7 +57,7 @@ public class TaxController {
     private final ITaxChangeStateRestMapper taxChangeStateRestMapper;
     private final PaginationHelper paginationHelper;
 
-    @PreAuthorize("hasAuthority('Create_Tax')")
+    @PreAuthorize("hasAuthority('T#C')")
     @PostMapping("/")
     public ResponseEntity<TaxCreateRes> createTax(@RequestBody @Valid TaxCreateReq taxCreateReq) {
         TaxDTO taxDTO = taxCreateRestMapper.toDomain(taxCreateReq);
@@ -101,7 +101,7 @@ public class TaxController {
         return ResponseEntity.ok(taxSearchRestMapper.toSearchListResponse(activeTaxes));
     }
 
-    @PreAuthorize("hasAuthority('Update_Tax')")
+    @PreAuthorize("hasAuthority('T#U')")
     @PutMapping("/{id}")
     public ResponseEntity<TaxUpdateRes> updateTax(@PathVariable long id, @RequestBody @Valid TaxUpdateReq taxUpdateReq) {
         TaxDTO taxDTO = taxUpdateRestMapper.toDomain(taxUpdateReq);
@@ -109,7 +109,7 @@ public class TaxController {
         return ResponseEntity.ok(taxUpdateRestMapper.toCreateResponse(tax));
     }
 
-    @PreAuthorize("hasAuthority('Delete_Tax')")
+    @PreAuthorize("hasAuthority('T#D')")
     @DeleteMapping("/{id}/{enterpriseId}")
     public ResponseEntity<String> deleteByCode(@PathVariable long id, @PathVariable String enterpriseId) {
         if (taxDeleteInputPort.deleteByCode(id, enterpriseId)) {
@@ -120,7 +120,7 @@ public class TaxController {
         }
     }
 
-    @PreAuthorize("hasAuthority('Change_State_Tax')")
+    @PreAuthorize("hasAuthority('T#CS')")
     @PatchMapping("/changeState/{id}/{enterpriseId}")
     public ResponseEntity<TaxChangeStateRes> changeState(
             @PathVariable Long id,

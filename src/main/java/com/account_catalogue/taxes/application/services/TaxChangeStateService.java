@@ -2,6 +2,8 @@ package com.account_catalogue.taxes.application.services;
 
 import org.springframework.stereotype.Service;
 
+import com.account_catalogue.commons.audit.annotation.Auditable;
+import com.account_catalogue.commons.audit.annotation.OperationType;
 import com.account_catalogue.taxes.application.input.ITaxChangeStateInputPort;
 import com.account_catalogue.taxes.application.output.ITaxChangeStateOutputPort;
 import com.account_catalogue.taxes.domain.models.Tax;
@@ -12,8 +14,8 @@ import lombok.AllArgsConstructor;
 /**
  * @brief Servicio de aplicación para cambio de estado de impuestos
  *
- * Implementa la lógica de negocio para activar o desactivar impuestos
- * con validaciones de existencia previas.
+ *        Implementa la lógica de negocio para activar o desactivar impuestos
+ *        con validaciones de existencia previas.
  */
 @Service
 @AllArgsConstructor
@@ -24,17 +26,18 @@ public class TaxChangeStateService implements ITaxChangeStateInputPort {
 
     /**
      * @brief Cambia estado de impuesto con validación previa
-     * @param id ID del impuesto
+     * @param id           ID del impuesto
      * @param idEnterprise ID de la empresa
-     * @param status nuevo estado (true=activo, false=inactivo)
+     * @param status       nuevo estado (true=activo, false=inactivo)
      * @return impuesto actualizado
      */
     @Transactional
     @Override
+    @Auditable(operationType = OperationType.INACTIVATE, affectedTable = "TAX", moduleName = "TAXES", idArgIndex = 0, enterpriseIdArgIndex = 1)
     public Tax changeState(Long id, String idEnterprise, Boolean status) {
         // Validar que el impuesto existe para la empresa específica
         validationService.validateTaxExists(id, idEnterprise);
-        
+
         // Cambiar el estado
         return taxChangeStateOutputPort.changeState(id, idEnterprise, status);
     }

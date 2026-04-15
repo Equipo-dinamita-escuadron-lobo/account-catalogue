@@ -1,5 +1,7 @@
 package com.account_catalogue.banks.domain.services;
 
+import com.account_catalogue.commons.audit.annotation.Auditable;
+import com.account_catalogue.commons.audit.annotation.OperationType;
 import com.account_catalogue.commons.exceptions.banks.BankAlreadyExistsException;
 import com.account_catalogue.commons.exceptions.banks.BankHasAssociatedAccountsException;
 import com.account_catalogue.commons.exceptions.banks.BankInUseException;
@@ -29,8 +31,8 @@ import java.util.Optional;
 /**
  * @brief Implementación de servicios para gestión de bancos
  *
- * Proporciona operaciones CRUD completas con validaciones de negocio,
- * filtros avanzados, búsqueda y estandarización de datos.
+ *        Proporciona operaciones CRUD completas con validaciones de negocio,
+ *        filtros avanzados, búsqueda y estandarización de datos.
  */
 @Service
 @RequiredArgsConstructor
@@ -44,6 +46,7 @@ public class BankServiceImpl implements IBankService {
 
     @Override
     @Transactional
+    @Auditable(operationType = OperationType.CREATE, affectedTable = "BANK", moduleName = "BANKS")
     public Bank create(BankCreateReq request) {
         // Validar formato del código
         validateBankCode(request.getCode());
@@ -51,10 +54,10 @@ public class BankServiceImpl implements IBankService {
         // Estandarización del nombre a mayúsculas
         String standardizedName = standardizeName(request.getName());
 
-               // Validar unicidad del código por empresa
-               if (repository.existsByCodeAndIdEnterprise(request.getCode(), request.getIdEnterprise())) {
-                   throw new BankAlreadyExistsException("código", request.getCode(), request.getIdEnterprise());
-               }
+        // Validar unicidad del código por empresa
+        if (repository.existsByCodeAndIdEnterprise(request.getCode(), request.getIdEnterprise())) {
+            throw new BankAlreadyExistsException("código", request.getCode(), request.getIdEnterprise());
+        }
 
         // Validar unicidad del nombre por empresa
         if (repository.existsByNameAndIdEnterprise(standardizedName, request.getIdEnterprise())) {
@@ -71,6 +74,7 @@ public class BankServiceImpl implements IBankService {
 
     @Override
     @Transactional
+    @Auditable(operationType = OperationType.UPDATE, affectedTable = "BANK", moduleName = "BANKS")
     public Bank update(BankUpdateReq request) {
         BankEntity current = repository.findByIdAndIdEnterprise(request.getId(), request.getIdEnterprise())
                 .orElseThrow(BankNotFoundException::new);
@@ -119,7 +123,7 @@ public class BankServiceImpl implements IBankService {
     @Override
     @Transactional(readOnly = true)
     public Page<Bank> findAllByEnterpriseWithFilters(String idEnterprise, Integer page, Integer size,
-                                                   String sortField, String sortOrder, String search) {
+            String sortField, String sortOrder, String search) {
         // Validar sortField - solo permitir "code" y "name"
         if (sortField != null && !sortField.isEmpty()) {
             if (!"code".equals(sortField) && !"name".equals(sortField)) {
@@ -148,17 +152,15 @@ public class BankServiceImpl implements IBankService {
 
         // Crear paginación
         Pageable pageable = paginationHelper.createFlexiblePageable(
-            Optional.ofNullable(page),
-            Optional.ofNullable(size),
-            totalRecords
-        );
+                Optional.ofNullable(page),
+                Optional.ofNullable(size),
+                totalRecords);
 
         // Aplicar ordenamiento
         Pageable pageableWithSort = PageRequest.of(
-            pageable.getPageNumber(),
-            pageable.getPageSize(),
-            Sort.by(direction, sortField)
-        );
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                Sort.by(direction, sortField));
 
         Page<BankEntity> result;
         if (StringUtils.hasText(search)) {
@@ -173,7 +175,7 @@ public class BankServiceImpl implements IBankService {
     @Override
     @Transactional(readOnly = true)
     public Page<Bank> findAllActiveByEnterprise(String idEnterprise, Integer page, Integer size) {
-        
+
         long totalRecords = repository.countByIdEnterpriseAndStatus(idEnterprise, true);
 
         Pageable pageable = paginationHelper.createFlexiblePageable(
@@ -193,6 +195,7 @@ public class BankServiceImpl implements IBankService {
 
     @Override
     @Transactional
+    @Auditable(operationType = OperationType.INACTIVATE, affectedTable = "BANK", moduleName = "BANKS", idArgIndex = 0, enterpriseIdArgIndex = 1)
     public Bank changeState(Long id, String idEnterprise, Boolean newState) {
         BankEntity current = repository.findByIdAndIdEnterprise(id, idEnterprise)
                 .orElseThrow(BankNotFoundException::new);
@@ -204,11 +207,13 @@ public class BankServiceImpl implements IBankService {
 
     @Override
     @Transactional
+    @Auditable(operationType = OperationType.DELETE, affectedTable = "BANK", moduleName = "BANKS", idArgIndex = 0, enterpriseIdArgIndex = 1)
     public Bank delete(Long id, String idEnterprise) {
         BankEntity current = repository.findByIdAndIdEnterprise(id, idEnterprise)
                 .orElseThrow(BankNotFoundException::new);
 
-        // Verificar si el banco tiene cuentas bancarias asociadas (sin importar movimientos)
+        // Verificar si el banco tiene cuentas bancarias asociadas (sin importar
+        // movimientos)
         boolean hasAssociatedAccounts = bankAccountRepository
                 .findAllByIdEnterpriseAndBankId(idEnterprise, id, PageRequest.of(0, 1)).hasContent();
         if (hasAssociatedAccounts) {

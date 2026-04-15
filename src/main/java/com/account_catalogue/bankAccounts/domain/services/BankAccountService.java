@@ -1,5 +1,7 @@
 package com.account_catalogue.bankAccounts.domain.services;
 
+import com.account_catalogue.commons.audit.annotation.Auditable;
+import com.account_catalogue.commons.audit.annotation.OperationType;
 import com.account_catalogue.commons.exceptions.bankAccounts.BankAccountAlreadyExistsException;
 import com.account_catalogue.commons.exceptions.bankAccounts.BankAccountInUseException;
 import com.account_catalogue.commons.exceptions.bankAccounts.BankAccountNotFoundException;
@@ -34,8 +36,9 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @brief Implementación de servicios para gestión de cuentas bancarias
  *
- * Proporciona operaciones CRUD completas con validaciones de negocio,
- * filtros avanzados y manejo de relaciones con bancos y cuentas contables.
+ *        Proporciona operaciones CRUD completas con validaciones de negocio,
+ *        filtros avanzados y manejo de relaciones con bancos y cuentas
+ *        contables.
  */
 @Service
 @RequiredArgsConstructor
@@ -55,6 +58,7 @@ public class BankAccountService implements IBankAccountService {
      */
     @Override
     @Transactional
+    @Auditable(operationType = OperationType.CREATE, affectedTable = "BANK_ACCOUNT", moduleName = "BANKS")
     public BankAccount create(BankAccountCreateReq request) {
         validateAccountNumber(request.getAccountNumber());
 
@@ -89,6 +93,7 @@ public class BankAccountService implements IBankAccountService {
      */
     @Override
     @Transactional
+    @Auditable(operationType = OperationType.UPDATE, affectedTable = "BANK_ACCOUNT", moduleName = "BANKS")
     public BankAccount update(BankAccountUpdateReq request) {
         BankAccountEntity current = repository.findByIdAndIdEnterprise(request.getId(), request.getIdEnterprise())
                 .orElseThrow(BankAccountNotFoundException::new);
@@ -96,13 +101,15 @@ public class BankAccountService implements IBankAccountService {
         // Validar que la cuenta bancaria no tenga movimientos contables registrados
         BankAccount domain = dataMapper.toDomain(current);
         if (domain.isInUse()) {
-            throw new BankAccountInUseException(current.getAccountNumber().toString(), true); // true indica operación de edición
+            throw new BankAccountInUseException(current.getAccountNumber().toString(), true); // true indica operación
+                                                                                              // de edición
         }
 
         validateAccountNumber(request.getAccountNumber());
 
         if (!current.getAccountNumber().equals(request.getAccountNumber())) {
-            if (repository.existsByAccountNumberAndIdEnterprise(request.getAccountNumber(), request.getIdEnterprise())) {
+            if (repository.existsByAccountNumberAndIdEnterprise(request.getAccountNumber(),
+                    request.getIdEnterprise())) {
                 throw new BankAccountAlreadyExistsException("número de cuenta", request.getAccountNumber().toString(),
                         request.getIdEnterprise());
             }
@@ -138,19 +145,20 @@ public class BankAccountService implements IBankAccountService {
     }
 
     /**
-     * @brief Consulta paginada con filtros avanzados y búsqueda por número de cuenta
+     * @brief Consulta paginada con filtros avanzados y búsqueda por número de
+     *        cuenta
      * @param idEnterprise ID de la empresa
-     * @param page Número de página (0-based)
-     * @param size Tamaño de página
-     * @param sortField Campo para ordenamiento (solo 'accountNumber')
-     * @param sortOrder Dirección del ordenamiento (asc/desc)
-     * @param search Término de búsqueda parcial por número de cuenta
+     * @param page         Número de página (0-based)
+     * @param size         Tamaño de página
+     * @param sortField    Campo para ordenamiento (solo 'accountNumber')
+     * @param sortOrder    Dirección del ordenamiento (asc/desc)
+     * @param search       Término de búsqueda parcial por número de cuenta
      * @return Página de cuentas bancarias filtradas
      */
     @Override
     @Transactional(readOnly = true)
     public Page<BankAccount> findAllByEnterpriseWithFilters(String idEnterprise, Integer page, Integer size,
-                                                          String sortField, String sortOrder, String search) {
+            String sortField, String sortOrder, String search) {
         if (sortField != null && !sortField.isEmpty()) {
             if (!"accountNumber".equals(sortField)) {
                 throw new IllegalArgumentException("El campo de ordenamiento debe ser 'accountNumber'");
@@ -177,16 +185,14 @@ public class BankAccountService implements IBankAccountService {
 
         // Crear paginación inteligente
         Pageable pageable = paginationHelper.createFlexiblePageable(
-            Optional.ofNullable(page),
-            Optional.ofNullable(size),
-            totalRecords
-        );
+                Optional.ofNullable(page),
+                Optional.ofNullable(size),
+                totalRecords);
 
         Pageable pageableWithSort = PageRequest.of(
-            pageable.getPageNumber(),
-            pageable.getPageSize(),
-            Sort.by(direction, sortField)
-        );
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                Sort.by(direction, sortField));
 
         Page<BankAccountEntity> result;
         if (StringUtils.hasText(search)) {
@@ -201,20 +207,18 @@ public class BankAccountService implements IBankAccountService {
     @Override
     @Transactional(readOnly = true)
     public Page<BankAccount> findAllActiveByEnterprise(String idEnterprise, Integer page, Integer size) {
-        
+
         long totalRecords = repository.countByIdEnterpriseAndStatus(idEnterprise, true);
 
         Pageable pageable = paginationHelper.createFlexiblePageable(
                 Optional.ofNullable(page),
                 Optional.ofNullable(size),
-                totalRecords
-        );
+                totalRecords);
 
         Pageable pageableWithSort = PageRequest.of(
                 pageable.getPageNumber(),
                 pageable.getPageSize(),
-                Sort.by(Sort.Direction.ASC, "accountNumber")
-        );
+                Sort.by(Sort.Direction.ASC, "accountNumber"));
 
         return repository.findAllByIdEnterpriseAndStatus(idEnterprise, true, pageableWithSort)
                 .map(dataMapper::toDomain);
@@ -222,6 +226,7 @@ public class BankAccountService implements IBankAccountService {
 
     @Override
     @Transactional
+    @Auditable(operationType = OperationType.INACTIVATE, affectedTable = "BANK_ACCOUNT", moduleName = "BANKS", idArgIndex = 0, enterpriseIdArgIndex = 1)
     public BankAccount changeState(Long id, String idEnterprise, Boolean newState) {
         BankAccountEntity current = repository.findByIdAndIdEnterprise(id, idEnterprise)
                 .orElseThrow(BankAccountNotFoundException::new);
@@ -233,6 +238,7 @@ public class BankAccountService implements IBankAccountService {
 
     @Override
     @Transactional
+    @Auditable(operationType = OperationType.DELETE, affectedTable = "BANK_ACCOUNT", moduleName = "BANKS", idArgIndex = 0, enterpriseIdArgIndex = 1)
     public BankAccount delete(Long id, String idEnterprise) {
         BankAccountEntity current = repository.findByIdAndIdEnterprise(id, idEnterprise)
                 .orElseThrow(BankAccountNotFoundException::new);
@@ -240,7 +246,8 @@ public class BankAccountService implements IBankAccountService {
         // Validar que la cuenta bancaria no tenga movimientos contables registrados
         BankAccount domain = dataMapper.toDomain(current);
         if (domain.isInUse()) {
-            throw new BankAccountInUseException(current.getAccountNumber().toString(), false); // false indica operación de eliminación
+            throw new BankAccountInUseException(current.getAccountNumber().toString(), false); // false indica operación
+                                                                                               // de eliminación
         }
 
         repository.delete(current);
@@ -268,7 +275,7 @@ public class BankAccountService implements IBankAccountService {
 
     /**
      * @brief Valida existencia y estado activo del banco
-     * @param bankId ID del banco a validar
+     * @param bankId       ID del banco a validar
      * @param idEnterprise ID de la empresa
      * @return Entidad de banco si existe y está activo
      */
@@ -292,7 +299,7 @@ public class BankAccountService implements IBankAccountService {
     /**
      * @brief Valida existencia y formato de cuenta contable auxiliar
      * @param accountingAccountId ID de la cuenta contable a validar
-     * @param idEnterprise ID de la empresa
+     * @param idEnterprise        ID de la empresa
      * @return Entidad de cuenta contable si existe y es auxiliar
      */
     private AccountCatalogue validateAccountingAccountExists(Long accountingAccountId, String idEnterprise) {

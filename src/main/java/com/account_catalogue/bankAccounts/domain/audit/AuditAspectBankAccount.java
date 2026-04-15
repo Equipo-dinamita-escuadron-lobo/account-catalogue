@@ -1,0 +1,98 @@
+package com.account_catalogue.bankAccounts.domain.audit;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Optional;
+
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.annotation.Aspect;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
+
+import com.account_catalogue.bankAccounts.domain.model.BankAccount;
+import com.account_catalogue.bankAccounts.domain.services.IBankAccountService;
+import com.account_catalogue.bankAccounts.presentation.DTO.request.BankAccountUpdateReq;
+import com.account_catalogue.commons.audit.annotation.Auditable;
+import com.account_catalogue.commons.audit.aspect.BaseAuditAspect;
+import com.account_catalogue.commons.audit.builder.AuditEventBuilder;
+import com.account_catalogue.commons.audit.publisher.AuditEventPublisher;
+
+import lombok.extern.slf4j.Slf4j;
+
+@Aspect
+@Component
+@Slf4j
+public class AuditAspectBankAccount extends BaseAuditAspect {
+
+    @Lazy
+    private final IBankAccountService bankAccountService;
+
+    public AuditAspectBankAccount(AuditEventBuilder auditEventBuilder,
+            AuditEventPublisher auditEventPublisher, @Lazy IBankAccountService bankAccountService) {
+        super(auditEventBuilder, auditEventPublisher);
+        this.bankAccountService = bankAccountService;
+    }
+
+    @Around("@annotation(auditable) && within(com.account_catalogue.bankAccounts.domain.services..*)")
+    public Object audit(ProceedingJoinPoint joinPoint, Auditable auditable) throws Throwable {
+        return executeAudit(joinPoint, auditable);
+    }
+
+    @Override
+    protected Map<String, Object> fetchCurrentState(Auditable auditable, Object[] args) {
+        return switch (auditable.affectedTable()) {
+            case "BANK_ACCOUNT" -> {
+                Long id = (args[0] instanceof Long) ? (Long) args[0] : ((BankAccountUpdateReq) args[0]).getId();
+                String enterpriseId = (args[0] instanceof Long) ? (String) args[1]
+                        : ((BankAccountUpdateReq) args[0]).getIdEnterprise();
+                yield Optional.ofNullable(bankAccountService.findById(id, enterpriseId))
+                        .map(this::entityToMap)
+                        .orElse(null);
+            }
+            default -> null;
+        };
+    }
+
+    @Override
+    protected String resolveEnterpriseId(Auditable auditable, Object[] args, Object result,
+            Map<String, Object> beforeData) {
+        return switch (auditable.operationType()) {
+            case CREATE -> result instanceof BankAccount ba ? ba.getIdEnterprise() : "UNKNOWN";
+            case DELETE, INACTIVATE, ACTIVATE -> (String) args[auditable.enterpriseIdArgIndex()];
+            default -> beforeData != null ? (String) beforeData.get("entId") : "UNKNOWN";
+        };
+    }
+
+    @Override
+    protected String resolveRegisterId(Auditable auditable, Object[] args, Object result,
+            Map<String, Object> beforeData) {
+        return switch (auditable.operationType()) {
+            case CREATE -> result instanceof BankAccount ba ? String.valueOf(ba.getId()) : "UNKNOWN";
+            case DELETE, INACTIVATE, ACTIVATE -> String.valueOf(args[auditable.idArgIndex()]);
+            default -> beforeData != null ? String.valueOf(beforeData.get("id")) : "UNKNOWN";
+        };
+    }
+
+    @Override
+    protected Map<String, Object> entityToMap(Object object) {
+        if (!(object instanceof BankAccount bankAccount)) {
+            return null;
+        }
+        Map<String, Object> map = new LinkedHashMap<>();
+        map.put("id", bankAccount.getId());
+        map.put("entId", bankAccount.getIdEnterprise());
+        map.put("accountNumber", bankAccount.getAccountNumber());
+        map.put("bank",
+                bankAccount.getBank() != null
+                        ? bankAccount.getBank().getCode() + " - " + bankAccount.getBank().getName()
+                        : null);
+        map.put("accountType", bankAccount.getAccountType() != null ? bankAccount.getAccountType().name() : null);
+        map.put("accountingAccountId", bankAccount.getAccountingAccountId());
+        map.put("state", bankAccount.getStatus());
+
+        map.entrySet().removeIf(entry -> entry.getValue() == null);
+        return map;
+    }
+
+}

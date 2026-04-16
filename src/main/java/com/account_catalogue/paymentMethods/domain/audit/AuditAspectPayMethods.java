@@ -75,6 +75,16 @@ public class AuditAspectPayMethods extends BaseAuditAspect {
     }
 
     @Override
+    protected Map<String, Object> buildContext(Object[] args, Object result, Map<String, Object> beforeData) {
+        if (beforeData == null)
+            return Map.of();
+        Map<String, Object> context = new LinkedHashMap<>();
+        if (beforeData.get("name") != null)
+            context.put("name", beforeData.get("name"));
+        return context;
+    }
+
+    @Override
     protected Map<String, Object> entityToMap(Object object) {
         if (!(object instanceof PaymentMethod paymentMethod)) {
             return null;

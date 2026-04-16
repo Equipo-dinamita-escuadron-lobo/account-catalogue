@@ -75,6 +75,18 @@ public class AuditAspectBank extends BaseAuditAspect {
     }
 
     @Override
+    protected Map<String, Object> buildContext(Object[] args, Object result, Map<String, Object> beforeData) {
+        if (beforeData == null)
+            return Map.of();
+        Map<String, Object> context = new LinkedHashMap<>();
+        if (beforeData.get("code") != null)
+            context.put("code", beforeData.get("code"));
+        if (beforeData.get("name") != null)
+            context.put("name", beforeData.get("name"));
+        return context;
+    }
+
+    @Override
     protected Map<String, Object> entityToMap(Object object) {
         if (!(object instanceof Bank bank)) {
             return null;

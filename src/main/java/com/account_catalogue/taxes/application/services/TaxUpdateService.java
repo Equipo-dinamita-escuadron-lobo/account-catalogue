@@ -5,6 +5,8 @@ import com.account_catalogue.taxes.application.output.ITaxUpdateOutputPort;
 import com.account_catalogue.taxes.application.output.ITaxSearchOutputPort;
 import com.account_catalogue.taxes.domain.DTO.TaxDTO;
 import com.account_catalogue.taxes.domain.models.Tax;
+import com.account_catalogue.commons.audit.annotation.Auditable;
+import com.account_catalogue.commons.audit.annotation.OperationType;
 import com.account_catalogue.commons.exceptions.taxes.TaxInUseException;
 
 import org.springframework.transaction.annotation.Transactional;
@@ -16,8 +18,8 @@ import org.springframework.stereotype.Service;
 /**
  * @brief Servicio de aplicación para actualización de impuestos
  *
- * Implementa la lógica de negocio para actualizar impuestos existentes
- * con validaciones de unicidad y cuentas contables.
+ *        Implementa la lógica de negocio para actualizar impuestos existentes
+ *        con validaciones de unicidad y cuentas contables.
  */
 @Service
 @AllArgsConstructor
@@ -30,11 +32,12 @@ public class TaxUpdateService implements ITaxUpdateInputPort {
     /**
      * @brief Actualiza impuesto existente con validaciones
      * @param taxDTO datos actualizados del impuesto
-     * @param id identificador del impuesto a actualizar
+     * @param id     identificador del impuesto a actualizar
      * @return impuesto actualizado
      */
     @Override
     @Transactional
+    @Auditable(operationType = OperationType.UPDATE, affectedTable = "TAX", moduleName = "TAXES")
     public Tax update(TaxDTO taxDTO, long id) {
         // Validar que el impuesto existe
         taxValidationService.validateTaxExists(id, taxDTO.getIdEnterprise());
@@ -47,11 +50,13 @@ public class TaxUpdateService implements ITaxUpdateInputPort {
             throw new TaxInUseException(existingTax.getCode(), true); // true indica operación de edición
         }
 
-        // Validar unicidad del código usando normalización, excluyendo el registro actual
+        // Validar unicidad del código usando normalización, excluyendo el registro
+        // actual
         taxValidationService.validateTaxCodeNotExistsExcludingId(taxDTO.getCode(), taxDTO.getIdEnterprise(), id);
 
         // Validar cuentas de impuesto
-        taxValidationService.validateAccountDigits(taxDTO.getSalesTaxId(), taxDTO.getPurchaseTaxId(), taxDTO.getIdEnterprise());
+        taxValidationService.validateAccountDigits(taxDTO.getSalesTaxId(), taxDTO.getPurchaseTaxId(),
+                taxDTO.getIdEnterprise());
         taxValidationService.validateDifferentTaxAccounts(taxDTO.getSalesTaxId(), taxDTO.getPurchaseTaxId());
 
         return taxUpdateOutputPort.update(taxDTO, id);

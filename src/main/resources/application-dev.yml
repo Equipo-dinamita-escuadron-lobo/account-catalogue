@@ -3,15 +3,15 @@ spring:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/catalogue}
     username: ${DB_USER:postgres}
     password: ${DB_PASSWORD:root}
-    driver-class-name: ${DB_DRIVER:org.postgresql.Driver}    
+    driver-class-name: ${DB_DRIVER:org.postgresql.Driver}
     hikari:
-      connection-timeout: 20000  # 20 segundos para obtener conexión del pool
-      idle-timeout: 300000       # 5 minutos antes de cerrar conexiones idle
-      max-lifetime: 1200000      # 20 minutos máximo lifetime de conexión
-      maximum-pool-size: 20      # Máximo 20 conexiones
-      minimum-idle: 5            # Mínimo 5 conexiones idle
-      validation-timeout: 5000   # 5 segundos para validar conexión
-      leak-detection-threshold: 60000  # 60 segundos para detectar leaks
+      connection-timeout: 20000 # 20 segundos para obtener conexión del pool
+      idle-timeout: 300000 # 5 minutos antes de cerrar conexiones idle
+      max-lifetime: 1200000 # 20 minutos máximo lifetime de conexión
+      maximum-pool-size: 20 # Máximo 20 conexiones
+      minimum-idle: 5 # Mínimo 5 conexiones idle
+      validation-timeout: 5000 # 5 segundos para validar conexión
+      leak-detection-threshold: 60000 # 60 segundos para detectar leaks
 
   jpa:
     hibernate:
@@ -23,11 +23,11 @@ spring:
         order-inserts: true
         order-updates: true
         batch-versioned-data: true
-        timeout: 30  # Timeout en segundos para consultas
-    open-in-view: false  # Importante para evitar problemas con EntityManager
+        timeout: 30 # Timeout en segundos para consultas
+    open-in-view: false # Importante para evitar problemas con EntityManager
 
   transaction:
-    default-timeout: 30  # Timeout por defecto para transacciones en segundos
+    default-timeout: 30 # Timeout por defecto para transacciones en segundos
 
   servlet:
     multipart:
@@ -36,8 +36,8 @@ spring:
       enabled: true
       file-size-threshold: 2KB
       resolve-lazily: false
-  
-  h2: 
+
+  h2:
     console:
       enabled: false
 
@@ -73,7 +73,7 @@ spring:
         prefetch: ${RABBITMQ_PREFETCH:10}
         concurrency: ${RABBITMQ_CONCURRENCY:1}
         max-concurrency: ${RABBITMQ_MAX_CONCURRENCY:5}
-        
+
   security:
     oauth2:
       resourceserver:

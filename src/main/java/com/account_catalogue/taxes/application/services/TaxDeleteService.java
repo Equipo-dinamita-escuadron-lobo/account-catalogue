@@ -9,13 +9,16 @@ import com.account_catalogue.taxes.application.output.ITaxSearchOutputPort;
 import com.account_catalogue.taxes.domain.models.Tax;
 
 import jakarta.transaction.Transactional;
+
+import com.account_catalogue.commons.audit.annotation.Auditable;
+import com.account_catalogue.commons.audit.annotation.OperationType;
 import com.account_catalogue.commons.exceptions.taxes.TaxInUseException;
 
 /**
  * @brief Servicio de aplicación para eliminación de impuestos
  *
- * Implementa la lógica de negocio para eliminar impuestos
- * con validaciones de existencia previas.
+ *        Implementa la lógica de negocio para eliminar impuestos
+ *        con validaciones de existencia previas.
  */
 @Service
 @AllArgsConstructor
@@ -26,12 +29,13 @@ public class TaxDeleteService implements ITaxDeleteInputPort {
 
     /**
      * @brief Elimina impuesto con validación previa
-     * @param id ID del impuesto a eliminar
+     * @param id           ID del impuesto a eliminar
      * @param idEnterprise ID de la empresa
      * @return true si se eliminó con éxito, false de lo contrario
      */
     @Override
     @Transactional
+    @Auditable(operationType = OperationType.DELETE, affectedTable = "TAX", moduleName = "TAXES", idArgIndex = 0, enterpriseIdArgIndex = 1)
     public boolean deleteByCode(long id, String idEnterprise) {
         // Validar que el impuesto existe para la empresa específica
         taxValidationService.validateTaxExists(Long.valueOf(id), idEnterprise);

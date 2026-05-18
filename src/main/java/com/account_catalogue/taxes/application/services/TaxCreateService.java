@@ -1,5 +1,7 @@
 package com.account_catalogue.taxes.application.services;
 
+import com.account_catalogue.commons.audit.annotation.Auditable;
+import com.account_catalogue.commons.audit.annotation.OperationType;
 import com.account_catalogue.taxes.application.input.ITaxCreateInputPort;
 import com.account_catalogue.taxes.application.output.ITaxCreateOutputPort;
 import com.account_catalogue.taxes.domain.DTO.TaxDTO;
@@ -13,8 +15,8 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @brief Servicio de aplicación para creación de impuestos
  *
- * Implementa la lógica de negocio para crear nuevos impuestos
- * con validaciones de unicidad y cuentas contables.
+ *        Implementa la lógica de negocio para crear nuevos impuestos
+ *        con validaciones de unicidad y cuentas contables.
  */
 @Service
 @AllArgsConstructor
@@ -30,6 +32,7 @@ public class TaxCreateService implements ITaxCreateInputPort {
      */
     @Override
     @Transactional
+    @Auditable(operationType = OperationType.CREATE, affectedTable = "TAX", moduleName = "TAXES")
     public Tax createTax(TaxDTO tax) {
         // Validar unicidad del código usando normalización
         taxValidationService.validateTaxCodeNotExists(tax.getCode(), tax.getIdEnterprise());

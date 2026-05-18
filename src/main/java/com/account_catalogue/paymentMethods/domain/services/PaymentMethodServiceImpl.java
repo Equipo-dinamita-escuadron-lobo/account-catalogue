@@ -2,6 +2,8 @@ package com.account_catalogue.paymentMethods.domain.services;
 
 import com.account_catalogue.commons.exceptions.paymentMethods.PaymentMethodsAlreadyExistsException;
 import com.account_catalogue.commons.exceptions.paymentMethods.PaymentMethodsNotFoundException;
+import com.account_catalogue.commons.audit.annotation.Auditable;
+import com.account_catalogue.commons.audit.annotation.OperationType;
 import com.account_catalogue.commons.exceptions.paymentMethods.InvalidAccountingAccountException;
 import com.account_catalogue.commons.exceptions.paymentMethods.PaymentMethodInUseException;
 import com.account_catalogue.catalogue.application.services.validation.AccountCatalogueValidationService;
@@ -32,8 +34,8 @@ import java.util.Optional;
 /**
  * @brief Implementación de servicios para gestión de métodos de pago
  *
- * Proporciona operaciones CRUD completas con validaciones de negocio,
- * filtros avanzados y manejo de relaciones con cuentas contables.
+ *        Proporciona operaciones CRUD completas con validaciones de negocio,
+ *        filtros avanzados y manejo de relaciones con cuentas contables.
  */
 @Service
 @RequiredArgsConstructor
@@ -47,6 +49,7 @@ public class PaymentMethodServiceImpl implements IPaymentMethodService {
 
     @Override
     @Transactional
+    @Auditable(operationType = OperationType.CREATE, affectedTable = "PAYMENT_METHOD", moduleName = "PAYMENT_METHODS")
     public PaymentMethod create(PaymentMethodCreateReq request) {
         // Implementa validaciones de unicidad por nombre normalizado y cuenta auxiliar
         String normalizedNameForValidation = StringStandardizationUtils.standardizeName(request.getName());
@@ -59,12 +62,14 @@ public class PaymentMethodServiceImpl implements IPaymentMethodService {
         validateAccountingAccount(account.getCode(), request.getIdEnterprise());
 
         // Validar unicidad por empresa comparando nombres normalizados
-        List<PaymentMethodEntity> existingMethods = repository.findAllByIdEnterprise(request.getIdEnterprise(), Pageable.unpaged()).getContent();
+        List<PaymentMethodEntity> existingMethods = repository
+                .findAllByIdEnterprise(request.getIdEnterprise(), Pageable.unpaged()).getContent();
         boolean nameExists = existingMethods.stream()
                 .anyMatch(method -> StringStandardizationUtils.standardizeName(method.getName())
                         .equals(normalizedNameForValidation));
         if (nameExists) {
-            throw new PaymentMethodsAlreadyExistsException("nombre", normalizedNameForValidation, request.getIdEnterprise());
+            throw new PaymentMethodsAlreadyExistsException("nombre", normalizedNameForValidation,
+                    request.getIdEnterprise());
         }
 
         PaymentMethod domain = domainMapper.toDomain(request);
@@ -88,6 +93,7 @@ public class PaymentMethodServiceImpl implements IPaymentMethodService {
 
     @Override
     @Transactional
+    @Auditable(operationType = OperationType.UPDATE, affectedTable = "PAYMENT_METHOD", moduleName = "PAYMENT_METHODS")
     public PaymentMethod update(PaymentMethodUpdateReq request) {
         // Implementa validaciones de unicidad excluyendo el registro actual
         PaymentMethodEntity current = repository.findByIdAndIdEnterprise(request.getId(), request.getIdEnterprise())
@@ -99,7 +105,8 @@ public class PaymentMethodServiceImpl implements IPaymentMethodService {
             throw new PaymentMethodInUseException(current.getName(), true); // true indica operación de edición
         }
 
-        // Validar que la nueva cuenta contable existe y es auxiliar (si se está cambiando)
+        // Validar que la nueva cuenta contable existe y es auxiliar (si se está
+        // cambiando)
         AccountCatalogue newAccount = accountCatalogueValidationService.validateAccountExistsByIdAndEnterprise(
                 request.getAccountingAccountId(), request.getIdEnterprise());
         validateAccountingAccount(newAccount.getCode(), request.getIdEnterprise());
@@ -109,13 +116,15 @@ public class PaymentMethodServiceImpl implements IPaymentMethodService {
 
         String currentNormalizedName = StringStandardizationUtils.standardizeName(current.getName());
         if (!normalizedNameForValidation.equals(currentNormalizedName)) {
-            List<PaymentMethodEntity> existingMethods = repository.findAllByIdEnterprise(request.getIdEnterprise(), Pageable.unpaged()).getContent();
+            List<PaymentMethodEntity> existingMethods = repository
+                    .findAllByIdEnterprise(request.getIdEnterprise(), Pageable.unpaged()).getContent();
             boolean nameExists = existingMethods.stream()
                     .filter(method -> !method.getId().equals(current.getId())) // Excluir el registro actual
                     .anyMatch(method -> StringStandardizationUtils.standardizeName(method.getName())
                             .equals(normalizedNameForValidation));
             if (nameExists) {
-                throw new PaymentMethodsAlreadyExistsException("nombre", normalizedNameForValidation, request.getIdEnterprise());
+                throw new PaymentMethodsAlreadyExistsException("nombre", normalizedNameForValidation,
+                        request.getIdEnterprise());
             }
         }
 
@@ -190,6 +199,7 @@ public class PaymentMethodServiceImpl implements IPaymentMethodService {
 
     @Override
     @Transactional
+    @Auditable(operationType = OperationType.INACTIVATE, affectedTable = "PAYMENT_METHOD", moduleName = "PAYMENT_METHODS", idArgIndex = 0, enterpriseIdArgIndex = 1)
     public PaymentMethod changeState(Long id, String idEnterprise, Boolean newState) {
         // Implementa cambio de estado sin validaciones adicionales
         PaymentMethodEntity current = repository.findByIdAndIdEnterprise(id, idEnterprise)
@@ -202,6 +212,7 @@ public class PaymentMethodServiceImpl implements IPaymentMethodService {
 
     @Override
     @Transactional
+    @Auditable(operationType = OperationType.DELETE, affectedTable = "PAYMENT_METHOD", moduleName = "PAYMENT_METHODS", idArgIndex = 0, enterpriseIdArgIndex = 1)
     public PaymentMethod delete(Long id, String idEnterprise) {
         // Implementa eliminación sin validaciones de relaciones
         PaymentMethodEntity current = repository.findByIdAndIdEnterprise(id, idEnterprise)
@@ -217,11 +228,10 @@ public class PaymentMethodServiceImpl implements IPaymentMethodService {
         return domain;
     }
 
-
     /**
      * @brief Valida existencia y formato de cuenta contable auxiliar
      * @param accountingAccount el código de la cuenta contable
-     * @param idEnterprise el ID de la empresa
+     * @param idEnterprise      el ID de la empresa
      */
     private void validateAccountingAccount(String accountingAccount, String idEnterprise) {
         if (accountingAccount == null || accountingAccount.trim().isEmpty()) {

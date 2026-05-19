@@ -8,6 +8,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.TenantId;
 
+import java.time.Instant;
+
 import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.entity.AccountCatalogueEntity;
 
 /**
@@ -63,4 +65,9 @@ public class TaxEntity {
 
     @TenantId
     String tenantId;
+
+    /** Fecha de creación del registro. Usada para filtro de snapshot en copia. */
+    @Column(name = "created_at", updatable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    @Builder.Default
+    private Instant createdAt = Instant.now();
 }

@@ -732,4 +732,144 @@ Cada módulo mantiene **responsabilidad única** clara:
 
 ---
 
+## Bounded context `copy` (participante Hito 2)
+
+### Propósito
+
+Implementa el bounded context `copy` dentro de `account-catalogue` para participar
+como primer módulo real en la saga de copia/backup orquestada por `enterprises-management`.
+El bounded context está aislado del resto de módulos del servicio y sigue arquitectura hexagonal.
+
+### 4 endpoints expuestos
+
+Base URL: `/api/accountCatalogue/copy`
+
+| Método | Ruta | Descripción | Código éxito |
+|--------|------|-------------|--------------|
+| POST | `/phase` | Ejecuta la copia de Account + Tax de `entOrigen` a `entDestino` | 200 |
+| GET | `/{idProceso}/status` | Consulta el estado de una fase ejecutada | 200 |
+| POST | `/{idProceso}/cancel` | Cancela una fase en curso | 200 |
+| DELETE | `/{idProceso}/cleanup` | Elimina registros temporales del proceso | 204 |
+
+**Request `POST /phase`** (contrato canónico — compartido con todos los participantes):
+
+```json
+{
+  "idProceso":        "uuid",
+  "fase":             1,
+  "entOrigen":        "empresa-A",
+  "entDestino":       "empresa-B",
+  "snapshotCorte":    "2026-04-30T00:00:00Z",
+  "equivalenciasPrev": []
+}
+```
+
+**Response `POST /phase`**:
+
+```json
+{
+  "estado":              "COMPLETADO",
+  "registrosProcesados": 42,
+  "equivalenciasGeneradas": [
+    { "modulo": "CATALOGUE", "tabla": "account", "idViejo": "1", "idNuevo": "101" }
+  ],
+  "mensaje":   "Fase completada: 42 cuentas, 5 impuestos copiados",
+  "advertencias": []
+}
+```
+
+### Copia de Account con topological sort (Kahn O(V+E))
+
+El servicio copia todas las `Account` de `entOrigen` con `created_at <= snapshotCorte`
+en **orden topológico** para respetar las FK `parent_id` (padre antes que hijo).
+
+**Algoritmo Kahn (implementado en `KahnTopologicalSort.java`):**
+1. Construir grafo de dependencias por `parent_id`
+2. Calcular in-degree de cada nodo
+3. BFS desde nodos raíz (parent_id = null o sin parent en entOrigen)
+4. Insertar en destino en ese orden; remapear `parent_id` via equivalencias internas
+
+**Casos especiales:**
+- **Ciclo detectado** (A.parent → B, B.parent → A): retorna `ERROR_NO_REINTENTABLE`
+- **Padre faltante** (parent_id no existe en entOrigen): inserta con `parent_id=null` + advertencia
+
+### Copia de Tax con FK Account remapeada
+
+Después de copiar todas las Account, el servicio copia los `Tax` de `entOrigen`
+remapeando `salesTax` y `purchaseTax` con las equivalencias internas generadas.
+
+- FK resuelta → Tax insertado con el nuevo ID de Account en destino
+- FK no resuelta → Tax insertado con `salesTax=null` / `purchaseTax=null` + advertencia
+
+### Tenant override programático
+
+El bounded context fuerza `tenantId = entDestino` en cada INSERT,
+ignorando el `tenantId` del JWT entrante. Mecanismo:
+
+```
+ProgrammaticTenantContextHolder.setOverride(entDestino)
+    try {
+        // INSERT Account con tenantId=entDestino
+    } finally {
+        ProgrammaticTenantContextHolder.clear()
+    }
+```
+
+`CopyAwareTenantResolver` (anotado `@Primary`) implementa `CurrentTenantIdentifierResolver`
+y verifica el ThreadLocal antes de resolver el tenant del JWT.
+
+### Idempotencia via `copy_job_log`
+
+La tabla `copy_job_log` tiene constraint `UNIQUE(id_proceso, fase, modulo)`.
+Si el orquestador re-invoca `POST /phase` con el mismo `(idProceso, fase)`,
+el servicio detecta el registro existente y retorna el resultado previo sin re-ejecutar.
+
+### Schema delta (Hito 2)
+
+```sql
+-- Columnas added (no destructivo, solo agrega con DEFAULT):
+ALTER TABLE account ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT NOW();
+ALTER TABLE tax     ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT NOW();
+
+-- Tabla nueva para idempotencia y estado de fases:
+CREATE TABLE copy_job_log (
+    id           UUID PRIMARY KEY,
+    id_proceso   UUID NOT NULL,
+    fase         INT  NOT NULL,
+    modulo       VARCHAR(64) NOT NULL,
+    estado       VARCHAR(32) NOT NULL,
+    resultado_json TEXT,
+    creado_en    TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(id_proceso, fase, modulo)
+);
+```
+
+### Cómo habilitar el bounded context `copy`
+
+```yaml
+app:
+  copy:
+    participant:
+      enabled: true
+      security:
+        require-internal-permission: true
+```
+
+Con `enabled=false`, los endpoints `/api/accountCatalogue/copy/**` no se registran (404).
+
+### Cómo correr los tests del bounded context
+
+```bash
+# Solo tests del bounded context copy
+./mvnw test -Dtest="*Copy*"
+
+# Suite completa
+./mvnw test
+
+# Con reporte de cobertura (copy.application >= 80%, copy.domain >= 90%)
+./mvnw clean test jacoco:report
+```
+
+---
+
 **Nota**: Este microservicio representa el corazón del sistema contable CONTAPP, manejando el catálogo completo de cuentas, el procesamiento de asientos contables, y toda la infraestructura financiera. Su arquitectura modular permite escalabilidad independiente por dominio y facilita el mantenimiento de reglas contables complejas.

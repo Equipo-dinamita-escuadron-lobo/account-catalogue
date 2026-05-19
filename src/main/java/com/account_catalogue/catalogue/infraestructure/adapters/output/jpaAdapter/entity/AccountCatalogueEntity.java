@@ -1,6 +1,7 @@
 package com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.entity;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import org.hibernate.annotations.Formula;
@@ -87,5 +88,10 @@ public class AccountCatalogueEntity {
     @Column(name = "usage_count", nullable = false)
     @Builder.Default
     private Integer usageCount = 0;
+
+    /** Fecha de creación del registro. Usada para filtro de snapshot en copia. */
+    @Column(name = "created_at", updatable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    @Builder.Default
+    private Instant createdAt = Instant.now();
 
 }

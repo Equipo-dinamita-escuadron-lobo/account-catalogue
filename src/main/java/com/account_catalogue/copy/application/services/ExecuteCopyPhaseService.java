@@ -1,5 +1,8 @@
 package com.account_catalogue.copy.application.services;
 
+import com.account_catalogue.catalogue.domain.enums.ClassificationEnum;
+import com.account_catalogue.catalogue.domain.enums.FinancialStatusEnum;
+import com.account_catalogue.catalogue.domain.enums.NatureEnum;
 import com.account_catalogue.catalogue.infraestructure.adapters.output.jpaAdapter.entity.AccountCatalogueEntity;
 import com.account_catalogue.commons.multitenancy.utils.TenantContext;
 import com.account_catalogue.copy.application.input.IExecuteCopyPhasePort;
@@ -40,6 +43,15 @@ public class ExecuteCopyPhaseService implements IExecuteCopyPhasePort {
 
     @Override
     public CopyPhaseResponseDto ejecutar(CopyPhaseRequestDto request) {
+        // Modo RESTORE: importar datos desde backup
+        if (request.getDatosImportados() != null) {
+            return ejecutarImportacion(request);
+        }
+        // Modo BACKUP: exportar datos de la empresa origen
+        if (request.getEntDestino() == null || request.getEntDestino().isBlank()) {
+            return ejecutarExportacion(request);
+        }
+
         // Validación básica: entOrigen != entDestino
         if (request.getEntOrigen().equals(request.getEntDestino())) {
             return CopyPhaseResponseDto.builder()
@@ -68,7 +80,6 @@ public class ExecuteCopyPhaseService implements IExecuteCopyPhasePort {
                 .fechaInicio(Instant.now())
                 .equivalenciasGeneradas(0)
                 .build();
-        logRepo.guardar(logInicio);
 
         // Limpiar el mapper para esta ejecución
         equivalenceMapper.limpiar();
@@ -105,6 +116,7 @@ public class ExecuteCopyPhaseService implements IExecuteCopyPhasePort {
 
             List<CopyEquivalenciaDto> equivalencias = equivalenceMapper.toList().stream()
                     .map(eq -> CopyEquivalenciaDto.builder()
+                            .modulo("CATALOGUE")
                             .tabla(eq.getTabla())
                             .idViejo(eq.getIdViejo())
                             .idNuevo(eq.getIdNuevo())
@@ -313,5 +325,286 @@ public class ExecuteCopyPhaseService implements IExecuteCopyPhasePort {
         } catch (Exception e) {
             log.error("Error al registrar fallo de copia: {}", e.getMessage());
         }
+    }
+
+    // ----------------------------------------------------------------
+    // Modo BACKUP: exportar datos de la empresa origen al ZIP
+    // ----------------------------------------------------------------
+    private CopyPhaseResponseDto ejecutarExportacion(CopyPhaseRequestDto request) {
+        log.info("[BACKUP] ejecutarExportacion: entOrigen={}, snapshotCorte={}, tenantContext={}",
+                request.getEntOrigen(), request.getSnapshotCorte(),
+                com.account_catalogue.commons.multitenancy.utils.TenantContext.getTenantId());
+
+        List<AccountCatalogueEntity> cuentas = accountSource
+                .findByEntOrigenBeforeSnapshot(request.getEntOrigen(), request.getSnapshotCorte());
+
+        List<java.util.Map<String, Object>> cuentasMaps = cuentas.stream().map(a -> {
+            java.util.Map<String, Object> m = new java.util.LinkedHashMap<>();
+            m.put("id", a.getId());
+            m.put("code", a.getCode());
+            m.put("description", a.getDescription());
+            m.put("nature", a.getNature() != null ? a.getNature().name() : null);
+            m.put("financialStatus", a.getFinancialStatus() != null ? a.getFinancialStatus().name() : null);
+            m.put("classification", a.getClassification() != null ? a.getClassification().name() : null);
+            m.put("parentId", a.getParent() != null ? a.getParent().getId() : null);
+            m.put("crossing", a.getCrossing());
+            m.put("costCenter", a.getCostCenter());
+            m.put("status", a.getStatus());
+            m.put("amount", a.getAmount());
+            return m;
+        }).collect(Collectors.toList());
+
+        List<TaxEntity> taxes = taxSource
+                .findByEntOrigenBeforeSnapshot(request.getEntOrigen(), request.getSnapshotCorte());
+
+        List<java.util.Map<String, Object>> taxesMaps = taxes.stream().map(t -> {
+            java.util.Map<String, Object> m = new java.util.LinkedHashMap<>();
+            m.put("id", t.getId());
+            m.put("code", t.getCode());
+            m.put("description", t.getDescription());
+            m.put("interest", t.getInterest());
+            m.put("salesTaxAccountId", t.getSalesTax() != null ? t.getSalesTax().getId() : null);
+            m.put("purchaseTaxAccountId", t.getPurchaseTax() != null ? t.getPurchaseTax().getId() : null);
+            m.put("status", t.getStatus());
+            return m;
+        }).collect(Collectors.toList());
+
+        java.util.Map<String, Object> datos = new java.util.LinkedHashMap<>();
+        datos.put("accounts", cuentasMaps);
+        datos.put("taxes", taxesMaps);
+
+        log.info("BACKUP catalogue: {} cuentas, {} taxes exportadas desde empresa {}",
+                cuentasMaps.size(), taxesMaps.size(), request.getEntOrigen());
+
+        return CopyPhaseResponseDto.builder()
+                .estado("COMPLETADO")
+                .registrosProcesados(cuentasMaps.size() + taxesMaps.size())
+                .equivalenciasGeneradas(Collections.emptyList())
+                .mensaje("Modo BACKUP — " + cuentasMaps.size() + " cuentas, " + taxesMaps.size() + " taxes exportadas")
+                .advertencias(Collections.emptyList())
+                .datosExportados(datos)
+                .build();
+    }
+
+    // ----------------------------------------------------------------
+    // Modo RESTORE: importar datos desde backup (datosImportados != null)
+    // ----------------------------------------------------------------
+    @SuppressWarnings("unchecked")
+    private CopyPhaseResponseDto ejecutarImportacion(CopyPhaseRequestDto request) {
+        String idProceso = request.getIdProceso().toString();
+
+        // Idempotencia
+        Optional<CopyJobLog> previo = idempotencyChecker.buscarEjecucionPrevia(idProceso, request.getFase());
+        if (previo.isPresent()) {
+            log.info("Fase {} proceso {} ya ejecutada (RESTORE) — retornando resultado previo", request.getFase(), idProceso);
+            return construirResponseDesdeLog(previo.get());
+        }
+
+        CopyJobLog logInicio = CopyJobLog.builder()
+                .idProceso(request.getIdProceso())
+                .fase(request.getFase())
+                .modulo(MODULO)
+                .estado(CopyJobState.EN_PROCESO)
+                .fechaInicio(Instant.now())
+                .equivalenciasGeneradas(0)
+                .build();
+
+        equivalenceMapper.limpiar();
+        List<String> advertencias = new ArrayList<>();
+
+        java.util.Map<String, Object> datosImportados = (java.util.Map<String, Object>) request.getDatosImportados();
+
+        String tenantOriginal = TenantContext.getTenantId();
+
+        int totalRegistros = 0;
+        try {
+            totalRegistros += importarAccounts(datosImportados, request.getEntDestino(), advertencias);
+            totalRegistros += importarTaxes(datosImportados, request.getEntDestino(), advertencias);
+        } finally {
+            if (tenantOriginal != null) {
+                TenantContext.setTenantId(tenantOriginal);
+            } else {
+                TenantContext.clear();
+            }
+        }
+
+        CopyJobState estadoFinal = advertencias.isEmpty() ? CopyJobState.COMPLETADO : CopyJobState.COMPLETADO_CON_ADVERTENCIAS;
+
+        List<CopyEquivalenciaDto> equivalencias = equivalenceMapper.toList().stream()
+                .map(eq -> CopyEquivalenciaDto.builder()
+                        .modulo("CATALOGUE")
+                        .tabla(eq.getTabla())
+                        .idViejo(eq.getIdViejo())
+                        .idNuevo(eq.getIdNuevo())
+                        .build())
+                .collect(Collectors.toList());
+
+        CopyJobLog logFin = CopyJobLog.builder()
+                .idProceso(request.getIdProceso())
+                .fase(request.getFase())
+                .modulo(MODULO)
+                .estado(estadoFinal)
+                .fechaInicio(logInicio.getFechaInicio())
+                .fechaFin(Instant.now())
+                .equivalenciasGeneradas(equivalencias.size())
+                .build();
+        logRepo.guardar(logFin);
+
+        return CopyPhaseResponseDto.builder()
+                .estado(estadoFinal.name())
+                .registrosProcesados(totalRegistros)
+                .equivalenciasGeneradas(equivalencias)
+                .mensaje("Restore completado: " + totalRegistros + " registros importados")
+                .advertencias(advertencias)
+                .build();
+    }
+
+    // ----------------------------------------------------------------
+    // Importar accounts desde Map (RESTORE)
+    // ----------------------------------------------------------------
+    @SuppressWarnings("unchecked")
+    private int importarAccounts(java.util.Map<String, Object> datos, String entDestino, List<String> advertencias) {
+        List<java.util.Map<String, Object>> accountsList =
+                (List<java.util.Map<String, Object>>) datos.get("accounts");
+        if (accountsList == null || accountsList.isEmpty()) return 0;
+
+        // Ordenar topológicamente con múltiples pasadas: primero raíces, luego hijos
+        List<java.util.Map<String, Object>> pendientes = new ArrayList<>(accountsList);
+        int maxPasadas = accountsList.size() + 1;
+        int pasadas = 0;
+        int copiadas = 0;
+
+        while (!pendientes.isEmpty() && pasadas < maxPasadas) {
+            List<java.util.Map<String, Object>> restantes = new ArrayList<>();
+            for (java.util.Map<String, Object> accountMap : pendientes) {
+                Long originalId = toLong(accountMap.get("id"));
+                Long parentIdOriginal = toLong(accountMap.get("parentId"));
+
+                AccountCatalogueEntity nuevoParent = null;
+                if (parentIdOriginal != null) {
+                    Long nuevoParentId = equivalenceMapper.resolverNuevoId("account", parentIdOriginal);
+                    if (nuevoParentId == null) {
+                        restantes.add(accountMap); // padre no procesado aún
+                        continue;
+                    }
+                    nuevoParent = AccountCatalogueEntity.builder().id(nuevoParentId).build();
+                }
+
+                AccountCatalogueEntity nueva = AccountCatalogueEntity.builder()
+                        .code(toString(accountMap.get("code")))
+                        .description(toString(accountMap.get("description")))
+                        .nature(parseEnum(accountMap.get("nature"), NatureEnum.class))
+                        .financialStatus(parseEnum(accountMap.get("financialStatus"), FinancialStatusEnum.class))
+                        .classification(parseEnum(accountMap.get("classification"), ClassificationEnum.class))
+                        .parent(nuevoParent)
+                        .idEnterprise(entDestino)
+                        .tenantId(TenantContext.getTenantId())
+                        .crossing(toBoolean(accountMap.get("crossing")))
+                        .costCenter(toBoolean(accountMap.get("costCenter")))
+                        .status(toBoolean(accountMap.get("status")))
+                        .amount(toBigDecimal(accountMap.get("amount")))
+                        .usageCount(0)
+                        .build();
+
+                AccountCatalogueEntity guardada = accountTarget.guardar(nueva);
+                equivalenceMapper.registrar("account", originalId, guardada.getId());
+                copiadas++;
+            }
+            pendientes = restantes;
+            pasadas++;
+        }
+
+        if (!pendientes.isEmpty()) {
+            advertencias.add("No se pudieron importar " + pendientes.size() + " cuentas (posible ciclo o padre ausente)");
+        }
+        return copiadas;
+    }
+
+    // ----------------------------------------------------------------
+    // Importar taxes desde Map (RESTORE)
+    // ----------------------------------------------------------------
+    @SuppressWarnings("unchecked")
+    private int importarTaxes(java.util.Map<String, Object> datos, String entDestino, List<String> advertencias) {
+        List<java.util.Map<String, Object>> taxesList =
+                (List<java.util.Map<String, Object>>) datos.get("taxes");
+        if (taxesList == null || taxesList.isEmpty()) return 0;
+
+        int copiados = 0;
+        for (java.util.Map<String, Object> taxMap : taxesList) {
+            Long originalId = toLong(taxMap.get("id"));
+
+            AccountCatalogueEntity nuevoSalesTax = resolverFkAccount(
+                    toLong(taxMap.get("salesTaxAccountId")), "salesTax", originalId, advertencias);
+            AccountCatalogueEntity nuevoPurchaseTax = resolverFkAccount(
+                    toLong(taxMap.get("purchaseTaxAccountId")), "purchaseTax", originalId, advertencias);
+
+            TaxEntity nuevo = TaxEntity.builder()
+                    .code(toString(taxMap.get("code")))
+                    .description(toString(taxMap.get("description")))
+                    .interest(toDouble(taxMap.get("interest")))
+                    .salesTax(nuevoSalesTax)
+                    .purchaseTax(nuevoPurchaseTax)
+                    .idEnterprise(entDestino)
+                    .tenantId(TenantContext.getTenantId())
+                    .status(toBoolean(taxMap.get("status")))
+                    .usageCount(0)
+                    .build();
+
+            TaxEntity guardado = taxTarget.guardar(nuevo);
+            equivalenceMapper.registrar("tax", originalId, guardado.getId());
+            copiados++;
+        }
+        return copiados;
+    }
+
+    private AccountCatalogueEntity resolverFkAccount(Long fkId, String campo, Long entidadId, List<String> advertencias) {
+        if (fkId == null) return null;
+        Long nuevoId = equivalenceMapper.resolverNuevoId("account", fkId);
+        if (nuevoId == null) {
+            advertencias.add("Tax " + entidadId + " campo " + campo + " FK account_id=" + fkId + " sin equivalencia; se insertó como null.");
+            return null;
+        }
+        return AccountCatalogueEntity.builder().id(nuevoId).build();
+    }
+
+    // ----------------------------------------------------------------
+    // Helpers de conversión de tipos desde Map
+    // (Jackson deserializa números como Integer o Long según el valor)
+    // ----------------------------------------------------------------
+    private Long toLong(Object val) {
+        if (val == null) return null;
+        if (val instanceof Long l) return l;
+        if (val instanceof Integer i) return i.longValue();
+        if (val instanceof Number n) return n.longValue();
+        return null;
+    }
+
+    private String toString(Object val) {
+        return val != null ? val.toString() : null;
+    }
+
+    private Boolean toBoolean(Object val) {
+        if (val instanceof Boolean b) return b;
+        return false;
+    }
+
+    private Double toDouble(Object val) {
+        if (val == null) return 0.0;
+        if (val instanceof Double d) return d;
+        if (val instanceof Number n) return n.doubleValue();
+        return 0.0;
+    }
+
+    private java.math.BigDecimal toBigDecimal(Object val) {
+        if (val == null) return java.math.BigDecimal.ZERO;
+        if (val instanceof java.math.BigDecimal bd) return bd;
+        if (val instanceof Number n) return java.math.BigDecimal.valueOf(n.doubleValue());
+        return java.math.BigDecimal.ZERO;
+    }
+
+    private <E extends Enum<E>> E parseEnum(Object val, Class<E> enumClass) {
+        if (val == null) return null;
+        try { return Enum.valueOf(enumClass, val.toString()); }
+        catch (Exception e) { return null; }
     }
 }

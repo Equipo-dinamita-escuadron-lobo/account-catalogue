@@ -20,7 +20,7 @@ public interface TaxCopySourceRepository extends JpaRepository<TaxEntity, Long> 
     @Query("SELECT t FROM TaxEntity t " +
            "LEFT JOIN FETCH t.salesTax " +
            "LEFT JOIN FETCH t.purchaseTax " +
-           "WHERE t.idEnterprise = :entOrigen AND t.createdAt <= :snapshotCorte")
+           "WHERE t.idEnterprise = :entOrigen AND (t.createdAt IS NULL OR t.createdAt <= :snapshotCorte)")
     List<TaxEntity> findByEntOrigenBeforeSnapshot(
             @Param("entOrigen") String entOrigen,
             @Param("snapshotCorte") Instant snapshotCorte);

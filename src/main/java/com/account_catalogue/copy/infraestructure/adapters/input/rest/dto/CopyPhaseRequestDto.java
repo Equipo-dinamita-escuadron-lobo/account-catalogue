@@ -31,11 +31,14 @@ public class CopyPhaseRequestDto {
     @NotBlank
     private String entOrigen;
 
-    @NotBlank
     private String entDestino;
 
     @NotNull
     private Instant snapshotCorte;
 
     private List<CopyEquivalenciaDto> equivalenciasPrev;
+
+    /** Datos importados desde backup en modo RESTORE. Null en DUPLICATE y BACKUP. */
+    @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+    private Object datosImportados;
 }

@@ -27,4 +27,8 @@ public class CopyPhaseResponseDto {
     private String mensaje;
 
     private List<String> advertencias;
+
+    /** Datos exportados en modo BACKUP. Null en DUPLICATE y RESTORE. */
+    @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+    private Object datosExportados;
 }

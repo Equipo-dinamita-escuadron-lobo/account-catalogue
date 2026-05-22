@@ -18,7 +18,7 @@ public interface AccountCopySourceRepository extends JpaRepository<AccountCatalo
      * Carga el parent para facilitar el topological sort sin lazy loading.
      */
     @Query("SELECT a FROM AccountCatalogueEntity a LEFT JOIN FETCH a.parent " +
-           "WHERE a.idEnterprise = :entOrigen AND a.createdAt <= :snapshotCorte")
+           "WHERE a.idEnterprise = :entOrigen AND (a.createdAt IS NULL OR a.createdAt <= :snapshotCorte)")
     List<AccountCatalogueEntity> findByEntOrigenBeforeSnapshot(
             @Param("entOrigen") String entOrigen,
             @Param("snapshotCorte") Instant snapshotCorte);

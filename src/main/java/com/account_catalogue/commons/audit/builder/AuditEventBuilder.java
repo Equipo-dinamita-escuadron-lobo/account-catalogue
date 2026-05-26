@@ -10,6 +10,7 @@ import com.account_catalogue.commons.security.IJwtUtils;
 
 import lombok.RequiredArgsConstructor;
 
+//Construir el evento
 @Component
 @RequiredArgsConstructor
 public class AuditEventBuilder {

@@ -34,6 +34,12 @@ class ExecuteCopyPhaseServiceTest {
     @Mock private ITaxSourceRepositoryPort taxSource;
     @Mock private ITaxTargetRepositoryPort taxTarget;
     @Mock private ITopologicalSortPort topoSort;
+    @Mock private IBankSourceRepositoryPort bankSource;
+    @Mock private IBankTargetRepositoryPort bankTarget;
+    @Mock private IBankAccountSourceRepositoryPort bankAccountSource;
+    @Mock private IBankAccountTargetRepositoryPort bankAccountTarget;
+    @Mock private IPaymentMethodSourceRepositoryPort paymentMethodSource;
+    @Mock private IPaymentMethodTargetRepositoryPort paymentMethodTarget;
 
     private ExecuteCopyPhaseService service;
 
@@ -44,7 +50,10 @@ class ExecuteCopyPhaseServiceTest {
         service = new ExecuteCopyPhaseService(
                 logRepo, accountSource, accountTarget,
                 taxSource, taxTarget, topoSort,
-                idempotencyChecker, eqMapper);
+                idempotencyChecker, eqMapper,
+                bankSource, bankTarget,
+                bankAccountSource, bankAccountTarget,
+                paymentMethodSource, paymentMethodTarget);
     }
 
     // ----------------------------------------------------------------

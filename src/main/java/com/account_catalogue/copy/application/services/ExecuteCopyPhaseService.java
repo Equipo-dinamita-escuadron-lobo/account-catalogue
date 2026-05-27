@@ -12,6 +12,11 @@ import com.account_catalogue.copy.domain.exceptions.TopologicalSortCycleExceptio
 import com.account_catalogue.copy.domain.models.CopyJobLog;
 import com.account_catalogue.copy.infraestructure.adapters.input.rest.dto.*;
 import com.account_catalogue.taxes.infraestructure.adapters.output.jpaAdapters.entity.TaxEntity;
+import com.account_catalogue.banks.dataAccess.entity.BankEntity;
+import com.account_catalogue.banks.domain.enums.Currency;
+import com.account_catalogue.bankAccounts.dataAccess.entity.BankAccountEntity;
+import com.account_catalogue.bankAccounts.domain.enums.AccountType;
+import com.account_catalogue.paymentMethods.dataAccess.entity.PaymentMethodEntity;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -40,6 +45,12 @@ public class ExecuteCopyPhaseService implements IExecuteCopyPhasePort {
     private final ITopologicalSortPort topoSort;
     private final CopyJobIdempotencyChecker idempotencyChecker;
     private final EquivalenceMapper equivalenceMapper;
+    private final IBankSourceRepositoryPort bankSource;
+    private final IBankTargetRepositoryPort bankTarget;
+    private final IBankAccountSourceRepositoryPort bankAccountSource;
+    private final IBankAccountTargetRepositoryPort bankAccountTarget;
+    private final IPaymentMethodSourceRepositoryPort paymentMethodSource;
+    private final IPaymentMethodTargetRepositoryPort paymentMethodTarget;
 
     @Override
     public CopyPhaseResponseDto ejecutar(CopyPhaseRequestDto request) {
@@ -99,6 +110,15 @@ public class ExecuteCopyPhaseService implements IExecuteCopyPhasePort {
 
                 // ---- Copiar Taxes ----
                 totalRegistros += copiarTaxes(request, advertencias);
+
+                // ---- Copiar Banks ----
+                totalRegistros += copiarBanks(request, advertencias);
+
+                // ---- Copiar BankAccounts (depende de Banks y Accounts) ----
+                totalRegistros += copiarBankAccounts(request, advertencias);
+
+                // ---- Copiar PaymentMethods (depende de Accounts) ----
+                totalRegistros += copiarPaymentMethods(request, advertencias);
 
             } finally {
                 // Restaurar tenant original (o limpiar si no había)
@@ -369,18 +389,60 @@ public class ExecuteCopyPhaseService implements IExecuteCopyPhasePort {
             return m;
         }).collect(Collectors.toList());
 
+        List<BankEntity> banks = bankSource.findByEntOrigen(request.getEntOrigen());
+        List<java.util.Map<String, Object>> banksMaps = banks.stream().map(b -> {
+            java.util.Map<String, Object> m = new java.util.LinkedHashMap<>();
+            m.put("id", b.getId());
+            m.put("code", b.getCode());
+            m.put("name", b.getName());
+            m.put("currencies", b.getCurrencies() != null
+                    ? b.getCurrencies().stream().map(Enum::name).collect(Collectors.toList())
+                    : Collections.emptyList());
+            m.put("status", b.getStatus());
+            return m;
+        }).collect(Collectors.toList());
+
+        List<BankAccountEntity> bankAccounts = bankAccountSource.findByEntOrigen(request.getEntOrigen());
+        List<java.util.Map<String, Object>> bankAccountsMaps = bankAccounts.stream().map(ba -> {
+            java.util.Map<String, Object> m = new java.util.LinkedHashMap<>();
+            m.put("id", ba.getId());
+            m.put("accountNumber", ba.getAccountNumber());
+            m.put("bankId", ba.getBank() != null ? ba.getBank().getId() : null);
+            m.put("accountType", ba.getAccountType() != null ? ba.getAccountType().name() : null);
+            m.put("accountingAccountId", ba.getAccountingAccount() != null ? ba.getAccountingAccount().getId() : null);
+            m.put("status", ba.getStatus());
+            return m;
+        }).collect(Collectors.toList());
+
+        List<PaymentMethodEntity> paymentMethods = paymentMethodSource.findByEntOrigen(request.getEntOrigen());
+        List<java.util.Map<String, Object>> paymentMethodsMaps = paymentMethods.stream().map(pm -> {
+            java.util.Map<String, Object> m = new java.util.LinkedHashMap<>();
+            m.put("id", pm.getId());
+            m.put("name", pm.getName());
+            m.put("accountingAccountId", pm.getAccountingAccount() != null ? pm.getAccountingAccount().getId() : null);
+            m.put("status", pm.getStatus());
+            return m;
+        }).collect(Collectors.toList());
+
         java.util.Map<String, Object> datos = new java.util.LinkedHashMap<>();
         datos.put("accounts", cuentasMaps);
         datos.put("taxes", taxesMaps);
+        datos.put("banks", banksMaps);
+        datos.put("bankAccounts", bankAccountsMaps);
+        datos.put("paymentMethods", paymentMethodsMaps);
 
-        log.info("BACKUP catalogue: {} cuentas, {} taxes exportadas desde empresa {}",
-                cuentasMaps.size(), taxesMaps.size(), request.getEntOrigen());
+        log.info("BACKUP catalogue: {} cuentas, {} taxes, {} banks, {} bankAccounts, {} paymentMethods exportadas desde empresa {}",
+                cuentasMaps.size(), taxesMaps.size(), banksMaps.size(), bankAccountsMaps.size(),
+                paymentMethodsMaps.size(), request.getEntOrigen());
 
         return CopyPhaseResponseDto.builder()
                 .estado("COMPLETADO")
-                .registrosProcesados(cuentasMaps.size() + taxesMaps.size())
+                .registrosProcesados(cuentasMaps.size() + taxesMaps.size() + banksMaps.size()
+                        + bankAccountsMaps.size() + paymentMethodsMaps.size())
                 .equivalenciasGeneradas(Collections.emptyList())
-                .mensaje("Modo BACKUP — " + cuentasMaps.size() + " cuentas, " + taxesMaps.size() + " taxes exportadas")
+                .mensaje("Modo BACKUP — " + cuentasMaps.size() + " cuentas, " + taxesMaps.size() + " taxes, "
+                        + banksMaps.size() + " banks, " + bankAccountsMaps.size() + " bankAccounts, "
+                        + paymentMethodsMaps.size() + " paymentMethods exportadas")
                 .advertencias(Collections.emptyList())
                 .datosExportados(datos)
                 .build();
@@ -420,6 +482,9 @@ public class ExecuteCopyPhaseService implements IExecuteCopyPhasePort {
         try {
             totalRegistros += importarAccounts(datosImportados, request.getEntDestino(), advertencias);
             totalRegistros += importarTaxes(datosImportados, request.getEntDestino(), advertencias);
+            totalRegistros += importarBanks(datosImportados, request.getEntDestino(), advertencias);
+            totalRegistros += importarBankAccounts(datosImportados, request.getEntDestino(), advertencias);
+            totalRegistros += importarPaymentMethods(datosImportados, request.getEntDestino(), advertencias);
         } finally {
             if (tenantOriginal != null) {
                 TenantContext.setTenantId(tenantOriginal);
@@ -552,6 +617,220 @@ public class ExecuteCopyPhaseService implements IExecuteCopyPhasePort {
 
             TaxEntity guardado = taxTarget.guardar(nuevo);
             equivalenceMapper.registrar("tax", originalId, guardado.getId());
+            copiados++;
+        }
+        return copiados;
+    }
+
+    // ----------------------------------------------------------------
+    // Copiar bancos (directamente entre empresas)
+    // ----------------------------------------------------------------
+    private int copiarBanks(CopyPhaseRequestDto request, List<String> advertencias) {
+        List<BankEntity> banksOrigen = bankSource.findByEntOrigen(request.getEntOrigen());
+        if (banksOrigen.isEmpty()) return 0;
+
+        int copiados = 0;
+        for (BankEntity original : banksOrigen) {
+            BankEntity nuevo = BankEntity.builder()
+                    .code(original.getCode())
+                    .name(original.getName())
+                    .currencies(original.getCurrencies() != null
+                            ? new java.util.HashSet<>(original.getCurrencies())
+                            : new java.util.HashSet<>())
+                    .status(original.getStatus())
+                    .idEnterprise(request.getEntDestino())
+                    .tenantId(request.getEntDestino())
+                    .build();
+
+            BankEntity guardado = bankTarget.guardar(nuevo);
+            equivalenceMapper.registrar("bank", original.getId(), guardado.getId());
+            copiados++;
+        }
+        return copiados;
+    }
+
+    // ----------------------------------------------------------------
+    // Copiar cuentas bancarias (directamente entre empresas)
+    // Ejecutar después de copiarBanks y copiarAccounts
+    // ----------------------------------------------------------------
+    private int copiarBankAccounts(CopyPhaseRequestDto request, List<String> advertencias) {
+        List<BankAccountEntity> origen = bankAccountSource.findByEntOrigen(request.getEntOrigen());
+        if (origen.isEmpty()) return 0;
+
+        int copiados = 0;
+        for (BankAccountEntity original : origen) {
+            BankEntity nuevoBank = remapearFkBank(original.getBank(), original.getId(), advertencias);
+            AccountCatalogueEntity nuevaCuenta = remapearFkAccount(
+                    original.getAccountingAccount(), "accountingAccount", original.getId(), advertencias);
+
+            BankAccountEntity nuevo = BankAccountEntity.builder()
+                    .accountNumber(original.getAccountNumber())
+                    .bank(nuevoBank)
+                    .accountType(original.getAccountType())
+                    .accountingAccount(nuevaCuenta)
+                    .status(original.getStatus())
+                    .idEnterprise(request.getEntDestino())
+                    .tenantId(request.getEntDestino())
+                    .usageCount(0)
+                    .build();
+
+            bankAccountTarget.guardar(nuevo);
+            copiados++;
+        }
+        return copiados;
+    }
+
+    private BankEntity remapearFkBank(BankEntity fkRef, Long bankAccountId, List<String> advertencias) {
+        if (fkRef == null) {
+            advertencias.add("BankAccount " + bankAccountId + " sin banco asociado; se insertó como null.");
+            return null;
+        }
+        Long nuevoId = equivalenceMapper.resolverNuevoId("bank", fkRef.getId());
+        if (nuevoId == null) {
+            advertencias.add("BankAccount " + bankAccountId + " FK bank_id=" + fkRef.getId() + " sin equivalencia; se insertó como null.");
+            return null;
+        }
+        return BankEntity.builder().id(nuevoId).build();
+    }
+
+    // ----------------------------------------------------------------
+    // Importar bancos desde Map (RESTORE)
+    // ----------------------------------------------------------------
+    @SuppressWarnings("unchecked")
+    private int importarBanks(java.util.Map<String, Object> datos, String entDestino, List<String> advertencias) {
+        List<java.util.Map<String, Object>> banksList =
+                (List<java.util.Map<String, Object>>) datos.get("banks");
+        if (banksList == null || banksList.isEmpty()) return 0;
+
+        int copiados = 0;
+        for (java.util.Map<String, Object> bankMap : banksList) {
+            Long originalId = toLong(bankMap.get("id"));
+            List<String> currencyNames = (List<String>) bankMap.get("currencies");
+            java.util.Set<Currency> currencies = currencyNames != null
+                    ? currencyNames.stream()
+                        .map(n -> parseEnum(n, Currency.class))
+                        .filter(java.util.Objects::nonNull)
+                        .collect(Collectors.toCollection(java.util.HashSet::new))
+                    : new java.util.HashSet<>();
+
+            BankEntity nuevo = BankEntity.builder()
+                    .code(toString(bankMap.get("code")))
+                    .name(toString(bankMap.get("name")))
+                    .currencies(currencies)
+                    .status(toBoolean(bankMap.get("status")))
+                    .idEnterprise(entDestino)
+                    .tenantId(TenantContext.getTenantId())
+                    .build();
+
+            BankEntity guardado = bankTarget.guardar(nuevo);
+            equivalenceMapper.registrar("bank", originalId, guardado.getId());
+            copiados++;
+        }
+        return copiados;
+    }
+
+    // ----------------------------------------------------------------
+    // Importar cuentas bancarias desde Map (RESTORE)
+    // Ejecutar después de importarBanks e importarAccounts
+    // ----------------------------------------------------------------
+    @SuppressWarnings("unchecked")
+    private int importarBankAccounts(java.util.Map<String, Object> datos, String entDestino, List<String> advertencias) {
+        List<java.util.Map<String, Object>> bankAccountsList =
+                (List<java.util.Map<String, Object>>) datos.get("bankAccounts");
+        if (bankAccountsList == null || bankAccountsList.isEmpty()) return 0;
+
+        int copiados = 0;
+        for (java.util.Map<String, Object> baMap : bankAccountsList) {
+            Long originalId = toLong(baMap.get("id"));
+
+            Long bankIdOriginal = toLong(baMap.get("bankId"));
+            BankEntity nuevoBank = null;
+            if (bankIdOriginal != null) {
+                Long nuevoId = equivalenceMapper.resolverNuevoId("bank", bankIdOriginal);
+                if (nuevoId == null) {
+                    advertencias.add("BankAccount " + originalId + " FK bank_id=" + bankIdOriginal
+                            + " sin equivalencia; se insertó como null.");
+                } else {
+                    nuevoBank = BankEntity.builder().id(nuevoId).build();
+                }
+            }
+
+            Long accountIdOriginal = toLong(baMap.get("accountingAccountId"));
+            AccountCatalogueEntity nuevaCuenta = resolverFkAccount(
+                    accountIdOriginal, "accountingAccount", originalId, advertencias);
+
+            BankAccountEntity nuevo = BankAccountEntity.builder()
+                    .accountNumber(toLong(baMap.get("accountNumber")))
+                    .bank(nuevoBank)
+                    .accountType(parseEnum(baMap.get("accountType"), AccountType.class))
+                    .accountingAccount(nuevaCuenta)
+                    .status(toBoolean(baMap.get("status")))
+                    .idEnterprise(entDestino)
+                    .tenantId(TenantContext.getTenantId())
+                    .usageCount(0)
+                    .build();
+
+            bankAccountTarget.guardar(nuevo);
+            copiados++;
+        }
+        return copiados;
+    }
+
+    // ----------------------------------------------------------------
+    // Copiar métodos de pago (depende de Accounts)
+    // ----------------------------------------------------------------
+    private int copiarPaymentMethods(CopyPhaseRequestDto request, List<String> advertencias) {
+        List<PaymentMethodEntity> origen = paymentMethodSource.findByEntOrigen(request.getEntOrigen());
+        if (origen.isEmpty()) return 0;
+
+        int copiados = 0;
+        for (PaymentMethodEntity original : origen) {
+            AccountCatalogueEntity nuevaCuenta = remapearFkAccount(
+                    original.getAccountingAccount(), "accountingAccount", original.getId(), advertencias);
+
+            PaymentMethodEntity nuevo = PaymentMethodEntity.builder()
+                    .name(original.getName())
+                    .accountingAccount(nuevaCuenta)
+                    .status(original.getStatus())
+                    .idEnterprise(request.getEntDestino())
+                    .tenantId(request.getEntDestino())
+                    .usageCount(0)
+                    .build();
+
+            paymentMethodTarget.guardar(nuevo);
+            copiados++;
+        }
+        return copiados;
+    }
+
+    // ----------------------------------------------------------------
+    // Importar métodos de pago desde Map (RESTORE)
+    // Ejecutar después de importarAccounts
+    // ----------------------------------------------------------------
+    @SuppressWarnings("unchecked")
+    private int importarPaymentMethods(java.util.Map<String, Object> datos, String entDestino, List<String> advertencias) {
+        List<java.util.Map<String, Object>> paymentMethodsList =
+                (List<java.util.Map<String, Object>>) datos.get("paymentMethods");
+        if (paymentMethodsList == null || paymentMethodsList.isEmpty()) return 0;
+
+        int copiados = 0;
+        for (java.util.Map<String, Object> pmMap : paymentMethodsList) {
+            Long originalId = toLong(pmMap.get("id"));
+
+            Long accountIdOriginal = toLong(pmMap.get("accountingAccountId"));
+            AccountCatalogueEntity nuevaCuenta = resolverFkAccount(
+                    accountIdOriginal, "accountingAccount", originalId, advertencias);
+
+            PaymentMethodEntity nuevo = PaymentMethodEntity.builder()
+                    .name(toString(pmMap.get("name")))
+                    .accountingAccount(nuevaCuenta)
+                    .status(toBoolean(pmMap.get("status")))
+                    .idEnterprise(entDestino)
+                    .tenantId(TenantContext.getTenantId())
+                    .usageCount(0)
+                    .build();
+
+            paymentMethodTarget.guardar(nuevo);
             copiados++;
         }
         return copiados;

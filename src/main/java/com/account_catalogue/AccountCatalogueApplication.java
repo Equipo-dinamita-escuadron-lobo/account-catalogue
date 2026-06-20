@@ -2,8 +2,19 @@ package com.account_catalogue;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+import org.springframework.data.web.config.EnableSpringDataWebSupport;
+import org.springframework.data.web.config.EnableSpringDataWebSupport.PageSerializationMode;
+import org.springframework.scheduling.annotation.EnableAsync;
+
+import com.account_catalogue.commons.config.FileUploadProperties;
 
 @SpringBootApplication
+@EnableDiscoveryClient
+@EnableAsync
+@EnableConfigurationProperties(FileUploadProperties.class)
+@EnableSpringDataWebSupport(pageSerializationMode = PageSerializationMode.VIA_DTO)
 public class AccountCatalogueApplication {
 
 	/**

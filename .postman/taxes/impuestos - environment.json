@@ -1,0 +1,142 @@
+{
+	"id": "7c9b2063-2df4-46dc-9b1f-ee167fc3882d",
+	"name": "environment - impuestos",
+	"values": [
+		{
+			"key": "baseUrlRabbit",
+			"value": "localhost:15672",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "enterpriseId",
+			"value": "d9a1a122-662e-47b4-852e-2769b124e025",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "Username",
+			"value": "guest",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "Password",
+			"value": "guest",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "baseUrl",
+			"value": "localhost:8080",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "keycloakUser",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "keycloakPassword",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "currentUpdateId",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "currentRequestBody",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "currentAccountCode",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "currentAccountLevel",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "currentDeleteId",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "taxId",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "taxCode",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "salesAccountId",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "purchaseAccountId",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "encodedTaxCode",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "createTaxRequestBody",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "updateRequestBody",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "invalidTaxRequestBody",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "nonExistentCode",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "updateTaxBody",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		}
+	],
+	"color": null,
+	"_postman_variable_scope": "environment",
+	"_postman_exported_at": "2025-12-01T23:03:47.361Z",
+	"_postman_exported_using": "Postman/11.73.5"
+}

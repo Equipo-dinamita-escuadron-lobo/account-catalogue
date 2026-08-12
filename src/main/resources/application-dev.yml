@@ -48,6 +48,8 @@ spring:
     password: ${RABBITMQ_PASSWORD:guest}
     connection-timeout: ${RABBITMQ_CONNECTION_TIMEOUT:30000}
     requested-heartbeat: ${RABBITMQ_HEARTBEAT:30}
+    publisher-confirm-type: correlated
+    publisher-returns: true
     # Connection pool
     cache:
       connection:
@@ -123,3 +125,13 @@ management:
     health:
       probes:
         enabled: true
+
+account-catalogue:
+  security:
+    service-token:
+      uri: ${ACCOUNT_CATALOGUE_OAUTH_TOKEN_URI:${JWT_ISSUER_URI:http://localhost:8090/auth/realms/oauth2-realm}/protocol/openid-connect/token}
+      client-id: ${ACCOUNT_CATALOGUE_OAUTH_CLIENT_ID:account-catalogue-service}
+      client-secret: ${ACCOUNT_CATALOGUE_OAUTH_CLIENT_SECRET:}
+    rabbit:
+      expected-audience: ${ACCOUNT_CATALOGUE_RABBIT_AUDIENCE:account-catalogue}
+      allowed-azp: ${ACCOUNT_CATALOGUE_RABBIT_ALLOWED_AZP:treasury-service}

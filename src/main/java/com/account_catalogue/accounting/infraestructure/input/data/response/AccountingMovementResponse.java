@@ -1,5 +1,6 @@
 package com.account_catalogue.accounting.infraestructure.input.data.response;
 
+import java.math.BigDecimal;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,6 +18,6 @@ public class AccountingMovementResponse {
     private Long account; // ID de la cuenta contable
     private Long thirdPartyId;
     private String description;
-    private Long debit;
-    private Long credit;
+    private BigDecimal debit;
+    private BigDecimal credit;
 }

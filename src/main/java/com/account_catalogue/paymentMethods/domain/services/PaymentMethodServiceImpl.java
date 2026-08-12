@@ -130,6 +130,7 @@ public class PaymentMethodServiceImpl implements IPaymentMethodService {
 
         // Guardar el nombre tal como lo ingresó el usuario (sin normalizar)
         current.setName(request.getName());
+        current.setRequiresBankAccount(request.getRequiresBankAccount());
 
         // Actualizar la cuenta contable
         AccountCatalogueEntity accountEntity = new AccountCatalogueEntity();

@@ -28,7 +28,7 @@ public class AccountingMovementEntity {
     @Column(name = "account_id",nullable = false)
     private Long account; // ID de la cuenta en AccountCatalogueEntity
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private Long thirdPartyId;
 
     @Column(length = 255)

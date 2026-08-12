@@ -3,27 +3,22 @@ package com.account_catalogue.accounting.infraestructure.output.messageBroker.li
 import com.account_catalogue.accounting.application.service.TreasuryAccountingService;
 import com.account_catalogue.accounting.domain.models.AccountingEntry;
 import com.account_catalogue.accounting.infraestructure.config.TreasuryRabbitConfig;
-import com.account_catalogue.accounting.infraestructure.output.messageBroker.AccountCatalogueServiceTokenProvider;
 import com.account_catalogue.accounting.infraestructure.output.messageBroker.DTO.AccountingResultEventDto;
 import com.account_catalogue.accounting.infraestructure.output.messageBroker.DTO.PayableWriteOffEventDto;
 import com.account_catalogue.accounting.infraestructure.output.messageBroker.DTO.PaymentVoucherEventDto;
 import com.account_catalogue.accounting.infraestructure.output.messageBroker.DTO.Pp8EventEnvelopeDto;
+import com.account_catalogue.commons.config.aspect.JwtTokenService;
 import com.account_catalogue.commons.multitenancy.utils.TenantContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.LongString;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.util.Collection;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -31,23 +26,14 @@ public class TreasuryAccountingListener {
     private final TreasuryAccountingService service;
     private final ObjectMapper mapper;
     private final RabbitTemplate rabbit;
-    private final JwtDecoder jwtDecoder;
-    private final AccountCatalogueServiceTokenProvider serviceTokens;
-    private final String expectedAudience;
-    private final String allowedAzp;
+    private final JwtTokenService jwtTokenService;
 
     public TreasuryAccountingListener(TreasuryAccountingService service, ObjectMapper mapper,
-            @Qualifier("rabbitTemplate") RabbitTemplate rabbit, JwtDecoder jwtDecoder,
-            AccountCatalogueServiceTokenProvider serviceTokens,
-            @Value("${account-catalogue.security.rabbit.expected-audience:account-catalogue}") String expectedAudience,
-            @Value("${account-catalogue.security.rabbit.allowed-azp:treasury-service}") String allowedAzp) {
+            @Qualifier("rabbitTemplate") RabbitTemplate rabbit, JwtTokenService jwtTokenService) {
         this.service = service;
         this.mapper = mapper;
         this.rabbit = rabbit;
-        this.jwtDecoder = jwtDecoder;
-        this.serviceTokens = serviceTokens;
-        this.expectedAudience = expectedAudience;
-        this.allowedAzp = allowedAzp;
+        this.jwtTokenService = jwtTokenService;
     }
 
     @RabbitListener(queues = TreasuryRabbitConfig.TREASURY_QUEUE,
@@ -56,7 +42,9 @@ public class TreasuryAccountingListener {
         String headerTenant = requiredHeader(message, "x-tenant-id");
         Pp8EventEnvelopeDto envelope = mapper.readValue(
                 new String(message.getBody(), StandardCharsets.UTF_8), Pp8EventEnvelopeDto.class);
-        authenticate(message, headerTenant, envelope);
+        if (!headerTenant.equals(envelope.tenantId())) {
+            throw new SecurityException("Tenant de header y envelope no coincide");
+        }
         TenantContext.setTenantId(headerTenant);
         try {
             process(envelope, headerTenant);
@@ -89,7 +77,7 @@ public class TreasuryAccountingListener {
                         ? service.voidEntry(documentId, documentType)
                         : service.createWriteOff(event);
             } else {
-                throw new IllegalArgumentException("Tipo de evento de TesorerÃ­a no soportado: " + type);
+                throw new IllegalArgumentException("Tipo de evento de Tesorería no soportado: " + type);
             }
             publish(envelope, operation, documentType, documentId, true, entry.getId(), null);
         } catch (IllegalArgumentException functionalError) {
@@ -123,35 +111,16 @@ public class TreasuryAccountingListener {
             message.getMessageProperties().setHeader("eventType", "ACCOUNTING_RESULT");
             message.getMessageProperties().setHeader("tenantId", source.tenantId());
             message.getMessageProperties().setHeader("x-tenant-id", source.tenantId());
-            message.getMessageProperties().setHeader("x-jwt-token", serviceTokens.bearerToken());
+            message.getMessageProperties().setHeader("x-jwt-token", jwtTokenService.getToken());
             return message;
         }, correlation);
         CorrelationData.Confirm confirm = correlation.getFuture().get(5, TimeUnit.SECONDS);
-        if (!confirm.isAck()) throw new IllegalStateException("RabbitMQ rechazÃ³ el resultado contable: " + confirm.getReason());
-        if (correlation.getReturned() != null) throw new IllegalStateException("RabbitMQ retornÃ³ el resultado contable sin ruta");
-    }
-
-    private void authenticate(Message message, String headerTenant, Pp8EventEnvelopeDto envelope) {
-        if (!headerTenant.equals(envelope.tenantId())) throw new SecurityException("Tenant de header y envelope no coincide");
-        String encoded = requiredHeader(message, "x-jwt-token");
-        String token = encoded.startsWith("Bearer ") ? encoded.substring(7) : encoded;
-        Jwt jwt = jwtDecoder.decode(token);
-        if (!allowedAzp.equals(jwt.getClaimAsString("azp"))) throw new SecurityException("azp no autorizado para evento de TesorerÃ­a");
-        List<String> audiences = jwt.getAudience();
-        if (audiences == null || !audiences.contains(expectedAudience)) throw new SecurityException("Audience invÃ¡lida para Contabilidad");
-        Collection<String> tenantIds = stringCollection(jwt.getClaim("tenant_ids"));
-        if (tenantIds.contains("*")) throw new SecurityException("tenant_ids no admite comodines");
-        if (!tenantIds.contains(headerTenant)) throw new SecurityException("Tenant no autorizado por tenant_ids");
+        if (!confirm.isAck()) throw new IllegalStateException("RabbitMQ rechazó el resultado contable: " + confirm.getReason());
+        if (correlation.getReturned() != null) throw new IllegalStateException("RabbitMQ retornó el resultado contable sin ruta");
     }
 
     private void validatePayloadTenant(String expected, String actual) {
         if (!expected.equals(actual)) throw new SecurityException("Tenant de payload inconsistente");
-    }
-
-    private Collection<String> stringCollection(Object claim) {
-        if (claim instanceof Collection<?> values) return values.stream().map(String::valueOf).toList();
-        if (claim instanceof String value && !value.isBlank()) return List.of(value);
-        return List.of();
     }
 
     private String requiredHeader(Message message, String name) {

@@ -1,49 +1,64 @@
 package com.account_catalogue.commons.multitenancy.interceptor;
 
-import com.account_catalogue.commons.multitenancy.utils.TenantContext;
-import java.util.Collection;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.context.request.WebRequestInterceptor;
 
+import com.account_catalogue.commons.multitenancy.utils.TenantContext;
+import com.account_catalogue.commons.security.IJwtUtils;
 @Component
 public class TenantInterceptor implements WebRequestInterceptor {
+
+    @Autowired
+    private IJwtUtils jwtUtils;
+
+    /**
+     * Este método se llama antes de que se llame al controlador, y establece el
+     * identificador de inquilino desde el JWT en el TenantContext.
+     * Utiliza el servicio unificado que maneja tanto contexto HTTP como RabbitMQ.
+     *
+     * @param request La solicitud web
+     * @throws Exception Si no se pudo establecer el identificador de inquilino
+     *                   desde el JWT
+     */
     @Override
-    public void preHandle(WebRequest request) {
-        var authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (!(authentication instanceof JwtAuthenticationToken jwtAuthentication)) {
-            throw new SecurityException("No existe JWT autenticado para establecer tenant");
-        }
-        var jwt = jwtAuthentication.getToken();
-        String requestedTenant = request.getHeader("X-Tenant-ID");
-        if (requestedTenant == null || requestedTenant.isBlank()) {
-            TenantContext.setTenantId(jwt.getSubject());
-            return;
-        }
-        String azp = jwt.getClaimAsString("azp");
-        if (azp != null && azp.endsWith("-service")) {
-            Object claim = jwt.getClaim("tenant_ids");
-            Collection<String> allowed = claim instanceof Collection<?> values
-                    ? values.stream().map(String::valueOf).toList() : java.util.List.of();
-            if (allowed.contains("*") || !allowed.contains(requestedTenant)) {
-                throw new SecurityException("Tenant tecnico no autorizado");
+    public void preHandle(WebRequest request) throws Exception {
+        try {
+            String tenantId = jwtUtils.getId();
+
+            if (tenantId == null || tenantId.trim().isEmpty()) {
+                TenantContext.setTenantId("default");
+            } else {
+                TenantContext.setTenantId(tenantId);
             }
-        } else if (!requestedTenant.equals(jwt.getSubject())) {
-            throw new SecurityException("Tenant HTTP diferente del usuario autenticado");
+        } catch (Exception e) {
+            TenantContext.setTenantId("default");
         }
-        TenantContext.setTenantId(requestedTenant);
     }
 
+    /**
+     * Este metodo se llama después de que se llama al controlador. Borra el
+     * identificador de inquilino del TenantContext.
+     */
     @Override
-    public void postHandle(WebRequest request, ModelMap model) {
-        // The transaction may still be completing.
-    }
-
-    @Override
-    public void afterCompletion(WebRequest request, Exception ex) {
+    public void postHandle(WebRequest request, ModelMap model) throws Exception {
         TenantContext.clear();
+    }
+
+    /**
+     * Este metodo se llama después de que se llama al controlador y
+     * después de que se llama al método postHandle. No hace nada en este
+     * caso, pero se declara para implementar la interfaz WebRequestInterceptor.
+     *
+     * @param request La solicitud web
+     * @param ex      La excepcion lanzada por el controlador, si es que se
+     *               lanza, o null si no se lanzó ninguna excepción
+     * @throws Exception Si se produce un error inesperado
+     */
+    @Override
+    public void afterCompletion(WebRequest request, Exception ex) throws Exception {
+        // No hay nada que hacer aquí
     }
 }

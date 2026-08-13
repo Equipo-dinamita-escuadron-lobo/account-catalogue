@@ -42,6 +42,10 @@ public class PaymentMethodEntity {
     @Column(name = "status", nullable = false)
     private Boolean status;
 
+    @Column(name = "requires_bank_account", nullable = false)
+    @Builder.Default
+    private Boolean requiresBankAccount = false;
+
     @Column(name = "id_enterprise", nullable = false)
     private String idEnterprise;
 

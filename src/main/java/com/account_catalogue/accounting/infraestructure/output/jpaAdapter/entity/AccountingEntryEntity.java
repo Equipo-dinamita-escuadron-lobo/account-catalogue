@@ -18,11 +18,15 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "accounting_entries")
+@Table(name = "accounting_entries", uniqueConstraints = {
+        @UniqueConstraint(name = "uk_accounting_tenant_source_type", columnNames = {"tenant_id", "source_document_id", "type"}),
+        @UniqueConstraint(name = "uk_accounting_tenant_code", columnNames = {"tenant_id", "code"})
+})
 @Getter
 @Setter
 public class AccountingEntryEntity {
@@ -33,7 +37,7 @@ public class AccountingEntryEntity {
     @Column(name = "id_enterprise", nullable = false)
     private String idEnterprise;
 
-    @Column(nullable = false, unique = true, length = 50)
+    @Column(nullable = false, length = 50)
     private String code;
     
     @Column(nullable = false)
@@ -60,5 +64,6 @@ public class AccountingEntryEntity {
     private List<AccountingMovementEntity> movements;
 
     @TenantId
+    @Column(name = "tenant_id", nullable = false, length = 80)
     String tenantId;
 }

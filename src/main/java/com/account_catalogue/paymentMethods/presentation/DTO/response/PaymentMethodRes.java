@@ -19,6 +19,7 @@ public class PaymentMethodRes {
     private String accountingAccount; // Código completo (código - descripción)
     private Long accountingAccountId; // Solo el ID de la cuenta contable
     private Boolean status;
+    private Boolean requiresBankAccount;
     private String idEnterprise;
     private Integer usageCount;
 }

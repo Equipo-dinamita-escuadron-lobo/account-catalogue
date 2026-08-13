@@ -28,4 +28,8 @@ public class PaymentMethodUpdateReq {
 
     @NotNull(message = "El ID de la cuenta contable es obligatorio")
     private Long accountingAccountId;
+
+    @NotNull(message = "Debe indicar si el mÃ©todo exige cuenta bancaria")
+    @Builder.Default
+    private Boolean requiresBankAccount = false;
 }

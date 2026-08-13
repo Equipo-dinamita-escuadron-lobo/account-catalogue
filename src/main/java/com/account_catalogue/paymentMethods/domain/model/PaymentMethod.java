@@ -20,6 +20,8 @@ public class PaymentMethod {
     private String accountingAccount;
     private AccountCatalogue accountingAccountEntity;
     private Boolean status;
+    @Builder.Default
+    private Boolean requiresBankAccount = false;
     private String idEnterprise;
     @Builder.Default
     private Integer usageCount = 0;

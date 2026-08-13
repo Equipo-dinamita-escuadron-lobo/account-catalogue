@@ -28,4 +28,8 @@ public class PaymentMethodCreateReq {
 
     @Builder.Default
     private Boolean status = true;
+
+    @NotNull(message = "Debe indicar si el mÃ©todo exige cuenta bancaria")
+    @Builder.Default
+    private Boolean requiresBankAccount = false;
 }

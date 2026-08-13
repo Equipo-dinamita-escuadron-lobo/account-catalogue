@@ -18,7 +18,7 @@ public class TenantInterceptor implements WebRequestInterceptor {
      * Este método se llama antes de que se llame al controlador, y establece el
      * identificador de inquilino desde el JWT en el TenantContext.
      * Utiliza el servicio unificado que maneja tanto contexto HTTP como RabbitMQ.
-     * 
+     *
      * @param request La solicitud web
      * @throws Exception Si no se pudo establecer el identificador de inquilino
      *                   desde el JWT
@@ -27,7 +27,7 @@ public class TenantInterceptor implements WebRequestInterceptor {
     public void preHandle(WebRequest request) throws Exception {
         try {
             String tenantId = jwtUtils.getId();
-            
+
             if (tenantId == null || tenantId.trim().isEmpty()) {
                 TenantContext.setTenantId("default");
             } else {
@@ -38,7 +38,7 @@ public class TenantInterceptor implements WebRequestInterceptor {
         }
     }
 
-    /**  
+    /**
      * Este metodo se llama después de que se llama al controlador. Borra el
      * identificador de inquilino del TenantContext.
      */
@@ -51,7 +51,7 @@ public class TenantInterceptor implements WebRequestInterceptor {
      * Este metodo se llama después de que se llama al controlador y
      * después de que se llama al método postHandle. No hace nada en este
      * caso, pero se declara para implementar la interfaz WebRequestInterceptor.
-     * 
+     *
      * @param request La solicitud web
      * @param ex      La excepcion lanzada por el controlador, si es que se
      *               lanza, o null si no se lanzó ninguna excepción

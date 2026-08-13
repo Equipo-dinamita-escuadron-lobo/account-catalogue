@@ -89,6 +89,22 @@ class TreasuryAccountingServiceTest {
         verify(entries, never()).save(any());
     }
 
+    @Test
+    void resolvesPayableAccountByIdWhenCodeIsNumericId() {
+        when(accounts.getAccountCatalogueByCode("5219", "enterprise-a")).thenReturn(null);
+        when(accounts.getAccountCatalogueById(5219L, "enterprise-a"))
+                .thenReturn(AccountCatalogue.builder().id(5219L).code("22050501").status(true).build());
+
+        AccountingEntry result = service.createVoucher(new PaymentVoucherEventDto(56L, "CE-56", "enterprise-a",
+                LocalDate.of(2026, 8, 13), "POSTING", 8L, null, new BigDecimal("100.00"), null,
+                "tenant-a",
+                List.of(new PaymentVoucherEventDto.Detail(71L, 501L, "FC-501", 5219L,
+                        "5219", new BigDecimal("100.00")))));
+
+        assertThat(result.getMovements()).hasSize(2);
+        assertThat(result.getMovements().get(0).getAccount()).isEqualTo(5219L);
+    }
+
     private PaymentVoucherEventDto event(BigDecimal total) {
         return new PaymentVoucherEventDto(55L, "CE-55", "enterprise-a",
                 LocalDate.of(2026, 8, 10), "POSTING", 8L, null, total, null,

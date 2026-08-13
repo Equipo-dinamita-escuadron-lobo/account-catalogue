@@ -6,6 +6,7 @@ import com.account_catalogue.accounting.domain.enums.AccountingEntryStatus;
 import com.account_catalogue.accounting.domain.models.*;
 import com.account_catalogue.accounting.infraestructure.output.messageBroker.DTO.*;
 import com.account_catalogue.catalogue.application.output.IAccountCatalogueSearchOutputPort;
+import com.account_catalogue.catalogue.domain.models.AccountCatalogue;
 import com.account_catalogue.paymentMethods.dataAccess.repository.PaymentMethodRepository;
 import com.account_catalogue.bankAccounts.dataAccess.repository.BankAccountRepository;
 import lombok.RequiredArgsConstructor;
@@ -32,8 +33,7 @@ public class TreasuryAccountingService {
         if(!requiresBank&&event.bankAccountId()!=null)throw new IllegalArgumentException("El metodo de pago no admite cuenta bancaria");
         List<AccountingMovement> movements=new ArrayList<>();BigDecimal debits=BigDecimal.ZERO;
         for(var detail:event.details()){
-            var account=accounts.getAccountCatalogueByCode(detail.payableAccountCode(),event.enterpriseId());
-            if(account==null||!Boolean.TRUE.equals(account.getStatus())||!account.getId().equals(detail.payableAccountId()))throw new IllegalArgumentException("Cuenta por pagar inválida");
+            var account=resolvePayableAccount(detail.payableAccountId(), detail.payableAccountCode(), event.enterpriseId());
             movements.add(AccountingMovement.builder().account(account.getId()).thirdPartyId(detail.supplierId()).debit(detail.amountPaid()).credit(BigDecimal.ZERO).description("Pago factura "+detail.invoiceReference()).build());debits=debits.add(detail.amountPaid());
         }
         if(debits.compareTo(event.total())!=0)throw new IllegalArgumentException("El asiento no está balanceado con el total del comprobante");
@@ -59,4 +59,21 @@ public class TreasuryAccountingService {
     }
 
     @Transactional public AccountingEntry voidEntry(Long id,String type){var entry=search.findBySourceDocumentIdAndType(id,type).orElseThrow(()->new IllegalArgumentException("Asiento no encontrado"));if(entry.getStatus()!=AccountingEntryStatus.VOIDED){balances.reverseBalancesFromAccountingEntry(entry);entry.voidEntry();entry=entries.save(entry);}return entry;}
+
+    private AccountCatalogue resolvePayableAccount(Long accountId, String accountCode, String enterpriseId) {
+        AccountCatalogue account = null;
+        if (accountCode != null && !accountCode.isBlank()) {
+            account = accounts.getAccountCatalogueByCode(accountCode, enterpriseId);
+        }
+        if ((account == null || !Boolean.TRUE.equals(account.getStatus())) && accountId != null) {
+            account = accounts.getAccountCatalogueById(accountId, enterpriseId);
+        }
+        if (account == null || !Boolean.TRUE.equals(account.getStatus())) {
+            throw new IllegalArgumentException("Cuenta por pagar inválida");
+        }
+        if (accountId != null && !account.getId().equals(accountId)) {
+            throw new IllegalArgumentException("Cuenta por pagar inválida");
+        }
+        return account;
+    }
 }

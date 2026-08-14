@@ -105,6 +105,33 @@ class TreasuryAccountingServiceTest {
         assertThat(result.getMovements().get(0).getAccount()).isEqualTo(5219L);
     }
 
+    @Test
+    void createWriteOffUsesPayableDebitAndCounterpartCredit() {
+        when(search.findBySourceDocumentIdAndType(12L, "PAYABLE_WRITEOFF")).thenReturn(Optional.empty());
+        when(accounts.getAccountCatalogueById(4295L, "enterprise-a"))
+                .thenReturn(AccountCatalogue.builder().id(4295L).code("429501").status(true).build());
+        when(accounts.getAccountCatalogueByCode("220501", "enterprise-a"))
+                .thenReturn(AccountCatalogue.builder().id(2205L).code("220501").status(true).build());
+
+        var event = new com.account_catalogue.accounting.infraestructure.output.messageBroker.DTO.PayableWriteOffEventDto(
+                12L, "enterprise-a", "condonacion", 4295L, "429501", new BigDecimal("200.00"), "tenant-a",
+                List.of(new com.account_catalogue.accounting.infraestructure.output.messageBroker.DTO.PayableWriteOffEventDto.Detail(
+                        7L, 11L, 2205L, "220501", new BigDecimal("200.00"))));
+
+        AccountingEntry result = service.createWriteOff(event);
+
+        assertThat(result.getMovements()).hasSize(2);
+        assertThat(result.getMovements().get(0).getAccount()).isEqualTo(2205L);
+        assertThat(result.getMovements().get(0).getDebit()).isEqualByComparingTo("200.00");
+        assertThat(result.getMovements().get(0).getCredit()).isZero();
+        assertThat(result.getMovements().get(1).getAccount()).isEqualTo(4295L);
+        assertThat(result.getMovements().get(1).getCredit()).isEqualByComparingTo("200.00");
+        assertThat(result.getMovements().stream().map(m -> m.getDebit())
+                .reduce(BigDecimal.ZERO, BigDecimal::add)).isEqualByComparingTo("200.00");
+        assertThat(result.getMovements().stream().map(m -> m.getCredit())
+                .reduce(BigDecimal.ZERO, BigDecimal::add)).isEqualByComparingTo("200.00");
+    }
+
     private PaymentVoucherEventDto event(BigDecimal total) {
         return new PaymentVoucherEventDto(55L, "CE-55", "enterprise-a",
                 LocalDate.of(2026, 8, 10), "POSTING", 8L, null, total, null,

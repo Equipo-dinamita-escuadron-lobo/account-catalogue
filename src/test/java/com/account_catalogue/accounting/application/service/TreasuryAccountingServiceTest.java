@@ -11,7 +11,10 @@ import static org.mockito.Mockito.when;
 import com.account_catalogue.accounting.application.input.IAccountBalanceUpdateInputPort;
 import com.account_catalogue.accounting.application.output.IAccountingEntryPersistenceOutputPort;
 import com.account_catalogue.accounting.application.output.IAccountingSearchOutputPort;
+import com.account_catalogue.accounting.domain.enums.AccountingEntryStatus;
 import com.account_catalogue.accounting.domain.models.AccountingEntry;
+import com.account_catalogue.accounting.domain.models.AccountingMovement;
+import com.account_catalogue.accounting.infraestructure.output.messageBroker.DTO.PayableWriteOffEventDto;
 import com.account_catalogue.accounting.infraestructure.output.messageBroker.DTO.PaymentVoucherEventDto;
 import com.account_catalogue.bankAccounts.dataAccess.repository.BankAccountRepository;
 import com.account_catalogue.catalogue.application.output.IAccountCatalogueSearchOutputPort;
@@ -130,6 +133,69 @@ class TreasuryAccountingServiceTest {
                 .reduce(BigDecimal.ZERO, BigDecimal::add)).isEqualByComparingTo("200.00");
         assertThat(result.getMovements().stream().map(m -> m.getCredit())
                 .reduce(BigDecimal.ZERO, BigDecimal::add)).isEqualByComparingTo("200.00");
+    }
+
+    @Test
+    void paymentDebitsObligationAccountAndCreditsConfiguredPaymentAccount() {
+        AccountingEntry result = service.createVoucher(new PaymentVoucherEventDto(57L, "CE-57", "enterprise-a",
+                LocalDate.of(2026, 8, 18), "POSTING", 8L, null, new BigDecimal("100000"), null,
+                "tenant-a", List.of(new PaymentVoucherEventDto.Detail(71L, 501L, "FC-501", 2205L,
+                        "2205", new BigDecimal("100000")))));
+
+        assertThat(result.getMovements()).hasSize(2);
+        assertThat(result.getMovements().get(0).getAccount()).isEqualTo(2205L);
+        assertThat(result.getMovements().get(0).getDebit()).isEqualByComparingTo("100000");
+        assertThat(result.getMovements().get(0).getCredit()).isZero();
+        assertThat(result.getMovements().get(1).getAccount()).isEqualTo(1105L);
+        assertThat(result.getMovements().get(1).getDebit()).isZero();
+        assertThat(result.getMovements().get(1).getCredit()).isEqualByComparingTo("100000");
+    }
+
+    @Test
+    void writeOffResolvesPayableByIdAndCreditsCounterpart() {
+        when(search.findBySourceDocumentIdAndType(58L, "PAYABLE_WRITEOFF")).thenReturn(Optional.empty());
+        when(accounts.getAccountCatalogueById(4295L, "enterprise-a"))
+                .thenReturn(AccountCatalogue.builder().id(4295L).code("429501").status(true).build());
+        when(accounts.getAccountCatalogueByCode("5219", "enterprise-a")).thenReturn(null);
+        when(accounts.getAccountCatalogueById(5219L, "enterprise-a"))
+                .thenReturn(AccountCatalogue.builder().id(5219L).code("22050501").status(true).build());
+
+        AccountingEntry result = service.createWriteOff(new PayableWriteOffEventDto(58L, "enterprise-a",
+                "Condonación", 4295L, "429501", new BigDecimal("100000"), "tenant-a",
+                List.of(new PayableWriteOffEventDto.Detail(71L, 501L, 5219L, "5219",
+                        new BigDecimal("100000")))));
+
+        assertThat(result.getMovements()).hasSize(2);
+        assertThat(result.getMovements().get(0).getAccount()).isEqualTo(5219L);
+        assertThat(result.getMovements().get(0).getDebit()).isEqualByComparingTo("100000");
+        assertThat(result.getMovements().get(1).getAccount()).isEqualTo(4295L);
+        assertThat(result.getMovements().get(1).getCredit()).isEqualByComparingTo("100000");
+        verify(methods, never()).findByIdAndIdEnterprise(any(), any());
+        verify(banks, never()).findByIdAndIdEnterprise(any(), any());
+    }
+
+    @Test
+    void voidKeepsOriginalAccountsAndAmountsForHistoricalQuery() {
+        AccountingEntry original = AccountingEntry.builder()
+                .id(59L)
+                .status(AccountingEntryStatus.ACTIVE)
+                .movements(List.of(
+                        AccountingMovement.builder().account(2205L).debit(new BigDecimal("100000"))
+                                .credit(BigDecimal.ZERO).build(),
+                        AccountingMovement.builder().account(4295L).debit(BigDecimal.ZERO)
+                                .credit(new BigDecimal("100000")).build()))
+                .build();
+        when(search.findBySourceDocumentIdAndType(58L, "PAYABLE_WRITEOFF")).thenReturn(Optional.of(original));
+
+        AccountingEntry result = service.voidEntry(58L, "PAYABLE_WRITEOFF");
+
+        assertThat(result.getStatus()).isEqualTo(AccountingEntryStatus.VOIDED);
+        assertThat(result.getMovements()).extracting(AccountingMovement::getAccount)
+                .containsExactly(2205L, 4295L);
+        assertThat(result.getMovements().get(0).getDebit()).isEqualByComparingTo("100000");
+        assertThat(result.getMovements().get(1).getCredit()).isEqualByComparingTo("100000");
+        verify(balances).reverseBalancesFromAccountingEntry(original);
+        verify(entries).save(original);
     }
 
     private PaymentVoucherEventDto event(BigDecimal total) {
